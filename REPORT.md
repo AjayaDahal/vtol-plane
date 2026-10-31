@@ -12,6 +12,55 @@ building, printing, and flying. Nothing in the "fixed" columns is a
 promise that the plane flies — it is a statement that the CAD,
 slicing, and paperwork no longer contain that defect.
 
+## 0. Review round 4 — independent audit (Oct 31, 2026)
+
+Rounds 1–3 below ended with "no known open issues". An independent
+audit found that claim false: several round-1 fixes are themselves
+wrong. Method: every STL was measured (cross-sections, ray-cast
+point-in-mesh tests), the G-code was parsed (masses, settings,
+left/right outline handedness), and the docs were checked against
+the reference they claim to follow (Flightory Stallion VTOL manual
+V2) and the Emax ECOII 2807 datasheet. Status column is updated as
+fixes land; "open" means the v0.1 files still have the defect.
+
+### P0 — blockers (parts don't fit or the aircraft can't fly)
+
+| # | Finding | Evidence | Status |
+|---|---|---|---|
+| 4.1 | Rear motor points backwards and its socket barely engages. | `rear_mount()` puts the motor plate normal to the socket axis, so the shaft lies along the fuselage (a pusher); a tilt-rotor tricopter's fixed rear motor is a vertical lift motor. The cavity is a constant 19×29 box, but the tail cone grows 0.245 mm per mm going forward, so the tail enters only ~4 mm (finding 1.1 claimed 30 mm). | open |
+| 4.2 | Both printers print the same-handed wing: two LEFT wings. | `slice_all.sh` slices the same `wing_*.stl` for S1 and X; G-code outline handedness is identical on both (the V-tail L/R pair, correctly mirrored, was the control). | open |
+| 4.3 | Wing has no structural load path. | Vase mode prints only a skin: no spar tubes, ribs or webs, so the spars touch nothing (root is 25.7 mm thick) and have nothing to bond to. Spars stop at each root and no wing-to-fuselage joint exists; root bending (~3.5 N·m hover, ~7–8 N·m at 3 g) has no path across the fuselage. | open |
+| 4.4 | No ailerons anywhere. | DESIGN/BOM list two aileron servos; no part has an aileron, hinge or servo bay. No roll control in fixed-wing flight. | open |
+| 4.5 | Tilt nacelle can't be assembled. | Motor holes are blind (cut Y 30–36; 4 mm of wall left between hole and cavity). Pattern 16×16 mm, Emax ECOII 2807 is 19×19 mm. Plate+wall = 10 mm, so the M3×6 screws can't reach the motor. Pod sweeps a 41.2 mm radius but brackets reach ±25 mm; bracket bolts go into a "spar box" that doesn't exist; no tilt servo mount; 4 bearings needed (BOM: 2). | open |
+| 4.6 | Hover thrust split never computed. | With the tilt axis at the LE (x≈335–380), CG 430 and a rear motor at the tail, the rear carries only 8–15% of weight; each front motor lifts 790–865 g (61–67% of max), not 630 g. Finding 1.10 deleted the booms, but the Stallion uses front booms exactly to fix this. | open |
+| 4.7 | Fuselage sleeves don't fit the tapered fuselage. | `sleeve_720` uses the x=600 size (96×106 inner over a 70×80 fuselage = 13 mm gap per side). `sleeve_480` jams at x≈472 (8 mm engagement on one side). `sleeve_240`: nose tapers away, 3.6 mm/side gap, so "friction fit" is false. | open |
+| 4.8 | V-tail can't be attached or driven. | Vase mode drops the pivot hole; the 3 mm rod floats in a 21 mm-thick root. Horn prints as a hollow 0.42 mm LW-PLA bump. Rod has no axial retention. Pivot at x=45 is 8 mm (5.4% MAC) aft of the AC (x≈37): divergent, flutter-prone. Tips open. | open |
+| 4.9 | `fuse_1` prints nose-down. | `print_ready/fuse_1.stl` stands 240 mm tall on a 12×12 mm footprint. | open |
+
+### P1 — wrong numbers and guidance
+
+| # | Finding | Status |
+|---|---|---|
+| 4.10 | Premortem #1 target of 65–80 g per wing section is ~3× too high; slicer says root 24.5 g, mid 21.7 g, tip 18.1 g. Chasing 65–80 g would triple the flow. | open |
+| 4.11 | Printed mass is ~534 g (LW-PLA 236 g + PETG 297 g from G-code), not 730 g; AUW differs between DESIGN (1880 g) and REPORT (1921 g). | open |
+| 4.12 | Nacelle station (437 mm from root) sits 3 mm from the mid/tip glue joint. | open |
+| 4.13 | Fuselage joint at x=480 falls inside the wing root chord. | open |
+| 4.14 | FC sits on the loose battery tray; tray has no fore-aft stop. | open |
+| 4.15 | PX4 guide puts motors on MAIN1–3 (IO outputs on the 6C, no DShot) while saying DShot on FMU; no per-motor spin direction; tilt range 0–90° can't do vectored yaw (Stallion: 15° yaw tilt). | open |
+| 4.16 | Tilt servo load (2.4) ignores gyroscopic and in-plane prop loads; realistic peaks ~1–2 kg·cm, not 0.15. | open |
+| 4.17 | Stall assumes CLmax 1.2; a 3-D wing at Re≈1.2e5 is more like 1.0–1.1 (stall ≈10.2–10.7 m/s). | open |
+| 4.18 | "Clark Y" generator puts the LE on the flat bottom line (sharp lower nose); not a Clark Y. | open |
+| 4.19 | Pure-Python STLs have inverted/mixed triangle winding (e.g. `wing_root` signed volume −309k mm³ vs ≈+765k). | open |
+| 4.20 | PETG profile has supports off; nacelle bosses and servo arm start in mid-air. | open |
+
+### P2 — documentation
+
+| # | Finding | Status |
+|---|---|---|
+| 4.21 | BOM: bearings 4 not 2; 1 rear motor mount not 3; booms listed but deleted from tracker; inserts unused; joiners, aileron hardware, collars, clips, shaft length, V-tail tip caps, pitot mount missing. | open |
+| 4.22 | SLICING.md stale (3 bottom layers, 20 files, `vtail_panel`, "booms remaining"); tracker omits ailerons; `tail_panel.py` obsolete; no script records the wing/fuselage generator arguments. | open |
+| 4.23 | Section 6 "no known open issues" is retracted; findings 1.1, 1.5, 1.10, 2.4, 2.6 are reopened by 4.1, 4.7, 4.6, 4.16 and 4.6. | open |
+
 ## 1. What was built before this review
 
 - 12 original STLs: 3 wing sections per side (root/mid/tip), 4

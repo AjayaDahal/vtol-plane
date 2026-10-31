@@ -9,15 +9,18 @@ CLI gets every value in one file.
 
 Outputs (in ../slicer_profiles/):
   machine_kobra_s1.json, machine_kobra_x.json
-  process_standard.json, process_lwpla_vase.json
-  process_petg.json, process_petg_solid.json (100% infill, motor mounts)
+  process_standard.json, process_lwpla_vase.json, process_lwpla_vase_x.json
+  process_petg.json, process_petg_support.json (tree supports, build plate only)
   filament_lwpla.json, filament_petg.json
+
+The base files need the OrcaSlicer Anycubic presets (set ORCA_PRESETS); the PETG
+variants are always re-derived from the committed process_standard.json.
 """
 import json
 import os
 import sys
 
-PRESETS = "/home/hatch/workspace/tools/squashfs-root/resources/profiles/Anycubic"
+PRESETS = os.environ.get("ORCA_PRESETS", "/home/hatch/workspace/tools/squashfs-root/resources/profiles/Anycubic")
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "slicer_profiles")
 
 
@@ -52,8 +55,11 @@ def main():
     # Machines
     write("machine_kobra_s1.json",
           merged("machine", "Anycubic Kobra S1 0.4 nozzle.json"))
-    write("machine_kobra_x.json",
-          merged("machine", "Anycubic Kobra X 0.4 nozzle.json"))
+    # The stock X preset has 0 here; Anycubic Slicer Next 1.3.3.3 (Windows) rejects any
+    # value outside 10-18 even with long retraction on cut disabled.
+    mx = merged("machine", "Anycubic Kobra X 0.4 nozzle.json")
+    mx["retraction_distances_when_cut"] = ["18"]
+    write("machine_kobra_x.json", mx)
 
     # Process: standard baseline, then variants. Process presets carry a
     # compatible_printers field, so each printer needs variants derived
@@ -84,21 +90,6 @@ def main():
     vase_x["name"] = "LW-PLA vase mode @VTOL (X)"
     write("process_lwpla_vase_x.json", vase_x)
 
-    petg = dict(std)
-    petg.update({
-        "name": "PETG structural @VTOL",
-        "wall_loops": "3",
-        "sparse_infill_density": "20%",
-    })
-    write("process_petg.json", petg)
-
-    solid = dict(petg)
-    solid.update({
-        "name": "PETG solid @VTOL (motor mounts)",
-        "sparse_infill_density": "100%",
-    })
-    write("process_petg_solid.json", solid)
-
     # Filaments
     pla = merged("filament", "Anycubic Generic PLA.json")
     lwpla = dict(pla)
@@ -118,5 +109,21 @@ def main():
     write("filament_petg.json", petg_fil)
 
 
+def petg_variants():
+    with open(os.path.join(OUT, "process_standard.json")) as f:
+        std = json.load(f)
+    petg = dict(std)
+    petg.update({"name": "PETG structural @VTOL", "wall_loops": "3", "sparse_infill_density": "15%"})
+    write("process_petg.json", petg)
+    sup = dict(petg)
+    sup.update({"name": "PETG structural + supports @VTOL", "enable_support": "1",
+                "support_type": "tree(auto)", "support_on_build_plate_only": "1"})
+    write("process_petg_support.json", sup)
+
+
 if __name__ == "__main__":
-    main()
+    if os.path.isdir(PRESETS):
+        main()
+    else:
+        print(f"Orca presets not found at {PRESETS}; keeping the committed base profiles")
+    petg_variants()

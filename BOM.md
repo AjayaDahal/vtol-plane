@@ -1,23 +1,32 @@
-# VTOL Plane — Bill of Materials (v0.1)
+# VTOL Plane — Bill of Materials (v0.2)
 
 Quantities for one airframe. Prices intentionally left out — verify at
-purchase time; nothing here is ordered yet.
+purchase time; nothing here is ordered yet. Every printed part is listed
+with its printer and status in `tracker.md`; masses are in `DESIGN.md`.
 
 ## Printed parts
 
 | Part | Qty | Material | Notes |
 |---|---|---|---|
-| Wing root section | 2 (L+R mirrored) | LW-PLA | vase mode |
-| Wing mid section | 2 (L+R mirrored) | LW-PLA | vase mode |
-| Wing tip section | 2 (L+R mirrored) | LW-PLA | vase mode |
-| Fuselage sections 1–4 | 1 each | LW-PLA | vase mode |
-| V-tail panel | 2 (mirrored) | LW-PLA | vase mode |
-| Tilt nacelle | 2 | PETG | 3 walls, 20% infill |
-| Motor mount | 3 | PETG | 100% infill |
-| Wing boom (tilt) | 2 | PETG | 3 walls, 20% infill |
-| Servo doors, FC mount | set | PETG | brass inserts |
+| Fuselage sections `fuse_1`..`fuse_4` | 1 each | LW-PLA vase | `fuse_1` is the removable nose |
+| Wing sections root / mid / tip | 1 L + 1 R each | LW-PLA vase | L and R are mirror images (different files) |
+| Ailerons mid / tip | 1 L + 1 R each | LW-PLA vase | one servo per aileron |
+| V-tail panels | 1 L + 1 R | LW-PLA vase | fixed panels |
+| Ruddervators | 1 L + 1 R | LW-PLA vase | |
+| Wing ribs root / mid-tip / tip | 1 L + 1 R each | PETG | spigots slide into the skins, spar bosses |
+| Boom rib | 1 L + 1 R | PETG | between root and mid sections, both spars pass through |
+| Boom pod | 1 L + 1 R | PETG + supports | tilt-servo bay and axle boss |
+| Tilt yoke (motor mount) | 1 L + 1 R | PETG | 19×19 mm motor pattern |
+| Couplers 240 / 370 / 610 | 1 each | PETG | 610 carries the tail-boom web |
+| Frames main / rear | 1 each | PETG | joiner sleeves at the spar stations |
+| FC shelf, battery tray, pod collar | 1 each | PETG | |
+| Rear motor mount | 1 | PETG + supports | clamps the tail boom, vertical thrust |
+| Tail block | 1 | PETG | carries both V-tail panels |
+| V-tail root rib, V-tail tip cap | 2 each | PETG | same file for L and R |
+| Servo cage, control horn | 6 each | PETG | 4 ailerons + 2 ruddervators |
 
-Filament estimate (until sliced): LW-PLA ~700–900 g, PETG ~200–300 g.
+Filament (from the sliced G-code, see `DESIGN.md`): LW-PLA ~270 g,
+PETG ~350 g including supports.
 
 ## Electronics
 
@@ -26,35 +35,43 @@ Filament estimate (until sliced): LW-PLA ~700–900 g, PETG ~200–300 g.
 | Flight controller, Pixhawk 6C | 1 | PX4 tilt-rotor VTOL |
 | GPS + compass module (M10 class) | 1 | mount away from power wiring |
 | Digital airspeed sensor (MS4525DO class) | 1 | PX4 transitions use airspeed |
-| Pitot tube for airspeed sensor | 1 | was missing from the BOM entirely — transitions are blind without it |
-| Motor, 2807 1300KV class | 3 | Emax ECOII 2807 / T-Motor F90 |
-| ESC, 45A BLHeli_S | 3 | individual, not 4-in-1 |
-| Propeller 7×4.5 | 3 + spares | two CCW, one CW |
-| Tilt servo, metal gear (Kingmax 1203MD / GDW DS041MG class) | 2 | |
-| Servo, 9 g metal gear (aileron) | 2 | |
-| Servo, 9 g metal gear (V-tail ruddervator) | 2 | |
+| Pitot tube for airspeed sensor | 1 | right wing mid-section LE at y≈400 mm, outside the prop disc |
+| Motor, Emax ECOII 2807 **1700KV** | 3 | Emax's 4S winding, 19×19 mm M3. The 1300KV version is the 6S winding: on 4S it gives only ~1.35 kg, too little margin at ~1.9 kg AUW. Use 1300KV only with a 6S pack |
+| ESC, 50 A, DShot (BLHeli_32 or BLHeli_S) | 3 | 1700KV + 7 in pulls ~46 A at full throttle, so 45 A is too small |
+| Propeller 7×4.5 | 1 CW + 2 CCW + spares | front right CW, front left CCW, rear CCW (Stallion order) |
+| Tilt servo, Kingmax KM1203MD (12 mm mini, 20 g, ~9 kg·cm, metal gear) | 2 | bay fits 24×13 mm bodies with 28 mm tab pitch; tab-to-spline ≈ 11 mm |
+| Servo, 9 g metal gear (ailerons) | 4 | one per aileron |
+| Servo, 9 g metal gear (ruddervators) | 2 | |
 | ELRS 2.4 GHz receiver | 1 | manual backup link |
-| Battery, 4S 5000 mAh LiPo | 1 + spare | XT60 |
-| Power module (PM02 class) | 1 | FC power + voltage/current sensing |
+| Battery, 4S 5000 mAh LiPo (≥ 50C) | 1 + spare | XT60; ~155×48×37 mm |
+| Power module | 1 | FC power + V/I sensing; rated ≥ 40 A continuous, ≥ 140 A peak — check the rating of the one you buy |
+| Servo BEC, 5–6 V, ≥ 5 A | 1 | the Pixhawk does not power the servo rail; 8 servos incl. two 20 g tilt servos |
 
 ## Hardware and consumables
 
 | Item | Qty | Notes |
 |---|---|---|
-| Carbon tube, 8 mm OD (main spar) | 2 × 650 mm | one per panel; sand + epoxy, not CA alone (smooth carbon sheds CA) |
-| Carbon tube, 6 mm OD (rear spar) | 2 × 650 mm | |
-| Carbon rod, 3 mm (V-tail pivots) | 2 × 50 mm | 30 mm glued into the panel root + 20 mm into the pivot block |
-| Flanged bearing 3×8×4 mm | 2 | tilt pivots |
-| Steel rod, 3 mm (tilt pivot shaft) | 2 | |
-| Crush-spacer sleeve, ~5 mm OD tube | 2 × ~25 mm | inside the wing under each nacelle through-bolt — without it the bolt crushes the vase shell |
-| Screws M3×6 (motor mount) | 12 | verify by hand: no screw may touch the motor windings |
-| Screws M2×8, M3 assortment | set | |
-| Brass inserts M2/M3 | set | servo doors, FC mount |
-| Control horns, pushrods, linkages | set | V-tail horns are printed; drill their 2.2 mm holes after printing |
-| Servo extension leads | set | wing + tail runs |
-| CA glue, epoxy (spar + pivot-rod bonding) | — | |
-| Heat shrink / braid for wire protection | — | anywhere wires cross carbon spars — carbon is conductive |
-| Velcro straps, XT60 connectors | — | |
+| Carbon tube 10×8 mm (main spar) | 2 × 650 mm | one per panel; sand + epoxy into every rib (smooth carbon sheds CA) |
+| Carbon tube 6×4 mm (rear spar) | 2 × 650 mm | |
+| Carbon tube 8×6 mm (main joiner) | 1 × 420 mm | slides 150 mm into both main spars, through the main frame sleeve |
+| Carbon rod 4 mm (rear joiner) | 1 × 320 mm | inside both rear spars, through the rear frame sleeve |
+| Carbon tube 16×14 mm (tail boom) | 1 × 630 mm | x = 420 to 1050; motor and servo wires run inside it |
+| Carbon rod 4 mm (V-tail pins) | 2 × 20 mm | 8 mm into the tail block, 12 mm into the V-tail root rib |
+| Carbon rod 3 mm (battery stop pin) | 1 × 25 mm | tray pin holes every 10 mm |
+| Flanged bearing 3×8×4 mm (F693ZZ) | 2 | one per tilt yoke (the servo horn is the other pivot) |
+| M3 heat-set inserts | 4 | 2 tilt axles, 1 nose screw, 1 spare |
+| M3×12 socket screw + washer (tilt axle) | 2 | through the bearing into the axle-boss insert |
+| M3×30 bolt + nyloc nut | 4 | boom pod to boom-rib tongue (with epoxy) |
+| M3×8 screws (motors) | 12 | 4 mm plates: 4 mm of thread; check by hand that none touches the windings |
+| M3×16 bolt + nut (rear motor clamp) | 1 | |
+| M3×12 nylon screw + 12 mm nylon washer | 1 | holds the removable nose |
+| M2.5 nylon screw or pin | 2 | locks each rear spar to the rear joiner (drill guide in the root rib) |
+| Pushrods 1.2 mm steel with Z-bends / clevises | 6 | ailerons and ruddervators |
+| Hinge tape (Blenderm or similar) | 1 roll | top-surface hinges |
+| Servo extension leads | set | wing ~400 mm ×6, tail ~800 mm ×2 (run inside the boom) |
+| Epoxy (30 min) + microballoons, CA | — | epoxy for all carbon bonds |
+| Heat shrink / braid for wire protection | — | anywhere wires cross carbon — carbon is conductive |
+| Velcro strap 20 mm, XT60 connectors | — | |
 | Spare propellers, 7×4.5 | 2 sets | a crash without spares ends the project for weeks |
 
 ## Already owned / to confirm

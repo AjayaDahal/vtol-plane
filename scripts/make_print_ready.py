@@ -34,11 +34,14 @@ PARTS = {
     "rib_midtip_l": _p(PETG, "s1", [("x", -90)]),
     "rib_tip_r": _p(PETG, "s1", [("x", -90)]),
     "rib_tip_l": _p(PETG, "s1", [("x", 90)]),
-    # Boom rib stands on its inboard ring; the tongue needs tree supports.
-    "boom_rib_r": _p(PETG_SUP, "s1", [("x", 90), ("z", 45)]),
-    "boom_rib_l": _p(PETG_SUP, "s1", [("x", -90), ("z", 45)]),
-    "boom_pod_r": _p(PETG_SUP, "s1", []),
-    "boom_pod_l": _p(PETG_SUP, "s1", []),
+    # Boom rib prints flat on its inboard face; its inboard spigot ring is the separate cup.
+    "boom_rib_r": _p(PETG, "s1", [("x", 90), ("z", 45)]),
+    "boom_rib_l": _p(PETG, "s1", [("x", -90), ("z", 45)]),
+    "boom_cup_r": _p(PETG, "s1", [("x", -90)]),
+    "boom_cup_l": _p(PETG, "s1", [("x", 90)]),
+    # Pod prints upright: the gusset and nose chamfer are 45 deg, the slot and bay are bridges.
+    "boom_pod_r": _p(PETG, "s1", []),
+    "boom_pod_l": _p(PETG, "s1", []),
     "yoke_r": _p(PETG, "s1", [("x", 180)]),
     "yoke_l": _p(PETG, "s1", [("x", 180)]),
     "coupler_240": _p(PETG, "s1", [("y", -90)]),
@@ -49,7 +52,8 @@ PARTS = {
     "fc_shelf": _p(PETG, "s1", []),
     "battery_tray": _p(PETG, "s1", [("x", 180)]),
     "pod_collar": _p(PETG, "s1", [("y", -90)]),
-    "rear_motor_mount": _p(PETG_SUP, "s1", [("x", 180)]),
+    # Constant section along the boom: stands on an end, bore vertical, no supports.
+    "rear_motor_mount": _p(PETG, "s1", [("y", 90)]),
     "tail_block": _p(PETG, "s1", [("y", -90)]),
     "vtail_root_rib": _p(PETG, "s1", [("x", 55)], qty=2, src="vtail_root_rib_r"),
     "vtail_tip_cap": _p(PETG, "s1", [("x", 235)], qty=2, src="vtail_tip_cap_r"),

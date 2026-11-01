@@ -25,8 +25,8 @@ def chord(y):
 
 RIB_T = 3.0
 SPIGOT_LEN = 10.0
-SPIGOT_CUT = 0.80           # spigot rings stop at 80 % chord (8 mm ahead of a hinge)
-HINGE_MARGIN = 8.0
+SPIGOT_CUT = 0.80           # spigot rings stop at 80 % chord (HINGE_MARGIN ahead of a hinge)
+HINGE_MARGIN = 2.0          # 8 mm left a 7.7 mm unsupported ledge on the mid/tip rib flange
 BOOM_Y = 280.0
 BOOM_W = 28.0               # pod width (servo bay + walls)
 BOOM_RIB_T = 6.0            # boom rib between the root and mid sections
@@ -45,6 +45,7 @@ SPAR_HOLE_CLEAR = 0.25      # hole diameter = tube OD + this
 SPAR_BOSS_WALL = 1.4
 MAIN_JOINER = dict(od=8.0, length=420.0)   # carbon tube inside both main spars
 REAR_JOINER = dict(od=4.0, length=320.0)   # carbon rod inside both rear spars
+RIB_WIRE_X, RIB_WIRE_Z, RIB_WIRE_R = 457.0, 5.0, 5.0   # spanwise wire/pitot hole between the spars
 
 AIL_HINGE = 0.75            # hinge line at 75 % local chord (straight, top-surface tape)
 AIL_BEVEL_DEG = 25.0        # underside bevel lets a top hinge deflect both ways
@@ -108,10 +109,13 @@ FC_SHELF_Z = 32.0           # top surface
 TRAY_X = (243.0, 367.0)
 TRAY_Z = -52.0              # top surface
 TRAY_W = 60.0
+TRAY_PIN_X = (250.0, 361.0, 10.0)   # battery stop-pin holes: start, stop (exclusive), pitch
+TRAY_PIN_R = 1.6
 
 # --- rear lift motor (vertical, on the boom) --------------------------------
 X_REAR_MOTOR = 820.0
-REAR_PLATE_Z = 0.0          # plate underside
+REAR_PLATE_Z = 15.0         # plate underside; leaves ~25 mm under the screw heads for a hex key
+REAR_MOUNT_LEN = 36.0       # clamp, web and plate share this length along the boom
 
 # --- V-tail (fixed panels + ruddervators) ----------------------------------
 VT_X_LE = 920.0

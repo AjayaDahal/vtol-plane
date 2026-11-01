@@ -95,7 +95,7 @@ def root_rib():
     ring, env = spigot(y1, +1)
     bosses, holes = spar_features(y0, y1 + L, [env])
     part = part + ring + bosses - holes
-    part -= cyl_y(6.0, 457.0, 7.0, y0 - 1, y1 + 1)
+    part -= cyl_y(P.RIB_WIRE_R + 1.0, P.RIB_WIRE_X, P.RIB_WIRE_Z + 2.0, y0 - 1, y1 + 1)
     # Drill guide for the M2.5 nylon pin that locks the rear spar to its joiner.
     part -= cyl_z(1.3, P.REAR_SPAR["x"], y1 + 5.0, -20, 20)
     return part
@@ -109,7 +109,7 @@ def midtip_rib():
     r_out, e_out = spigot(y1, +1, hinge=h)
     bosses, holes = spar_features(y0 - L, y1 + L, [e_in, e_out])
     part = part + r_in + r_out + bosses - holes
-    return part - cyl_y(5.0, 457.0, 5.0, y0 - 1, y1 + 1)
+    return part - cyl_y(P.RIB_WIRE_R, P.RIB_WIRE_X, P.RIB_WIRE_Z, y0 - 1, y1 + 1)
 
 
 def tip_rib():
@@ -121,15 +121,30 @@ def tip_rib():
 
 
 def pod_profile():
-    """Boom pod side profile (x, z): round nose about the tilt axis, flat aft face ahead of the LE."""
+    """Boom pod side profile (x, z): round nose about the tilt axis, flat aft face ahead of the LE.
+
+    The lower front leaves the arc at 225 deg on a 45 deg tangent to the bed, so the pod
+    prints upright without supports.
+    """
     xp, zp, r = P.X_PIVOT, P.Z_PIVOT, P.NOSE_R
     a0 = math.pi - math.asin((P.POD_TOP - zp) / r)
-    arc = [(xp + r * math.cos(a), zp + r * math.sin(a)) for a in np.linspace(a0, 1.5 * math.pi, 24)]
-    return np.array([(xp, P.Z_WING), (P.POD_AFT_X, P.Z_WING), (P.POD_AFT_X, P.POD_TOP)] + arc[:-1])
+    arc = [(xp + r * math.cos(a), zp + r * math.sin(a)) for a in np.linspace(a0, 1.25 * math.pi, 20)]
+    xt, zt = arc[-1]
+    x_bed = xt + (zt - P.Z_WING)
+    return np.array([(x_bed, P.Z_WING), (P.POD_AFT_X, P.Z_WING), (P.POD_AFT_X, P.POD_TOP)] + arc)
+
+
+BOOM_WIRE_X_END = 412.0      # boom-rib wire groove runs from the tongue tip to here
+CUP_PLATE_T = 1.5
 
 
 def boom_rib():
-    """6 mm rib between root and mid sections; its tongue runs forward into the pod."""
+    """6 mm rib between root and mid sections; its tongue runs forward into the pod.
+
+    The inboard spigot ring is a separate part (boom_cup) so this one prints flat on its
+    inboard face with no supports. The wire groove is open on that face; the cup's plate
+    closes it once glued on.
+    """
     y0, y1 = P.Y_BOOM_RIB
     band = loft([poly_face([(x, y0, z) for x, z in airfoil_xz(y0)]),
                  poly_face([(x, y1, z) for x, z in airfoil_xz(y1)])], ruled=True)
@@ -137,16 +152,43 @@ def boom_rib():
     tongue = [(P.TONGUE_X0, P.Z_WING), (f1, P.Z_WING), (f1, 14.0), (f0, P.TONGUE_TOP),
               (P.TONGUE_X0, P.TONGUE_TOP)]
     part = band + prism_y(tongue, y0, y1)
-    r_in, e_in = spigot(y0, -1)
     r_out, e_out = spigot(y1, +1, hinge=P.AIL_HINGE)
-    bosses, holes = spar_features(y0 - L, y1 + L, [e_in, e_out])
-    part = part + r_in + r_out + bosses - holes
-    zc, xc_end = P.Z_WING + 7.0, 412.0
-    part -= cyl_x(P.WIRE_D / 2, P.BOOM_Y, zc, P.TONGUE_X0 - 1, xc_end)
-    part -= cyl_y(P.WIRE_D / 2, xc_end, zc, y0 - 2 * L, P.BOOM_Y)
+    bosses, holes = spar_features(y0, y1 + L, [e_out])
+    part = part + r_out + bosses - holes
+    zc, xc_end = P.Z_WING + 7.0, BOOM_WIRE_X_END
+    # Groove 5 mm deep from the inboard face; the 1 mm left on the outboard face ties the
+    # lower edge of the tongue to the rest of it.
+    part -= box(P.TONGUE_X0 - 1, xc_end, y0 - 1, y1 - 1, zc - P.WIRE_D / 2, zc + P.WIRE_D / 2)
+    part -= cyl_y(P.WIRE_D / 2, xc_end, zc, y0 - 1, y1 - 1)
+    # Aileron leads and pitot tubing: same line as the root and mid/tip rib holes.
+    part -= cyl_y(P.RIB_WIRE_R, P.RIB_WIRE_X, P.RIB_WIRE_Z, y0 - 1, y1 + L + 1)
     for x in P.POD_BOLTS_X:
         part -= cyl_y(1.65, x, 12.0, y0 - 1, y1 + 1)
     return part
+
+
+def boom_cup():
+    """Inboard spigot ring of the boom rib with a 1.5 mm glue plate on the rib face.
+
+    Prints standing on the plate. Both spars pass through it and the rib, so they align
+    the two parts while the epoxy cures.
+    """
+    y0 = P.Y_BOOM_RIB[0]
+    y_far = y0 - L
+    c = P.chord(y0)
+    lp = G.airfoil_loop("clarky", n=40)
+    loop = np.stack([P.X_LE + c * lp[:, 0], P.Z_WING + c * lp[:, 1]], axis=1)
+    x_cut = P.X_LE + P.SPIGOT_CUT * c
+    outer = G.clip_x(G.offset_loop(loop, P.INSET), x_cut)
+    inner = G.clip_x(G.offset_loop(loop, P.INSET + P.RING_WALL), x_cut - P.RING_WALL)
+    env = prism_y(outer, y_far, y0)
+    part = env - prism_y(inner, y_far - 0.1, y0 - CUP_PLATE_T)
+    bosses, holes = spar_features(y_far, y0, [env])
+    part = part + bosses - holes
+    zc = P.Z_WING + 7.0
+    part -= cyl_y(P.WIRE_D / 2, BOOM_WIRE_X_END, zc, y_far - 1, y0 + 1)
+    # Aileron leads and pitot tubing (also lightens the plate).
+    return part - cyl_y(6.0, P.RIB_WIRE_X, P.RIB_WIRE_Z + 1.0, y_far - 1, y0 + 1)
 
 
 def boom_pod():
@@ -159,6 +201,15 @@ def boom_pod():
     # Axle boss on the outboard face: M3 bolt through the yoke bearing into a heat-set insert.
     y_end = y1 + P.AXLE_BOSS_LEN
     part += cyl_y(P.AXLE_BOSS_R, xp, zp, y1 - 1, y_end)
+    # 45 deg gusset under the boss (teardrop section) so it prints without supports: flat top at
+    # the boss's 45 deg tangent points, 45 deg underside from the boss's lowest point at its tip.
+    hw = P.AXLE_BOSS_R * math.sin(math.radians(45))
+    z_top = zp - P.AXLE_BOSS_R * math.cos(math.radians(45))
+    z_tip = zp - P.AXLE_BOSS_R
+    run = y_end - (y1 - 0.5)
+    gusset = [(y1 - 0.5, z_top), (y_end, z_top), (y_end, z_tip), (y1 - 0.5, max(z_tip - run, P.Z_WING))]
+    face = poly_face([(xp - hw, y, z) for y, z in gusset])
+    part += extrude(face, amount=2 * hw, dir=(1, 0, 0))
     part -= cyl_y(P.INSERT_HOLE[0] / 2, xp, zp, y_end - P.INSERT_HOLE[1], y_end + 1)
     part -= cyl_y(1.65, xp, zp, y1 - 2, y_end)
     # Servo bay on the inboard face: tabs on the face, output shaft on the tilt axis.
@@ -225,7 +276,7 @@ def coupler(xj):
         xs = P.NOSE_SCREW_X
         w, h, zc = G.fuse_dims(xs)
         zb = zc - h / 2 + P.INSET
-        boss = box(xs - 6, xs + 6, -6, 6, zb - 1, zb + P.COUPLER_WALL + 7)
+        boss = box(x0, xs + 6, -6, 6, zb - 1, zb + P.COUPLER_WALL + 7)
         part += boss & fuse_loft(x0, x1, P.INSET)
         part -= cyl_z(P.INSERT_HOLE[0] / 2, xs, 0, zb + P.COUPLER_WALL + 7 - P.INSERT_HOLE[1], zb + 20)
         part -= cyl_z(1.65, xs, 0, zb - 2, zb + 10)
@@ -285,8 +336,8 @@ def battery_tray():
             floor.append(zc - b * math.sqrt(max(0.0, 1 - (yr / a) ** 2)) + 0.3)
         rail = [(x0, zt - 2)] + [(x1, zt - 2)] + list(zip(xs[::-1], floor[::-1]))
         part += prism_y(rail, yr - 1.5, yr + 1.5)
-    for x in np.arange(250.0, 361.0, 10.0):
-        part -= cyl_z(1.6, x, 0, zt - 5, zt + 1)
+    for x in np.arange(*P.TRAY_PIN_X):
+        part -= cyl_z(P.TRAY_PIN_R, x, 0, zt - 5, zt + 1)
     for x in (280.0, 330.0):
         part -= box(x - 1.5, x + 1.5, -12, 12, zt - 5, zt + 1)
     for xa, xb in ((252.0, 275.0), (286.0, 324.0), (336.0, 360.0)):
@@ -301,15 +352,21 @@ def pod_collar():
 
 
 def rear_motor_mount():
+    """Boom clamp + web + motor plate, one constant section along x so it prints standing on
+    an end with no overhangs. The plate stands REAR_PLATE_Z above the boom top so a hex key
+    reaches the motor screw heads (fit the motor before sliding the mount onto the boom).
+    """
     xm, zb, zp = P.X_REAR_MOTOR, P.BOOM_Z, P.REAR_PLATE_Z
+    h = P.REAR_MOUNT_LEN / 2
     ro, ri = P.BOOM_HOLE / 2 + 3.3, P.BOOM_HOLE / 2
-    part = cyl_x(ro, 0, zb, xm - 15, xm + 15)
-    part += box(xm - 10, xm + 10, -6, 6, zb - ro - 6, zb - ri)
-    part += box(xm - 5.5, xm + 5.5, -5.5, 5.5, zb, zp)
-    part += box(xm - 18, xm + 18, -18, 18, zp, zp + 4)
-    part -= cyl_x(ri, 0, zb, xm - 16, xm + 16)
-    part -= box(xm - 16, xm + 16, -0.75, 0.75, zb - ro - 7, zb - ri + 1)
-    part -= cyl_y(1.65, xm, zb - ro - 2.5, -8, 8)
+    part = cyl_x(ro, 0, zb, xm - h, xm + h)
+    part += box(xm - h, xm + h, -6, 6, zb - ro - 6, zb - ri)
+    part += box(xm - h, xm + h, -5.5, 5.5, zb, zp)
+    part += box(xm - h, xm + h, -h, h, zp, zp + 4)
+    part -= cyl_x(ri, 0, zb, xm - h - 1, xm + h + 1)
+    part -= box(xm - h - 1, xm + h + 1, -0.75, 0.75, zb - ro - 7, zb - ri + 1)
+    for dx in (-h / 2, h / 2):
+        part -= cyl_y(1.65, xm + dx, zb - ro - 2.5, -8, 8)
     s = P.MOTOR_HOLE_SQ / 2
     for dx in (-s, s):
         for dy in (-s, s):
@@ -412,6 +469,7 @@ def build():
         "rib_midtip_r": midtip_rib(),
         "rib_tip_r": tip_rib(),
         "boom_rib_r": boom_rib(),
+        "boom_cup_r": boom_cup(),
         "boom_pod_r": boom_pod(),
         "yoke_r": yoke(),
     }

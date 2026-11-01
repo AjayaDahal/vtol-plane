@@ -14,6 +14,7 @@ python scripts/structure.py        # PETG structure   -> parts/assembly/*.stl
 python scripts/make_print_ready.py # rotates into print orientation -> parts/print_ready/*.stl
 python scripts/slice_all.py        # -> gcode/<s1|x>_<lwpla|petg>/<part>.gcode  (one part: slice_all.py fuse_1)
 python scripts/mass_balance.py     # mass, CG, battery position (reads masses from the G-code)
+python scripts/check_parts.py      # the gate: geometry, fits, mechanism, balance, overhangs, G-code (76 checks)
 ```
 
 `scripts/make_print_ready.py` holds the print table: printer, material, slicer process,
@@ -27,27 +28,39 @@ slicer is called with `--orient 0 --arrange 1 --ensure-on-bed`.
 | File | Use |
 |---|---|
 | `machine_kobra_s1.json`, `machine_kobra_x.json` | printer definitions |
-| `process_lwpla_vase.json` (S1), `process_lwpla_vase_x.json` (X) | spiral mode, 1 wall, 0.2 mm, 8 mm outer brim. Each printer needs its own variant: a process derived from one printer is rejected by the other |
-| `process_petg.json` | 3 walls, 15 % crosshatch infill, 5 top / 3 bottom layers, 5 mm auto brim, no supports |
-| `process_petg_support.json` | same, with tree supports (boom ribs, boom pods, rear motor mount) |
-| `filament_lwpla.json` | 235 C (220 C first layer), flow 0.55, fan 100 % |
+| `process_lwpla_vase.json` (S1), `process_lwpla_vase_x.json` (X) | spiral mode, 1 wall, 0.2 mm, 8 mm outer brim, wall speed capped at 30 mm/s. Each printer needs its own variant: a process derived from one printer is rejected by the other |
+| `process_petg.json` | 3 walls, 15 % crosshatch infill, 5 top / 3 bottom layers, 5 mm auto brim, no supports. Every PETG part uses it |
+| `process_petg_support.json` | same, with tree supports. No part uses it any more; kept for one-off prints |
+| `filament_lwpla.json` | 235 C (220 C first layer), flow 0.55, fan 100 %, 4 s minimum layer time |
 | `filament_petg.json` | 255 C, flow 0.95, fan 40 % |
 
 Numbers in the preset JSONs are strings ("1", "0.2", "0%"); integer overrides are rejected.
 
+LW-PLA foams more the slower it is extruded. The stock settings (200 mm/s walls, 8 s minimum
+layer time) made every vase layer take 8 s, so wall speed followed the perimeter: 10 mm/s on the
+ailerons, 55 mm/s on the wing roots. No single flow setting suits that range. With the 30 mm/s
+cap and a 4 s minimum, every vase part prints at 17–30 mm/s, so the `wing_tip_r` calibration
+carries over to the rest. Total time is about the same.
+
 ## G-code check (Oct 31, 2026)
 
-All 44 files in `gcode/` were parsed:
+`check_parts.py` checks the print-ready meshes and parses all 46 files in `gcode/` on every run:
 
-- Every part fits its bed, brim included (largest: `wing_root` 234 x 40 mm on the 250 mm S1 bed;
-  tallest: 240 mm `fuse_1`/`fuse_3`/`vtail_r` against 250 mm).
-- LW-PLA files: `spiral_mode = 1`, 235 C, bed 35 C, no supports, one layer count that matches the
-  height (e.g. 1201 layers for 240 mm).
-- PETG files: 255 C, bed 60 C, 3 walls. Supports are on only for `boom_rib_l/r`, `boom_pod_l/r` and
-  `rear_motor_mount`.
+- Every file is present and was sliced from the current STL. `slice_all.py` ends each file with a
+  `; vtol_stl_sha256 = ...` stamp, and the gate compares it with the STL's hash; file times are
+  not used, because git does not keep them.
+- No part needs supports, judged on the geometry: every PETG face more than 60° from vertical is
+  bridged (span ≤ 30 mm, e.g. the top of a hole), and flat faces may also be ledges of ≤ 3 mm.
+  Vase skins lean ≤ 45°. The pods print upright (45° gusset under the axle boss, 45° nose
+  chamfer; the slot and servo bay are bridges). The boom rib prints flat, its inboard ring
+  being the separate `boom_cup`. The rear motor mount stands on one end, bore vertical. As a
+  sanity check on the profiles, no G-code file contains a support extrusion.
+- LW-PLA walls print at 17 mm/s (ruddervator tips) to 30 mm/s.
+- Every part fits its bed, brim included. The largest is `wing_root`, 234 x 40 mm on the
+  250 mm S1 bed; the tallest are `fuse_1`/`fuse_3`/`vtail_r` at 240 mm against 250 mm.
+- LW-PLA files: `spiral_mode = 1`, 235 C, bed 35 C. PETG files: 255 C, bed 60 C, 3 walls.
 - Masses and times in `tracker.md` equal the slicer's footer (`total filament used [g]`,
-  `print_time`). Totals: S1 LW-PLA 124 g / 23.0 h, X LW-PLA 105 g / 20.7 h, S1 PETG 463 g / 22.8 h.
+  `print_time`). Totals: S1 LW-PLA 124 g / 23.7 h, X LW-PLA 105 g / 20.2 h, S1 PETG 448 g / 20.2 h.
 
 Not checked: print quality. The LW-PLA flow (0.55) and vase-mode wall quality need a real test print
-(one `wing_tip_r`) before the full set is printed, and the boom-rib tree supports should be watched
-on the first print.
+(one `wing_tip_r`) before the full set is printed; see the reminders in `tracker.md`.

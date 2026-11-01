@@ -16,6 +16,8 @@ from make_print_ready import PARTS
 G0 = 9.81
 CG_TARGET = 0.27                  # fraction of MAC
 CG_BAND = (0.25, 0.30)
+# PX4 airspeed suggestions assume the built aircraft comes out this much over the estimate.
+MASS_MARGIN = 1.10
 BATTERY = dict(name="4S 5000 mAh LiPo", mass=520.0, length=155.0)
 # Emax ECOII 2807 1700KV (Emax's 4S winding), 7-in 2-blade: 1810 g max at 16.8 V on the data
 # sheet; ~1550 g on a loaded full pack and ~1250 g near empty (thrust ~ voltage squared).
@@ -39,7 +41,7 @@ ITEMS = [  # name, mass each [g], qty, x in fixed-wing config, x in hover config
     ("tilt servo KM1203MD (20 g)", 20.0, 2, P.X_PIVOT + 6.0, P.X_PIVOT + 6.0),
     ("rear motor Emax ECOII 2807 1700KV", 50.0, 1, P.X_REAR_MOTOR, P.X_REAR_MOTOR),
     ("rear prop 7x4.5", 8.0, 1, P.X_REAR_MOTOR, P.X_REAR_MOTOR),
-    ("rear ESC 50 A (pod tail)", 11.0, 1, 700.0, 700.0),
+    ("rear ESC 50 A (fuse_3 front, by the boom's open end)", 11.0, 1, 400.0, 400.0),
     ("aileron servo 9 g", 9.0, 4, 455.0, 455.0),
     ("V-tail servo 9 g", 9.0, 2, P.VT_X_LE + 55.0, P.VT_X_LE + 55.0),
     ("Pixhawk 6C", 59.3, 1, 305.0, 305.0),
@@ -125,6 +127,7 @@ def compute(verbose=True):
     w_n = auw / 1000 * G0
     stall = {(cl, k): math.sqrt(2 * w_n / (rho * s_m2 * cl)) for cl in (1.0, 1.1, 1.2) for k, rho in RHO.items()}
     v_stall = stall[(1.0, "Austin 35 C")]
+    v_stall_px4 = v_stall * math.sqrt(MASS_MARGIN)
     # V-tail effectiveness with the cos^2/sin^2 projection; straight LE so MAC LE = panel LE.
     lam_t = P.VT_TIP_CHORD / P.VT_ROOT_CHORD
     mac_t = 2 / 3 * P.VT_ROOT_CHORD * (1 + lam_t + lam_t ** 2) / (1 + lam_t)
@@ -135,19 +138,28 @@ def compute(verbose=True):
     vv = s_vt * math.sin(d) ** 2 * arm / (s_gross * 2 * P.Y_TIP)
     x_np = P.X_LE + 0.25 * mac + mac * vh * 0.75 * 0.6
     rear_end = x_b + BATTERY["length"] / 2
-    stop = rear_end
-    battery_ok = rear_end <= P.BOOM_X[0] - 5 and P.TRAY_X[0] <= stop <= P.TRAY_X[1] + 50
+    # The battery's rear end rests on a 3 mm stop pin in one of the tray's holes: use the last
+    # hole the battery reaches, and check the CG that actually gives.
+    holes = np.arange(*P.TRAY_PIN_X)
+    reach = holes[holes - P.TRAY_PIN_R <= rear_end + 1e-6]
+    pin = float(reach.max()) if len(reach) else float(holes.min())
+    x_b_pin = pin - P.TRAY_PIN_R - BATTERY["length"] / 2
+    x_cg_pin = (mx_fw + mb * x_b_pin) / auw
+    band = (P.X_LE + CG_BAND[0] * mac, P.X_LE + CG_BAND[1] * mac)
+    span = (x_b + (band[0] - x_cg_target) * auw / mb, x_b + (band[1] - x_cg_target) * auw / mb)
+    battery_ok = rear_end <= P.BOOM_X[0] - 5 and band[0] <= x_cg_pin <= band[1]
     r = dict(
         auw=auw, mass_ex_battery=m0, mac=mac, x_cg=x_cg_target, x_cg_hover=x_cg_h, x_battery=x_b,
-        cg_band=(P.X_LE + CG_BAND[0] * mac, P.X_LE + CG_BAND[1] * mac),
+        cg_band=band, battery_span=span, pin=pin, x_battery_pin=x_b_pin, x_cg_pin=x_cg_pin,
         t_front=t_front, t_rear=t_rear, front_share=t_front / auw, rear_share=t_rear / auw,
         front_frac_max=t_front / T_MAX_EMPTY, throttle_front=math.sqrt(t_front / T_MAX_FULL),
         p_hover=p_hover, i_hover=i_hover, hover_min=USABLE * PACK_AH / i_hover * 60,
         s_m2=s_m2, wing_loading=auw / (s_m2 * 100), stall=stall, v_stall=v_stall,
-        fw_min=math.ceil(1.25 * v_stall), vh=vh, vv=vv, arm=arm, x_np=x_np,
+        v_stall_px4=v_stall_px4, fw_min=math.ceil(1.25 * v_stall_px4), vh=vh, vv=vv, arm=arm, x_np=x_np,
         static_margin=(x_np - x_cg_target) / mac, battery_ok=battery_ok,
-        battery_note=f"centre x={x_b:.0f}, rear end x={rear_end:.0f} (boom starts {P.BOOM_X[0]:.0f}; "
-                     f"rear stop pin goes at x={stop:.0f})",
+        battery_note=f"centre x={x_b:.0f} for the target ({span[0]:.0f}-{span[1]:.0f} keeps the band); "
+                     f"stop pin in the tray hole at x={pin:.0f} puts it at {x_b_pin:.0f} and the CG at "
+                     f"x={x_cg_pin:.1f}",
         rows=rows,
     )
     if verbose:
@@ -180,7 +192,8 @@ def report(r):
         f"CL {cl} {k}: {v:.1f}" for (cl, k), v in sorted(r['stall'].items())))
     print(f"- Tail: arm {r['arm']:.0f} mm, Vh {r['vh']:.2f}, Vv {r['vv']:.3f}; "
           f"neutral point ~x={r['x_np']:.0f}, static margin ~{100 * r['static_margin']:.0f} % MAC.")
-    print(f"- Suggested PX4: FW_AIRSPD_STALL {math.ceil(r['v_stall'])}, FW_AIRSPD_MIN {r['fw_min']}, "
+    print(f"- Suggested PX4 (stall at CL 1.0, Austin 35 C, AUW +{100 * (MASS_MARGIN - 1):.0f} %): "
+          f"FW_AIRSPD_STALL {math.ceil(r['v_stall_px4'])}, FW_AIRSPD_MIN {r['fw_min']}, "
           f"VT_ARSP_TRANS {r['fw_min'] + 2}.")
 
 

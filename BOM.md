@@ -2,7 +2,8 @@
 
 Quantities for one airframe. Prices intentionally left out — verify at
 purchase time; nothing here is ordered yet. Every printed part is listed
-with its printer and status in `tracker.md`; masses are in `DESIGN.md`.
+with its printer, mass, print time and status in `tracker.md`; where each
+part goes and how it is assembled is in `DESIGN.md`.
 
 ## Printed parts
 
@@ -14,19 +15,19 @@ with its printer and status in `tracker.md`; masses are in `DESIGN.md`.
 | V-tail panels | 1 L + 1 R | LW-PLA vase | fixed panels |
 | Ruddervators | 1 L + 1 R | LW-PLA vase | |
 | Wing ribs root / mid-tip / tip | 1 L + 1 R each | PETG | spigots slide into the skins, spar bosses |
-| Boom rib | 1 L + 1 R | PETG | between root and mid sections, both spars pass through |
-| Boom pod | 1 L + 1 R | PETG + supports | tilt-servo bay and axle boss |
+| Boom rib + boom cup | 1 L + 1 R each | PETG | the cup is the rib's inboard spigot ring, glued on (prints flat, no supports) |
+| Boom pod | 1 L + 1 R | PETG | tilt-servo bay and axle boss |
 | Tilt yoke (motor mount) | 1 L + 1 R | PETG | 19×19 mm motor pattern |
 | Couplers 240 / 370 / 610 | 1 each | PETG | 610 carries the tail-boom web |
 | Frames main / rear | 1 each | PETG | joiner sleeves at the spar stations |
 | FC shelf, battery tray, pod collar | 1 each | PETG | |
-| Rear motor mount | 1 | PETG + supports | clamps the tail boom, vertical thrust |
+| Rear motor mount | 1 | PETG | clamps the tail boom, vertical thrust |
 | Tail block | 1 | PETG | carries both V-tail panels |
 | V-tail root rib, V-tail tip cap | 2 each | PETG | same file for L and R |
 | Servo cage, control horn | 6 each | PETG | 4 ailerons + 2 ruddervators |
 
-Filament (from the sliced G-code, see `DESIGN.md`): LW-PLA ~230 g,
-PETG ~460 g including supports.
+Filament (from the sliced G-code, see `tracker.md`): LW-PLA ~230 g,
+PETG ~450 g. No part needs supports.
 
 ## Electronics
 
@@ -59,19 +60,23 @@ PETG ~460 g including supports.
 | Carbon rod 4 mm (V-tail pins) | 2 × 20 mm | 8 mm into the tail block, 12 mm into the V-tail root rib |
 | Carbon rod 3 mm (battery stop pin) | 1 × 25 mm | tray pin holes every 10 mm |
 | Flanged bearing 3×8×4 mm (F693ZZ) | 2 | one per tilt yoke (the servo horn is the other pivot) |
+| M3 shim washer, 0.5 mm thick, OD ≤ 5 mm | 2 + spares | between each bearing's inner race and the axle boss; without it the axle screw pulls the yoke against the pod and it binds |
 | M3 heat-set inserts | 4 | 2 tilt axles, 1 nose screw, 1 spare |
-| M3×12 socket screw + washer (tilt axle) | 2 | through the bearing into the axle-boss insert |
-| M3×30 bolt + nyloc nut | 4 | boom pod to boom-rib tongue (with epoxy) |
+| M3×12 socket screw + washer (tilt axle) | 2 | through the bearing and shim into the axle-boss insert |
+| M3×35 bolt + nyloc nut | 4 | boom pod to boom-rib tongue (with epoxy); the pod is 28 mm wide |
 | M3×8 screws (motors) | 12 | 4 mm plates: 4 mm of thread; check by hand that none touches the windings |
-| M3×16 bolt + nut (rear motor clamp) | 1 | |
+| M3×16 bolt + nut + washer (rear motor clamp) | 2 | |
 | M3×12 nylon screw + 12 mm nylon washer | 1 | holds the removable nose |
 | M2.5 nylon screw or pin | 2 | locks each rear spar to the rear joiner (drill guide in the root rib) |
 | Pushrods 1.2 mm steel with Z-bends / clevises | 6 | ailerons and ruddervators |
 | Hinge tape (Blenderm or similar) | 1 roll | top-surface hinges |
-| Servo extension leads | set | wing ~400 mm ×6, tail ~800 mm ×2 (run inside the boom) |
+| Servo extension leads | set | wing ~400 mm ×6, tail ~650 mm ×2 (pulled through the boom) |
+| Silicone wire 16–18 AWG, 3 colours | ~1.5 m | rear motor phase leads extended ~450 mm to the ESC at the front of `fuse_3` (inside the boom) |
+| Fish tape or 1 mm stiff wire | ~1 m | pulls the leads through the boom once the motor mount and tail block are on |
 | Epoxy (30 min) + microballoons, CA | — | epoxy for all carbon bonds |
 | Heat shrink / braid for wire protection | — | anywhere wires cross carbon — carbon is conductive |
 | Velcro strap 20 mm, XT60 connectors | — | |
+| EVA foam strip 5–10 mm | ~250 × 40 mm | belly landing pad (the plane lands on its LW-PLA belly) |
 | Spare propellers, 7×4.5 | 2 sets | a crash without spares ends the project for weeks |
 
 ## Already owned / to confirm

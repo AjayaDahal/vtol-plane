@@ -124,7 +124,7 @@
     "10"
   ],
   "slow_down_layer_time": [
-    "8"
+    "4"
   ],
   "filament_start_gcode": [
     "; filament start gcode\n"

@@ -1,65 +1,142 @@
-# VTOL Plane — Design Review Report (Oct 31, 2026)
+# VTOL Plane — Design Review Report
 
 Custom clean-sheet tilt-rotor tricopter: 2 front tilt motors + 1 fixed
 rear motor, V-tail, Pixhawk 6C + PX4. LW-PLA vase-mode airframe,
-PETG structural parts, carbon spars. Two printers: Anycubic Kobra S1
-(250³ mm, enclosed) + Kobra X (260³ mm).
+PETG structural parts, carbon spars and boom. Two printers: Anycubic
+Kobra S1 (250³ mm, enclosed) + Kobra X (260³ mm).
 
-This report is the record of three review rounds plus a premortem.
-Every finding below was either fixed in the design files or is listed
-in Section 6 as something that can only be closed by physical
-building, printing, and flying. Nothing in the "fixed" columns is a
-promise that the plane flies — it is a statement that the CAD,
-slicing, and paperwork no longer contain that defect.
+This file is the record of every review. The current state is at the
+top; older rounds follow, newest first. "Fixed" means the CAD, slicing
+and paperwork no longer contain that defect. It is not a promise that
+the plane flies. That needs the physical checks listed under "Open".
 
-## 0. Review round 4 — independent audit (Oct 31, 2026)
+## Current status (v0.2, Oct 31, 2026)
 
-Rounds 1–3 below ended with "no known open issues". An independent
-audit found that claim false: several round-1 fixes are themselves
-wrong. Method: every STL was measured (cross-sections, ray-cast
-point-in-mesh tests), the G-code was parsed (masses, settings,
-left/right outline handedness), and the docs were checked against
-the reference they claim to follow (Flightory Stallion VTOL manual
-V2) and the Emax ECOII 2807 datasheet. Status column is updated as
-fixes land; "open" means the v0.1 files still have the defect.
+**Ready to print, starting with the test prints.** Print `wing_tip_r`
+(flow) and `rib_tip_r` (fit) first, then the rest (`tracker.md`).
 
-### P0 — blockers (parts don't fit or the aircraft can't fly)
+- Verification gate: `python scripts/check_parts.py` passes **76/76**.
+  It covers mesh integrity, mirrored L/R parts, bed fit, every spigot,
+  coupler and frame fit, spar, joiner, boom and wire paths, motor holes
+  and hex-key room, the tilt sweep, prop clearances, thrust split, CG and
+  static margin, and overhangs judged on the geometry (no part needs
+  supports). It also checks the G-code: present, sliced from the current
+  STL (hash stamp), and one vase speed band.
+- 46 G-code files, no supports anywhere. S1 LW-PLA 124 g / 23.7 h,
+  X LW-PLA 105 g / 20.2 h, S1 PETG 448 g / 20.2 h.
+- AUW ~1.91 kg, CG 431 mm from the nose (27 % MAC), hover split
+  38/38/23 %, static margin ~20 %.
+- Docs match the files: `DESIGN.md` (design and assembly), `BOM.md`,
+  `PX4_GUIDE.md`, `SLICING.md`, `tracker.md`.
 
-| # | Finding | Evidence | Status |
-|---|---|---|---|
-| 4.1 | Rear motor points backwards and its socket barely engages. | `rear_mount()` puts the motor plate normal to the socket axis, so the shaft lies along the fuselage (a pusher); a tilt-rotor tricopter's fixed rear motor is a vertical lift motor. The cavity is a constant 19×29 box, but the tail cone grows 0.245 mm per mm going forward, so the tail enters only ~4 mm (finding 1.1 claimed 30 mm). | open |
-| 4.2 | Both printers print the same-handed wing: two LEFT wings. | `slice_all.sh` slices the same `wing_*.stl` for S1 and X; G-code outline handedness is identical on both (the V-tail L/R pair, correctly mirrored, was the control). | open |
-| 4.3 | Wing has no structural load path. | Vase mode prints only a skin: no spar tubes, ribs or webs, so the spars touch nothing (root is 25.7 mm thick) and have nothing to bond to. Spars stop at each root and no wing-to-fuselage joint exists; root bending (~3.5 N·m hover, ~7–8 N·m at 3 g) has no path across the fuselage. | open |
-| 4.4 | No ailerons anywhere. | DESIGN/BOM list two aileron servos; no part has an aileron, hinge or servo bay. No roll control in fixed-wing flight. | open |
-| 4.5 | Tilt nacelle can't be assembled. | Motor holes are blind (cut Y 30–36; 4 mm of wall left between hole and cavity). Pattern 16×16 mm, Emax ECOII 2807 is 19×19 mm. Plate+wall = 10 mm, so the M3×6 screws can't reach the motor. Pod sweeps a 41.2 mm radius but brackets reach ±25 mm; bracket bolts go into a "spar box" that doesn't exist; no tilt servo mount; 4 bearings needed (BOM: 2). | open |
-| 4.6 | Hover thrust split never computed. | With the tilt axis at the LE (x≈335–380), CG 430 and a rear motor at the tail, the rear carries only 8–15% of weight; each front motor lifts 790–865 g (61–67% of max), not 630 g. Finding 1.10 deleted the booms, but the Stallion uses front booms exactly to fix this. | open |
-| 4.7 | Fuselage sleeves don't fit the tapered fuselage. | `sleeve_720` uses the x=600 size (96×106 inner over a 70×80 fuselage = 13 mm gap per side). `sleeve_480` jams at x≈472 (8 mm engagement on one side). `sleeve_240`: nose tapers away, 3.6 mm/side gap, so "friction fit" is false. | open |
-| 4.8 | V-tail can't be attached or driven. | Vase mode drops the pivot hole; the 3 mm rod floats in a 21 mm-thick root. Horn prints as a hollow 0.42 mm LW-PLA bump. Rod has no axial retention. Pivot at x=45 is 8 mm (5.4% MAC) aft of the AC (x≈37): divergent, flutter-prone. Tips open. | open |
-| 4.9 | `fuse_1` prints nose-down. | `print_ready/fuse_1.stl` stands 240 mm tall on a 12×12 mm footprint. | open |
+**Open, can only be closed by building and flying** (in order):
+
+1. LW-PLA flow and spigot fit: the two test prints above.
+2. Tilt servo dimensions against the pod bay, before printing pods and
+   yokes.
+3. Real masses: weigh the parts and re-run `mass_balance.py`.
+4. CG: balance at 431 mm, then glide-test.
+5. Bench: motor order and direction, tilt calibration (−20…90°),
+   surface directions, ruddervator mixing, props off.
+6. First hover: vibration and compass interference in the logs.
+7. Transition tuning: at altitude, into wind, back-transition ready.
+
+## Round 5 — final pre-print audit and premortem (v0.2, Oct 31, 2026)
+
+Premise: every part is printed, the build is attempted, and the
+project fails. What killed it? Method: the 62-check gate passed, so
+this round looked where the gate did not.
+
+- Support extrusions were mapped from the G-code back onto each part,
+  after registering the slicer's arrange rotation.
+- Overhangs were scanned in print orientation, and wall speed was
+  measured in every vase file.
+- Assembly was walked step by step against the geometry.
+- The PX4 parameter meanings were checked in the PX4 source.
+
+Every fix was rebuilt, re-sliced (all 46 files) and re-checked; the
+new checks are in the gate. An independent code review of the round's
+changes then found five more (5.18–5.22), and a second review pass
+found three gaps in those fixes. All are fixed the same way and are in
+the table.
+
+| # | Severity | Finding | Fix | Status |
+|---|---|---|---|---|
+| 5.1 | P0 print | **Boom pods:** tree supports filled the 6.3 mm tongue slot, the servo bay, both M3 bolt holes, the axle insert hole and the wire channels. The pod could not go onto the tongue without digging PETG out of a 6 mm slot. | 45° gusset under the axle boss, 45° chamfer under the nose. Printed upright with no supports; the slot, bay and holes bridge. A test slice with supports on adds them only inside those bridgeable cavities. | fixed |
+| 5.2 | P0 print | **Boom ribs:** supports filled the inboard spigot ring (13–16 g per rib) and both wire channels. | Inboard ring split off as `boom_cup` (ring + 1.5 mm glue plate, aligned by the spars). The rib prints flat on its inboard face. Its wire channel is now a groove with a 1 mm bridge, closed by the cup. | fixed |
+| 5.3 | P0 build | **Rear motor mount:** supports filled the 16.3 mm boom bore, the clamp slit and the bolt hole. Also, the motor screw heads sat ~10 mm above the clamp ring, too little for a hex key, so the motor could not be fitted. | One 36 mm constant section that prints on end, bore vertical, no supports. Plate raised 15 mm (25.6 mm key room). 2 clamp bolts. New check: hex-key room ≥ 23 mm under every motor screw. | fixed |
+| 5.4 | P0 build | **No wire path through the boom rib:** the aileron leads and pitot tubing go through holes at x = 457 in the root and mid/tip ribs, but the boom rib between them was solid there. | Ø10 hole at (457, 5) in the boom rib and Ø12 in the cup, in line with the others. New check: a straight wire path through every rib. | fixed |
+| 5.5 | P0 flight | **PX4 tilt normalization:** `VT_TILT_*` runs over the tilt servo range `CA_SV_TL*_MINA..MAXA` (−20…90°). The guide's `VT_TILT_MC` 0.08 means motors 11° back in hover. | `PX4_GUIDE.md`: MINA −20, MAXA 90, `VT_TILT_MC` 0.18, TRANS 0.55, FW 1.0, a servo calibration procedure and a bench check. | fixed |
+| 5.6 | P0 flight | **PX4 outputs:** motors on MAIN (IO) cannot run DShot on the 6C; no rotor geometry or spin directions were given. | Motors on AUX1–3 (FMU) DShot600, servos on MAIN1–8; `CA_ROTOR*` positions, KM signs and tilt assignment. | fixed |
+| 5.7 | P0 flight | **Airspeeds** in `PX4_GUIDE.md` were from v0.1 (stall 9.8, MIN 12, TRANS 13 m/s): transition-stall risk. | STALL 12, MIN 15, TRANS 17 m/s, from `mass_balance.py` with the stall at CL 1.0, 35 °C and AUW +10 %, so they don't shift with small estimate changes. | fixed |
+| 5.8 | P0 build | **`DESIGN.md` described v0.1** (nacelles, sleeves, all-flying tail, 1300KV/45 A, "no ribs"). There was no v0.2 assembly sequence, hole list or order of operations. | Rewritten. It now has a parts map, the assembly sequence, every hand-drilled hole with coordinates, the motor-before-yoke and boom-before-`fuse_4` order, and the glue rules. | fixed |
+| 5.9 | P1 print | **LW-PLA speed spread:** the 8 s minimum layer time gave 10–56 mm/s walls. LW-PLA foaming depends on speed, so the `wing_tip_r` calibration would not carry to the ailerons or wing roots. | Wall speed capped at 30 mm/s, minimum layer time 4 s: 17–30 mm/s for every vase part, same total time. New check: max ≤ 2× min. | fixed |
+| 5.10 | P1 build | **Axle bearing:** the M3 axle screw clamps the bearing inner race across the 0.5 mm running gap, pulling the yoke against the pod (binding). | BOM: 0.5 mm shim washer (OD ≤ 5 mm) between the inner race and the boss. The assembly step checks free swing with the screw tight. | fixed |
+| 5.11 | P1 build | **Pod bolts:** M3×30 through the 28 mm pod leaves no thread for a nyloc nut. | M3×35 in the BOM and guide. | fixed |
+| 5.12 | P2 print | **`coupler_240`:** the nose-screw boss started 2 mm above the bed. | Boss starts on the bed. | fixed |
+| 5.13 | P1 build | **Tilt servo size:** the pod bay fits a 12 mm mini servo; a different servo means a reprint. | Measure before printing (tracker reminder; `SERVO_*` in `params.py`). | open (physical) |
+| 5.14 | P2 build | **ESC heat:** ESCs sit inside closed LW-PLA sections; LW-PLA softens at 55–60 °C. | Rule in `DESIGN.md`: no ESC touches a skin; heat-shrink and tie to the spars with an air gap. | procedure |
+| 5.15 | P2 build | **Nominal carbon fits:** an 8.0 joiner in an 8.0 ID spar, and the 16.0 boom in 16.3 printed holes. | Dry-fit, sand or ream; documented. | procedure |
+| 5.16 | P2 flight | **Compass:** the rear ESC supply ran past the GPS at x = 560. | Rear ESC moved to x ≈ 400 (5.18), so the battery leads stay ahead of the GPS. The rear motor's phase leads still run in the boom ~70 mm below it: keep them twisted together, and check interference in the first hover log. | fixed + procedure |
+| 5.17 | P2 build | **Landing:** no gear; the plane lands on its LW-PLA belly. The nose tip is open (vase mode). | EVA foam belly strip (BOM), land on grass; tape the nose tip. | procedure |
+| 5.18 | P0 build | **Tail assembly order impossible** (found by an independent code review of this round). The motor mount is a closed clamp, so it can only go on over the boom's aft end, before the tail block. The rear ESC (x ≈ 700) and its leads were inside `fuse_4`, sealed before they could be connected. A second review pass also found that `frame_rear` and the `coupler_610` web could not be reached for reaming or gluing, and that pull strings left in the holes would be pinched. | Rear ESC moved to the front of `fuse_3` (x ≈ 400). Every boom hole is reamed while the parts are loose. The boom goes into `fuse_3` before `fuse_4`, so all its glue joints can be reached. The mount, then the tail block, go over its aft end; the leads are fished through the boom afterwards. | fixed |
+| 5.19 | P1 check | **The supports check could never fail:** supports are off in every profile. It missed a 7.7 mm unsupported ledge on the mid/tip rib flange, and the first gusset (5.1) left the underside at the boss tip unsupported. The first geometric version could itself be fooled in three ways: large faces were under-counted, a sloped face could anchor on itself, and a partial ledge counted as a bridge. | New geometric check on the print-ready meshes. Faces > 60° from vertical must be bridged (≤ 30 mm, with the overhang continuing across the whole span). Flat faces may also be ledges of ≤ 3 mm. Sampling is area-weighted, and the probed face's own plane is ignored. It now fails all four pre-fix parts (pod 237 mm², boom rib 1361, mid/tip rib 43, rear mount 354) and synthetic shelf, wedge and partial-ledge cases, and passes bridges, holes and 45° chamfers. Spigot rings now stop 2 mm ahead of a hinge, not 8; the gusset runs from the boss's lowest point at its tip. The support-move count stays as a profile sanity check. | fixed |
+| 5.20 | P1 check | **Stale-G-code check used file times,** which git does not keep. It failed on every fresh clone and passed after restoring old G-code. | `slice_all.py` stamps each G-code file with the SHA-256 of its STL; the gate compares hashes. | fixed |
+| 5.21 | P0 flight | **PX4 rotor count:** airframe 13100 defaults to `CA_ROTOR_COUNT` 4, a phantom rotor 1 m out that takes part of every command. | Guide sets `CA_ROTOR_COUNT` = 3. | fixed |
+| 5.22 | P0 flight | **PX4 tilt servos are mirror images:** one needs Rev Range. The tilts also sit at the raw Disarmed PWM while disarmed and during spool-up. On the reversed output, the PWM min is the forward end. | Guide: Rev Range on one tilt output, with its end points and hover disarmed value given separately; Disarmed PWM at the hover (0°) position on both. | fixed |
+
+## Round 4 — independent audit of v0.1 (statuses as of v0.2)
+
+The v0.1 files these findings describe were deleted. The v0.2 design
+(parametric `scripts/`) was rebuilt to fix them, and round 5 closed the
+rest. "Check" names the `check_parts.py` test that guards each fix.
+
+### P0 — blockers
+
+| # | Finding | Status |
+|---|---|---|
+| 4.1 | Rear motor pointed backwards; its socket barely engaged. | **Fixed (v0.2):** vertical lift motor on a boom clamp at x = 820 (round 5 made it printable and serviceable). Check: rear prop disc clearance, motor holes, hex-key room. |
+| 4.2 | Both printers printed the same-handed wing. | **Fixed (v0.2):** separate mirrored `_r` (S1) and `_l` (X) files. Check: "left/right parts are mirror images". |
+| 4.3 | Wing had no structural load path. | **Fixed (v0.2):** PETG ribs with spar bosses on 10×8 / 6×4 spars, joiners through two fuselage frames. Checks: spar paths, spigot fits, joiner sleeves. |
+| 4.4 | No ailerons. | **Fixed (v0.2):** two ailerons per side, tape hinge, servo cages and horns. |
+| 4.5 | Tilt nacelle could not be assembled. | **Fixed (v0.2):** boom pod + yoke, 19×19 pattern, bearing + direct-drive servo (round 5 added the shim). Checks: motor holes, tilt sweep, bearing gap. |
+| 4.6 | Hover thrust split never computed (front motors overloaded). | **Fixed (v0.2):** tilt axis 65 mm ahead of the LE; 38/38/23 % split. Check: thrust split, % of max. |
+| 4.7 | Fuselage sleeves did not fit the tapered fuselage. | **Fixed (v0.2):** internal couplers lofted to the skin. Check: coupler fits (0.8 mm gap). |
+| 4.8 | V-tail could not be attached or driven. | **Fixed (v0.2):** fixed V-tail with ruddervators, tail block on the boom, 4 mm pins. Check: V-tail rib fits. |
+| 4.9 | `fuse_1` printed nose-down on a 12 mm footprint. | **Fixed (v0.2):** prints wide end down. Check: "no part stands on a tiny footprint". |
 
 ### P1 — wrong numbers and guidance
 
 | # | Finding | Status |
 |---|---|---|
-| 4.10 | Premortem #1 target of 65–80 g per wing section is ~3× too high; slicer says root 24.5 g, mid 21.7 g, tip 18.1 g. Chasing 65–80 g would triple the flow. | open |
-| 4.11 | Printed mass is ~534 g (LW-PLA 236 g + PETG 297 g from G-code), not 730 g; AUW differs between DESIGN (1880 g) and REPORT (1921 g). | open |
-| 4.12 | Nacelle station (437 mm from root) sits 3 mm from the mid/tip glue joint. | open |
-| 4.13 | Fuselage joint at x=480 falls inside the wing root chord. | open |
-| 4.14 | FC sits on the loose battery tray; tray has no fore-aft stop. | open |
-| 4.15 | PX4 guide puts motors on MAIN1–3 (IO outputs on the 6C, no DShot) while saying DShot on FMU; no per-motor spin direction; tilt range 0–90° can't do vectored yaw (Stallion: 15° yaw tilt). | open |
-| 4.16 | Tilt servo load (2.4) ignores gyroscopic and in-plane prop loads; realistic peaks ~1–2 kg·cm, not 0.15. | open |
-| 4.17 | Stall assumes CLmax 1.2; a 3-D wing at Re≈1.2e5 is more like 1.0–1.1 (stall ≈10.2–10.7 m/s). | open |
-| 4.18 | "Clark Y" generator puts the LE on the flat bottom line (sharp lower nose); not a Clark Y. | open |
-| 4.19 | Pure-Python STLs have inverted/mixed triangle winding (e.g. `wing_root` signed volume −309k mm³ vs ≈+765k). | open |
-| 4.20 | PETG profile has supports off; nacelle bosses and servo arm start in mid-air. | open |
+| 4.10 | Wing-section mass target ~3× too high. | **Fixed:** tracker targets are the slicer's masses. |
+| 4.11 | Printed mass and AUW inconsistent between docs. | **Fixed:** `mass_balance.py` reads the G-code; all docs quote it (1909 g). |
+| 4.12 | Nacelle station 3 mm from a glue joint. | **Fixed (v0.2):** the boom has its own rib at y = ±280. |
+| 4.13 | Fuselage joint inside the wing root chord. | **Fixed (v0.2):** joints at x = 370 and 610, outside the chord (380–600). |
+| 4.14 | FC on the loose battery tray; tray had no stop. | **Fixed (v0.2):** separate FC shelf; tray stop-pin holes every 10 mm. |
+| 4.15 | PX4 outputs, spin directions and tilt range wrong or missing. | **Fixed (round 5):** see 5.5, 5.6, 5.21 and 5.22. |
+| 4.16 | Tilt servo load underestimated. | **Fixed (v0.2):** 9 kg·cm metal-gear servo, direct drive. |
+| 4.17 | Stall assumed CLmax 1.2. | **Fixed:** `mass_balance.py` reports CL 1.0–1.2; PX4 airspeeds use CL 1.0 (round 5, 5.7). |
+| 4.18 | "Clark Y" had a sharp lower nose. | **Fixed (v0.2):** published Clark Y ordinates, round LE. |
+| 4.19 | STLs had inverted or mixed winding. | **Fixed (v0.2):** check "mesh integrity" (closed, manifold, outward). |
+| 4.20 | PETG overhangs printed in mid-air. | **Fixed (round 5):** no part needs supports. Check: the geometric overhang check (every face > 60° is bridged or a ≤ 3 mm ledge). |
 
 ### P2 — documentation
 
 | # | Finding | Status |
 |---|---|---|
-| 4.21 | BOM: bearings 4 not 2; 1 rear motor mount not 3; booms listed but deleted from tracker; inserts unused; joiners, aileron hardware, collars, clips, shaft length, V-tail tip caps, pitot mount missing. | open |
-| 4.22 | SLICING.md stale (3 bottom layers, 20 files, `vtail_panel`, "booms remaining"); tracker omits ailerons; `tail_panel.py` obsolete; no script records the wing/fuselage generator arguments. | open |
-| 4.23 | Section 6 "no known open issues" is retracted; findings 1.1, 1.5, 1.10, 2.4, 2.6 are reopened by 4.1, 4.7, 4.6, 4.16 and 4.6. | open |
+| 4.21 | BOM wrong or incomplete. | **Fixed:** v0.2 BOM; round 5 added the shim, M3×35, the second clamp bolt and the belly foam. |
+| 4.22 | `SLICING.md` stale; tracker missing ailerons; generator inputs unrecorded. | **Fixed:** `SLICING.md` rewritten, tracker complete, `params.py` holds every input. |
+| 4.23 | Section 6's "no known open issues" was false. | **Fixed:** retracted; this file now opens with the real status. |
+
+---
+
+## Rounds 1–3 and the first premortem (v0.1 — superseded)
+
+Kept for the record. These sections describe the v0.1 design (nacelles,
+sleeves, all-flying V-tail, `slice_all.sh`). None of those parts or files
+exist any more, and round 4 found several of these fixes were themselves
+wrong.
 
 ## 1. What was built before this review
 
@@ -266,7 +343,8 @@ Everything was regenerated and re-sliced from the current files:
 
 ## 6. Final state — what is "perfect" and what is not
 
-**No known open issues remain in the CAD, slicing, or paperwork.**
+**Retracted in round 4 (finding 4.23).** The claim that followed was:
+"No known open issues remain in the CAD, slicing, or paperwork."
 Every defect found in rounds 1–2 and the premortem is either fixed
 in the files or covered by a written procedure/checklist. The
 design is as good as it can be made without touching the real

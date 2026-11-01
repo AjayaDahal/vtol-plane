@@ -23,6 +23,14 @@ import sys
 PRESETS = os.environ.get("ORCA_PRESETS", "/home/hatch/workspace/tools/squashfs-root/resources/profiles/Anycubic")
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "slicer_profiles")
 
+# LW-PLA foams more the slower it is extruded, so one flow calibration only holds over a
+# narrow speed band. The wall speed cap and a 4 s minimum layer time keep every vase part
+# between ~17 and 30 mm/s (with the stock 200 mm/s and 8 s, speed followed the perimeter:
+# 10 mm/s on the ailerons, 55 mm/s on the wing roots). A single foamed 0.5 mm wall under
+# full fan cools well inside 4 s.
+VASE_SPEED = {"outer_wall_speed": "30"}
+LWPLA_COOLING = {"slow_down_layer_time": ["4"]}
+
 
 def load(folder, name):
     with open(os.path.join(PRESETS, folder, name)) as f:
@@ -44,7 +52,7 @@ def merged(folder, name, seen=None):
 
 def write(name, data):
     path = os.path.join(OUT, name)
-    with open(path, "w") as f:
+    with open(path, "w", newline="\n") as f:
         json.dump(data, f, indent=2)
     print(f"wrote {path} ({len(data)} keys)")
 
@@ -80,6 +88,7 @@ def main():
         "bottom_shell_layers": "0",
         "brim_type": "outer_only",
         "brim_width": "8",
+        **VASE_SPEED,
     }
     vase = dict(std)
     vase.update(vase_overrides)
@@ -97,6 +106,7 @@ def main():
         "name": "LW-PLA foaming @VTOL",
         "nozzle_temperature": ["235"],
         "filament_flow_ratio": ["0.55"],
+        **LWPLA_COOLING,
     })
     write("filament_lwpla.json", lwpla)
 
@@ -121,9 +131,21 @@ def petg_variants():
     write("process_petg_support.json", sup)
 
 
+def lwpla_tuning():
+    """Apply the LW-PLA speed/cooling settings to the committed profiles (idempotent)."""
+    for name, extra in (("process_lwpla_vase.json", VASE_SPEED), ("process_lwpla_vase_x.json", VASE_SPEED),
+                        ("filament_lwpla.json", LWPLA_COOLING)):
+        path = os.path.join(OUT, name)
+        with open(path) as f:
+            data = json.load(f)
+        data.update(extra)
+        write(name, data)
+
+
 if __name__ == "__main__":
     if os.path.isdir(PRESETS):
         main()
     else:
         print(f"Orca presets not found at {PRESETS}; keeping the committed base profiles")
+    lwpla_tuning()
     petg_variants()

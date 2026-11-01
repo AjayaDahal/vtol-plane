@@ -1,104 +1,135 @@
-# PX4 Setup Guide — Custom Tilt-Rotor VTOL (v0.1)
+# PX4 Setup Guide — Custom Tilt-Rotor VTOL (v0.2)
 
-Starting points for QGroundControl setup on a Pixhawk 6C. Verify every
-parameter's units in QGC before first flight — tilt parameter conventions
-have changed across PX4 versions.
+For PX4 v1.14 or later (control allocation in the Actuators tab of QGroundControl). The
+parameter names and meanings below were checked against the PX4 source
+(`control_allocator/module.yaml`, `vtol_att_control/tiltrotor_params.yaml`). Airspeeds come
+from `scripts/mass_balance.py`. Re-check both if you change the airframe or PX4 version.
 
 ## Airframe
 
-- In QGC, select **Generic VTOL Tiltrotor** (SYS_AUTOSTART 13100)
-  and restart. This is the stock PX4 tilt-rotor airframe; our geometry
-  is close enough to start from it, then tune.
-- VT_TYPE = 1 (Tiltrotor). 0 = Tailsitter, 2 = Standard quadplane —
-  do not use those for this airframe.
+- In QGC select **Generic Tiltrotor VTOL** (`SYS_AUTOSTART` 13100) and reboot. That sets
+  `VT_TYPE` = 1 (tiltrotor) and `CA_AIRFRAME` = 3 (Tiltrotor VTOL).
 
-## Output mapping (starting point, adapt in Actuator Configuration)
+## Geometry (Actuators tab)
 
-Adapted from PX4's Convergence tilt-rotor layout:
+Positions are relative to the hover CG (434 mm aft of the nose tip), x forward, y right.
+Set **`CA_ROTOR_COUNT` = 3**. The 13100 airframe defaults to 4 rotors, with a fourth one 1 m
+out that would take part of every command.
 
-| Output | Function |
-|---|---|
-| MAIN1 | Front right motor (tilt) |
-| MAIN2 | Front left motor (tilt) |
-| MAIN3 | Rear motor (fixed) |
-| MAIN5 | Right tilt servo |
-| MAIN6 | Left tilt servo |
-| AUX | V-tail ruddervators (assign as V-tail in Actuator Configuration) |
-| AUX | Ailerons |
+| Rotor | Position | `CA_ROTORn_PX` | `CA_ROTORn_PY` | `CA_ROTORn_KM` | `CA_ROTORn_TILT` |
+|---|---|---|---|---|---|
+| 0 | front right, CW | 0.12 | 0.28 | −0.05 | Tilt 1 |
+| 1 | front left, CCW | 0.12 | −0.28 | 0.05 | Tilt 2 |
+| 2 | rear, CCW | −0.39 | 0 | 0.05 | None |
 
-DShot on the FMU outputs for the three motors (same rule as the
-multicopter build: AUX bus on dual-bus Pixhawks, MAIN otherwise).
+`KM` is positive for a CCW rotor and negative for CW (viewed from above in hover).
 
-## Transition parameters (starting points, tune in the field)
+Tilt servos: `CA_SV_TL_COUNT` = 2. For both: `CA_SV_TLn_MINA` = **−20**, `CA_SV_TLn_MAXA`
+= **90**, `CA_SV_TLn_TD` = 0 (towards front), `CA_SV_TLn_CT` = 1 (yaw). An angle of 0 means
+thrust straight up. The yokes are built for exactly this −20…90° range.
 
-- VT_F_TRANS_DUR: 5–15 s (front transition duration)
-- VT_B_TRANS_DUR: 8–15 s (back transition duration)
-- VT_ARSP_TRANS: 13 m/s starting point (stall is ~9.8 m/s, so
-  transition must complete ABOVE stall with margin — the old 10–20
-  range was wrong at the bottom end: 10 m/s is barely above stall
-  and a gust during transition would drop a wing)
-- VT_TILT_MC / VT_TILT_TRANS / VT_TILT_FW: tilt angles for hover /
-  transition / forward flight. Example values from a similar tricopter
-  build: 0.08 / 0.5 / 0.9 — check the units QGC shows for your PX4
-  version before copying these.
-- Assign an RC switch to the multicopter ↔ fixed-wing transition
-  before any flight.
+Control surfaces: `CA_SV_CS_COUNT` = 6 — right aileron ×2 (mid, tip), left aileron ×2, right
+V-tail, left V-tail.
+
+## Output mapping
+
+DShot only works on the Pixhawk 6C's FMU outputs (the AUX/"FMU PWM OUT" bank). The IO
+(MAIN) bank is PWM only.
+
+| Output | Function | Protocol |
+|---|---|---|
+| AUX1 | motor 1, front right | DShot600 |
+| AUX2 | motor 2, front left | DShot600 |
+| AUX3 | motor 3, rear | DShot600 |
+| MAIN1 | tilt servo 1, right | PWM 50 Hz |
+| MAIN2 | tilt servo 2, left | PWM 50 Hz |
+| MAIN3, MAIN4 | right aileron mid, tip | PWM 50 Hz |
+| MAIN5, MAIN6 | left aileron mid, tip | PWM 50 Hz |
+| MAIN7, MAIN8 | right, left ruddervator | PWM 50 Hz |
+
+QGC shows which AUX outputs share a timer. Leave any output that shares a timer with the
+motors unused. The servo rail is powered by the BEC, not by the Pixhawk.
+
+## Tilt servo calibration (props off, before anything else)
+
+The two tilt servos are mirror images (each sits in its pod's inboard face), so the same PWM
+change turns the two yokes opposite ways. PX4 sends both the same tilt command.
+
+1. In the Actuators tab, move each tilt servo with its slider. Tick **Rev Range** on whichever
+   tilt output moves the wrong way, so that both yokes tilt forward as the value rises.
+2. Set the end points. PX4 keeps min below max and reverses by flipping the command, so the
+   ends swap on the reversed output:
+
+   | Output | PWM minimum | PWM maximum | Disarmed (hover, 0°) |
+   |---|---|---|---|
+   | normal | 20° back | straight forward | min + 0.18 × (max − min) |
+   | Rev Range | straight forward | 20° back | max − 0.18 × (max − min) |
+
+   The servo must reach both ends without buzzing against its own stop. If it cannot cover
+   110°, widen the range within PX4's limits (min 800–1400 µs, max 1600–2200 µs) and what the
+   servo allows.
+3. Set each tilt output's **Disarmed** PWM to the value in the table, then confirm by eye that
+   the motor points straight up. PX4 sends this raw value, unreversed, while disarmed and during
+   spool-up in hover.
+4. Check that both sides match at both ends, at the midpoint (35° forward of vertical) and at
+   the disarmed position.
+
+## Tilt and transition parameters
+
+PX4 normalizes the tilt over the servo range set above: angle = −20° + 110° × value.
+
+| Parameter | Value | Meaning |
+|---|---|---|
+| `VT_TILT_MC` | **0.18** | 0°: thrust straight up in hover |
+| `VT_TILT_TRANS` | 0.55 | ~40° during the front transition |
+| `VT_TILT_FW` | 1.0 | 90°: thrust forward |
+| `FW_AIRSPD_STALL` | 12 m/s | stall at CL 1.0, 35 °C, AUW +10 % |
+| `FW_AIRSPD_MIN` | 15 m/s | 1.25 × that stall |
+| `FW_AIRSPD_TRIM` | 18 m/s | cruise; CL ≈ 0.4 there |
+| `FW_AIRSPD_MAX` | 25 m/s | |
+| `VT_ARSP_TRANS` | 17 m/s | transition ends 2 m/s above `FW_AIRSPD_MIN` |
+| `VT_F_TRANS_DUR` | 5–15 s | front transition |
+| `VT_B_TRANS_DUR` | 8–15 s | back transition |
+
+Do not copy tilt values from other builds. A value of 0.08, for example, would mean the
+motors lean 11° back in hover with this servo range. On the bench (props off), arm in
+multicopter mode and confirm the motors point straight up. If they don't, correct
+`VT_TILT_MC`, not the servo horn. Assign an RC switch to the transition before any flight.
 
 ## First-flight sequence
 
-1. Bench: actuator test with props OFF — verify each motor, tilt
-   servo direction, and V-tail/aileron directions.
-2. CG check: target 25–30% mean chord to start; glide-test
-   (unpowered, hand toss over grass) before any powered hover.
-3. First hover: multicopter mode only, low altitude, over open
-   ground. Confirm hover throttle near 45–55% and solid yaw
-   authority (differential tilt).
-4. First transition: at safe altitude (30 m+), switch to fixed-wing
-   mode, watch airspeed build and tilt go fully forward. If the
-   nose drops or it wallows, switch back — back-transition is the
-   safety net.
-5. Only after clean transitions both ways: missions, then (phase 2)
-   the phone-over-4G MAVLink link from the drone project.
+1. Bench, props off: actuator test for every motor (order and spin direction), both tilt
+   servos, all four ailerons and both ruddervators.
+2. CG: balance at 431 mm aft of the nose tip with the motors tilted forward. Glide-test
+   (unpowered hand toss over grass) before any powered hover.
+3. First hover: multicopter mode only, low, over open ground. Hover throttle should be around
+   70 %. Check yaw authority (differential tilt) and the vibration and compass logs before
+   flying again.
+4. First transition at 30 m+, into wind, with the transition switch in hand. If the nose drops
+   or a wing wallows, switch back. Back-transition is the safety net.
+5. Only after clean transitions both ways: missions, then the phone-over-4G MAVLink link.
 
-- FW_AIRSPD_MIN: 12 m/s (above the 9.8 m/s stall, below the 13 m/s
-  transition speed — the wing must never be asked to fly at stall).
-- V-tail mixer: ruddervators. In QGroundControl, assign the two V-tail
-  servos as ruddervator pair (pitch + yaw mixing); verify on the
-  bench that elevator input moves both panels together and rudder
-  input moves them oppositely. A reversed ruddervator is a
-  first-flight crash — check it twice, props OFF.
+## Preflight checklist (props off first, then on — every flying day)
 
-## Preflight checklist (props OFF first, then ON — every flying day)
+1. Balance: motors tilted forward, fingertips 431 mm aft of the nose tip. The battery centre
+   should be at 270–305 mm (the stop pin in the tray's last hole, x = 360, holds it at 281). If
+   it will not balance
+   there, do not fly. Move equipment; do not add tail weight.
+2. Motor order and direction match the table above (props off, then a brief spin-up). A
+   wrong-direction front motor flips the aircraft on the first hover.
+3. Tilt: both yokes swing −20…90° freely with the axle screws tight, and match at the ends.
+   A binding tilt stalls the servo mid-transition.
+4. Surfaces: ailerons the right way; ruddervators move together for elevator and opposite
+   for rudder. A reversed ruddervator is a first-flight crash; check it twice.
+5. Nose: M3 nylon screw in, nose seated on its coupler. If the nose departs, the CG jumps aft.
+6. Motor screws: M3×8 in 4 mm plates, checked by hand that none touches the windings.
+7. Wires: nothing chafes on carbon (it conducts) and no ESC touches an LW-PLA skin. The
+   battery lead cannot reach a prop.
+8. Wings: both lock pins in, joiners fully home.
 
-1. Balance: fingertips under the wing at 430 mm aft of the nose tip
-   (27% MAC). Battery slides on its tray to trim: battery center
-   267–301 mm from the nose (nominal 282) holds CG in the 25–30% band. If it will
-   not balance there, DO NOT FLY — move equipment, do not add dead
-   weight to the tail.
-2. Motor order + direction (props OFF, then brief spin-up): confirm
-   each motor matches the PX4 tilt-rotor output map and spins the
-   correct direction for its prop. A wrong-direction front motor
-   flips the aircraft on the first hover.
-3. Tilt servos: full travel 0–90 deg, both sides symmetric, no
-   binding at either end. A binding tilt servo stalls, overheats,
-   and fails mid-transition.
-4. V-tail: elevator together, rudder opposite (see mixer note above).
-   Ailerons: correct direction.
-5. Nose retention: nose seated 30 mm into sleeve_240 + tape intact.
-   If the nose departs in flight, CG jumps aft and drag spikes.
-6. Motor screws: M3x6, verified by hand that no screw touches the
-   motor windings (too-long screws short the motor).
-7. Wires: no wire touches a carbon spar (carbon is conductive — a
-   chafed wire shorts). Heat-shrink or braid anywhere wires cross
-   spars. Battery lead cannot reach the props.
-8. First transitions: altitude 30 m+, into wind, transition switch
-   in hand for an instant back-transition. If the nose drops or a
-   wing wallows, switch back immediately — do not ride it out.
+## Failsafes (set before the first transition)
 
-## Failsafes (set before first transition)
-
-- Datalink-loss and RC-loss actions: Return or Land (never
-  "continue mission" on a first build).
-- Geofence: radius + altitude ceiling for the test field.
+- Datalink and RC loss: Return or Land, never "continue mission" on a first build.
+- Geofence: radius and altitude ceiling for the field.
 - Battery failsafe: land at low voltage, not just warn.
 - Part 107: VLOS only unless a BVLOS waiver is in hand.

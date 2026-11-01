@@ -2,8 +2,11 @@
 
 Set VTOL_SLICER to the slicer executable if it is not at the default Windows install path.
 Output: gcode/<printer>_<lwpla|petg>/<part>.gcode, one copy per file (print `qty` copies).
+Each file ends with a `; vtol_stl_sha256 = ...` comment naming the STL it was sliced from, so
+check_parts.py can tell stale G-code from current (git does not keep file times).
 """
 import glob
+import hashlib
 import os
 import shutil
 import subprocess
@@ -19,6 +22,12 @@ MACHINE = {"s1": "machine_kobra_s1.json", "x": "machine_kobra_x.json"}
 PROCESS = {("s1", "lwpla_vase"): "process_lwpla_vase.json", ("x", "lwpla_vase"): "process_lwpla_vase_x.json",
            ("s1", "petg"): "process_petg.json", ("s1", "petg_support"): "process_petg_support.json"}
 FILAMENT = {"lwpla_vase": "filament_lwpla.json", "petg": "filament_petg.json", "petg_support": "filament_petg.json"}
+STAMP = "; vtol_stl_sha256 = "
+
+
+def stl_hash(name):
+    with open(os.path.join(G.PRINT, name + ".stl"), "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
 
 
 def out_path(name):
@@ -45,6 +54,8 @@ def slice_part(name):
         dst = out_path(name)
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.move(found[0], dst)
+    with open(dst, "a", newline="\n") as f:
+        f.write(f"{STAMP}{stl_hash(name)}\n")
     return dst
 
 

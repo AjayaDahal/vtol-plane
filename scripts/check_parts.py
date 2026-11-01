@@ -210,7 +210,7 @@ def check_fits():
     w = {n: load(n) for n in ("wing_root_r", "wing_mid_r", "wing_tip_r")}
     fit("root rib spigot in root section", load("rib_root_r"), w["wing_root_r"], 1, P.Y_ROOT_RIB[1] + 5, lo, hi)
     br = load("boom_rib_r")
-    fit("boom rib spigot in root section", br, w["wing_root_r"], 1, P.Y_BOOM_RIB[0] - 5, lo, hi)
+    fit("boom cup spigot in root section", load("boom_cup_r"), w["wing_root_r"], 1, P.Y_BOOM_RIB[0] - 5, lo, hi)
     fit("boom rib spigot in mid section", br, w["wing_mid_r"], 1, P.Y_BOOM_RIB[1] + 5, lo, hi)
     mt = load("rib_midtip_r")
     fit("mid/tip rib spigot in mid section", mt, w["wing_mid_r"], 1, P.Y_MIDTIP_RIB[0] - 5, lo, hi)
@@ -238,12 +238,15 @@ def check_fits():
 
 
 def check_paths():
-    for n in ("rib_root_r", "boom_rib_r", "rib_midtip_r", "rib_tip_r"):
+    for n in ("rib_root_r", "boom_cup_r", "boom_rib_r", "rib_midtip_r", "rib_tip_r"):
         t = load(n)
         for s, tag in ((P.MAIN_SPAR, "main"), (P.REAR_SPAR, "rear")):
             clear_path(f"{n} {tag} spar hole", t, (s["x"], 0, s["z"]), (0, 1, 0), 1000)
     for n, s, j in (("frame_main", P.MAIN_SPAR, P.MAIN_JOINER), ("frame_rear", P.REAR_SPAR, P.REAR_JOINER)):
         clear_path(f"{n} joiner sleeve", load(n), (s["x"], -200, s["z"]), (0, 1, 0), 400)
+    # Aileron servo leads and pitot tubing run spanwise between the spars through every rib.
+    for n in ("rib_root_r", "boom_cup_r", "boom_rib_r", "rib_midtip_r"):
+        clear_path(f"{n} wire/pitot hole", load(n), (P.RIB_WIRE_X, 0, P.RIB_WIRE_Z + 1.0), (0, 1, 0), 1000)
     for n in ("frame_main", "frame_rear", "coupler_610", "pod_collar", "rear_motor_mount", "tail_block"):
         clear_path(f"{n} tail-boom bore", load(n), (0, 0, P.BOOM_Z), (1, 0, 0), 2000)
     worst = min(G.fuse_half_width(x, P.BOOM_Z, P.LWPLA_WALL) for x in np.arange(P.BOOM_X[0], 760.0, 5.0))
@@ -268,6 +271,11 @@ def check_paths():
             # Through the plate, plus 4 mm of head room under the screw heads.
             start = z0 - (0.5 if dx == dy == 0 else 4.5)
             clear_path(f"{n} motor hole ({dx:+.1f},{dy:+.1f})", t, (cx + dx, cy + dy, start), (0, 0, 1), 20)
+        # A 2.5 mm hex key's short leg (~21 mm) has to stand under every screw head
+        # (fit the motor before the mount goes on the pod or boom).
+        worst = min(min(np.r_[ray_hits(t, (cx + dx, cy + dy, z0 - 3.0), (0, 0, -1)), 99.0])
+                    for dx in (-sq, sq) for dy in (-sq, sq))
+        check(f"{n} hex-key room under the motor screws", worst >= 23.0, f"{worst:.1f} mm (want >= 23)")
     clear_path("yoke bearing pocket", load("yoke_r"), (P.X_PIVOT, P.BOOM_Y, P.Z_PIVOT), (0, 1, 0), 60)
     pod = load("boom_pod_r").reshape(-1, 3)
     yk = load("yoke_r").reshape(-1, 3)
@@ -319,6 +327,152 @@ def check_mechanism():
     check("rear prop disc clears V-tail, boom and pod", d >= 10.0, f"min {d:.1f} mm")
 
 
+def unsupported_area(t, n=600, seed=0):
+    """Estimated area (mm2) of overhang in print orientation that would need support, and one
+    example point. Faces 60-80 deg from vertical must be bridged; flatter faces may also be
+    ledges of <= 3 mm out from a wall. A bridge needs material on two opposite sides (span
+    <= 30 mm) AND the overhang must continue over the whole span (a ceiling within 3 mm above
+    the probe line all the way across), so a ledge reaching only part-way is not a bridge.
+    Hits on the probed face's own plane are ignored, so a flat sloped underside cannot anchor
+    on itself."""
+    rng = np.random.default_rng(seed)
+    nrm = np.cross(t[:, 1] - t[:, 0], t[:, 2] - t[:, 0])
+    area = 0.5 * np.linalg.norm(nrm, axis=1)
+    un = nrm / (2 * area[:, None] + 1e-12)
+    zlo, zhi = t[:, :, 2].min(1), t[:, :, 2].max(1)
+    lo_xy, hi_xy = t[:, :, :2].min(1), t[:, :, :2].max(1)
+    cen = t.mean(1)
+    steep = np.nonzero((-un[:, 2] > math.sin(math.radians(60))) & (zlo > 0.3))[0]
+    if not len(steep):
+        return 0.0, None
+    dirs = [np.array([math.cos(a), math.sin(a), 0.0]) for a in np.radians(np.arange(0, 180, 22.5))]
+    pick = rng.choice(steep, size=n, replace=True, p=area[steep] / area[steep].sum())
+    w = area[steep].sum() / n
+    bad, worst = 0, None
+    for k in pick:
+        r1, r2 = rng.random(2)
+        if r1 + r2 > 1:
+            r1, r2 = 1 - r1, 1 - r2
+        q = t[k, 0] + r1 * (t[k, 1] - t[k, 0]) + r2 * (t[k, 2] - t[k, 0])
+        p = q - [0, 0, 0.3]
+        # Ignore the probed face's own plane: a flat sloped underside must not anchor on itself.
+        same = (un @ un[k] > math.cos(math.radians(3))) & (np.abs((cen - q) @ un[k]) < 0.5)
+        near = ~same & (zlo <= p[2]) & (zhi >= p[2]) & np.all(lo_xy <= p[:2] + 31, 1) & \
+            np.all(hi_xy >= p[:2] - 31, 1)
+        tn = t[near]
+        roof = t[(zhi >= p[2]) & (zlo <= p[2] + 3.0) & np.all(lo_xy <= p[:2] + 31, 1) &
+                 np.all(hi_xy >= p[:2] - 31, 1)]
+        flat = -un[k, 2] > math.sin(math.radians(80))
+        ok = False
+        for d in dirs:
+            a = ray_hits(tn, p, d)
+            b = ray_hits(tn, p, -d)
+            a = a.min() if len(a) else np.inf
+            b = b.min() if len(b) else np.inf
+            if flat and min(a, b) <= 3.0:
+                ok = True
+                break
+            if a + b <= 30.0:
+                s = np.arange(-b + 0.5, a - 0.5, 1.5)
+                if all(len(h := ray_hits(roof, p + si * d, (0, 0, 1))) and h.min() <= 3.0 for si in s):
+                    ok = True
+                    break
+        if not ok:
+            bad += 1
+            worst = worst if worst is not None else q
+    return bad * w, worst
+
+
+def check_overhangs():
+    """Print-ready parts need no supports, judged on the geometry (the slicer has supports
+    switched off, so its output cannot show this). See unsupported_area(). Vase skins must not
+    lean more than 45 deg."""
+    bad, lean_bad = [], []
+    for name, spec in sorted(PARTS.items()):
+        t = load(name, G.PRINT)
+        if spec["material"].startswith("lwpla"):
+            nrm = np.cross(t[:, 1] - t[:, 0], t[:, 2] - t[:, 0])
+            nz = nrm[:, 2] / (np.linalg.norm(nrm, axis=1) + 1e-12)
+            side = (t[:, :, 2].max(1) - t[:, :, 2].min(1)) > 0.3
+            lean = np.degrees(np.arcsin(np.clip(np.abs(nz[side]), 0, 1))).max()
+            if lean > 45.0:
+                lean_bad.append(f"{name} {lean:.0f} deg")
+            continue
+        a, worst = unsupported_area(t)
+        if a > 5.0:
+            bad.append(f"{name} ~{a:.0f} mm2 (e.g. print xyz {np.round(worst, 1)})")
+    check("PETG overhangs are bridges <= 30 mm or ledges <= 3 mm (no supports needed)", not bad,
+          "; ".join(bad) or "all PETG parts")
+    check("vase skins lean <= 45 deg", not lean_bad, "; ".join(lean_bad) or "all LW-PLA skins")
+
+
+def gcode_path(name):
+    spec = PARTS[name]
+    folder = f"{spec['printer']}_{'lwpla' if spec['material'].startswith('lwpla') else 'petg'}"
+    return os.path.join(G.ROOT, "gcode", folder, name + ".gcode")
+
+
+def check_gcode():
+    """The sliced files: present, sliced from the current STL, no support extrusions, one vase
+    speed band."""
+    import re
+    from slice_all import STAMP, stl_hash
+    missing, stale, with_support, vase = [], [], [], {}
+    for name, spec in sorted(PARTS.items()):
+        path = gcode_path(name)
+        if not os.path.exists(path):
+            missing.append(name)
+            continue
+        with open(path, "rb") as fh:
+            fh.seek(max(0, os.path.getsize(path) - 400))
+            tail = fh.read().decode("ascii", "replace")
+        stamp = re.search(re.escape(STAMP) + r"([0-9a-f]{64})", tail)
+        if not stamp or stamp.group(1) != stl_hash(name):
+            stale.append(name)
+        typ, f, x, y = "", 0.0, 0.0, 0.0
+        n_sup, speeds, lens = 0, [], []
+        with open(path, errors="ignore") as fh:
+            for line in fh:
+                if line.startswith(";TYPE:"):
+                    typ = line[6:].strip()
+                    continue
+                if not line.startswith("G1"):
+                    continue
+                mf = re.search(r"F([\d.]+)", line)
+                if mf:
+                    f = float(mf.group(1))
+                mx, my, me = re.search(r"X(-?[\d.]+)", line), re.search(r"Y(-?[\d.]+)", line), \
+                    re.search(r"E(-?[\d.]+)", line)
+                nx = float(mx.group(1)) if mx else x
+                ny = float(my.group(1)) if my else y
+                if me and float(me.group(1)) > 0 and (mx or my):
+                    if "upport" in typ:
+                        n_sup += 1
+                    elif typ == "Outer wall":
+                        speeds.append(f / 60.0)
+                        lens.append(math.hypot(nx - x, ny - y))
+                x, y = nx, ny
+        if n_sup:
+            with_support.append(f"{name} ({n_sup} moves)")
+        if spec["material"] == "lwpla_vase" and speeds:
+            s, w = np.array(speeds), np.array(lens)
+            order = np.argsort(s)
+            cw = np.cumsum(w[order]) / w.sum()
+            vase[name] = (float(np.interp(0.05, cw, s[order])), float(np.interp(0.95, cw, s[order])))
+    check("G-code present for every part", not missing, ", ".join(missing) or f"{len(PARTS)} files")
+    check("G-code sliced from the current print-ready STL (hash stamp)", not stale,
+          ", ".join(stale) or "all current")
+    check("G-code has no support extrusions (profile sanity)", not with_support,
+          "; ".join(with_support) or "0 support moves")
+    if vase:
+        lo = min(v[0] for v in vase.values())
+        hi = max(v[1] for v in vase.values())
+        slow = min(vase, key=lambda k: vase[k][0])
+        fast = max(vase, key=lambda k: vase[k][1])
+        check("LW-PLA vase walls print in one speed band (one flow calibration)", hi <= 2.0 * lo,
+              f"{lo:.0f} mm/s ({slow}) to {hi:.0f} mm/s ({fast}), want max <= 2x min")
+
+
 def check_balance():
     import mass_balance as M
     r = M.compute(verbose=False)
@@ -338,6 +492,9 @@ if __name__ == "__main__":
     check_paths()
     check_mechanism()
     check_balance()
+    check_overhangs()
+    if "--no-gcode" not in sys.argv:
+        check_gcode()
     failed = [n for n, ok in RESULTS if not ok]
     print(f"\n{len(RESULTS) - len(failed)}/{len(RESULTS)} checks passed")
     sys.exit(1 if failed else 0)

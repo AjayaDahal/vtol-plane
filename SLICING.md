@@ -1,132 +1,53 @@
-# Slicing Setup — Kobra S1 + Kobra X (v0.2, work in progress)
+# Slicing (v0.2)
 
-## Toolchain (installed, in home so it survives VM replacement)
+Slicer: **Anycubic Slicer Next 1.3.3.3** (OrcaSlicer based), driven from the command line.
+Printers: **S1** = Anycubic Kobra S1 (250 x 250 x 250 mm, enclosed), **X** = Anycubic Kobra X
+(260 x 260 x 260 mm, open frame). LW-PLA skins are split between the two; every PETG part goes
+on the S1. `tracker.md` lists each part with its printer, mass and print time.
 
-Primary: **Anycubic Slicer Next** — Anycubic's own slicer, built on
-OrcaSlicer, with native Kobra S1 / Kobra X profiles. This is the tool
-the project asked for; OrcaSlicer below is the fallback.
-
-- Anycubic Slicer Next 2.0.0.5 AppImage:
-  `~/workspace/tools/anycubic/AnycubicSlicer.AppImage`
-  (extracted to `~/workspace/tools/anycubic/squashfs-root/`,
-  binary `bin/AnycubicSlicerNext`).
-- Note: Anycubic's official Linux distribution is a .deb (Ubuntu
-  24.04 only) from anycubic.com/slicerNextDownload; this AppImage is
-  a community repackage of the official 2.0.06 .deb, used here
-  because the VM cannot run the .deb installer flow while apt is
-  locked. For your own PC, take the .deb from the official page.
-- Native presets confirmed inside: "Anycubic Kobra S1" and
-  "Anycubic Kobra X" machine models.
-
-Fallback: OrcaSlicer 2.4.2 AppImage:
-`~/workspace/tools/OrcaSlicer.AppImage`
-(extracted to `~/workspace/tools/squashfs-root/`).
-OrcaSlicer also ships Kobra S1 / Kobra X presets, and its settings
-system is identical, so all profiles below transfer between the two.
-
-## Host libraries (do NOT survive VM replacement)
-
-OrcaSlicer's AppImage needs host OpenGL/EGL/GStreamer/WebKit libs.
-Re-run after any VM reset:
+## Pipeline
 
 ```
-bash ~/workspace/tools/setup_orca_libs.sh
+python scripts/build_all.py        # everything below in order (--no-slice to skip slicing)
+python scripts/skins.py            # LW-PLA skins     -> parts/assembly/*.stl
+python scripts/structure.py        # PETG structure   -> parts/assembly/*.stl
+python scripts/make_print_ready.py # rotates into print orientation -> parts/print_ready/*.stl
+python scripts/slice_all.py        # -> gcode/<s1|x>_<lwpla|petg>/<part>.gcode  (one part: slice_all.py fuse_1)
+python scripts/mass_balance.py     # mass, CG, battery position (reads masses from the G-code)
 ```
 
-Note: right after a VM reset the system runs its own package-replay
-(`apt-get update` holding the apt lock). If the script fails on the
-lock, wait a few minutes and retry — the replay also restores
-previously installed packages on its own.
+`scripts/make_print_ready.py` holds the print table: printer, material, slicer process,
+orientation and copy count per part. Set `VTOL_SLICER` if the slicer is not at
+`C:\Program Files\AnycubicSlicerNext\AnycubicSlicerNext.exe`.
+Orientations are baked into the STLs (the CLI `--rotate-*` options crash this build), and the
+slicer is called with `--orient 0 --arrange 1 --ensure-on-bed`.
 
-## Part orientation
+## Profiles (`slicer_profiles/`, self-contained, built by `scripts/make_slicer_profiles.py`)
 
-- Wing sections: already span-vertical (span = Z), chord = X. Print
-  as-is, standing.
-- Fuselage sections: length = X in the STL. Rotate 90° about Y so
-  length becomes vertical (Z) before slicing (vase mode spirals up
-  the length).
-- V-tail panel: span = Z already. Print as-is, twice, mirrored.
+| File | Use |
+|---|---|
+| `machine_kobra_s1.json`, `machine_kobra_x.json` | printer definitions |
+| `process_lwpla_vase.json` (S1), `process_lwpla_vase_x.json` (X) | spiral mode, 1 wall, 0.2 mm, 8 mm outer brim. Each printer needs its own variant: a process derived from one printer is rejected by the other |
+| `process_petg.json` | 3 walls, 15 % crosshatch infill, 5 top / 3 bottom layers, 5 mm auto brim, no supports |
+| `process_petg_support.json` | same, with tree supports (boom ribs, boom pods, rear motor mount) |
+| `filament_lwpla.json` | 235 C (220 C first layer), flow 0.55, fan 100 % |
+| `filament_petg.json` | 255 C, flow 0.95, fan 40 % |
 
-## Profiles (starting points — tune with a test section first)
+Numbers in the preset JSONs are strings ("1", "0.2", "0%"); integer overrides are rejected.
 
-- LW-PLA airframe (wings, fuselage, tail): vase mode (spiral),
-  1 wall, 0.2 mm layers, ~235 °C, flow ~55%, no infill, no top
-  layers. Calibrate flow on one wing section before batch printing.
-- PETG structural (nacelles, booms, mounts): 3 walls, 20% infill;
-  motor mounts 100% infill. PETG/ASA parts go to the enclosed S1.
-- Printer split: LW-PLA sections alternate S1/X; PETG parts on S1.
+## G-code check (Oct 31, 2026)
 
-## Profiles (self-contained, in `slicer_profiles/`)
+All 44 files in `gcode/` were parsed:
 
-Built by `scripts/make_slicer_profiles.py` from OrcaSlicer's stock
-presets with all `inherits` chains merged in, so the CLI gets every
-value in one file:
+- Every part fits its bed, brim included (largest: `wing_root` 234 x 40 mm on the 250 mm S1 bed;
+  tallest: 240 mm `fuse_1`/`fuse_3`/`vtail_r` against 250 mm).
+- LW-PLA files: `spiral_mode = 1`, 235 C, bed 35 C, no supports, one layer count that matches the
+  height (e.g. 1201 layers for 240 mm).
+- PETG files: 255 C, bed 60 C, 3 walls. Supports are on only for `boom_rib_l/r`, `boom_pod_l/r` and
+  `rear_motor_mount`.
+- Masses and times in `tracker.md` equal the slicer's footer (`total filament used [g]`,
+  `print_time`). Totals: S1 LW-PLA 124 g / 23.0 h, X LW-PLA 105 g / 20.7 h, S1 PETG 463 g / 22.8 h.
 
-- `machine_kobra_s1.json`, `machine_kobra_x.json`
-- `process_standard.json` (0.20 mm baseline)
-- `process_lwpla_vase.json` (spiral mode, 1 wall, 0% infill, 0 top
-  layers, 3 bottom layers, 0.2 mm)
-- `process_petg.json` (3 walls, 20% infill), `process_petg_solid.json`
-  (100% infill, motor mounts)
-- `filament_lwpla.json` (235 °C, flow 0.55), `filament_petg.json`
-
-## CLI command template (not yet proven — see Status)
-
-```
-LD_LIBRARY_PATH=~/workspace/tools/sysroot/usr/lib/x86_64-linux-gnu:~/workspace/tools/anycubic/squashfs-root/usr/lib \
-  ~/workspace/tools/anycubic/squashfs-root/bin/AnycubicSlicerNext --slice 0 \
-  --datadir /tmp/anycubic_cfg \
-  --load-settings "slicer_profiles/machine_kobra_s1.json;slicer_profiles/process_lwpla_vase.json" \
-  --load-filaments "slicer_profiles/filament_lwpla.json" \
-  --outputdir gcode/ parts/wing_root.stl
-```
-
-(Run the binary directly with the sysroot on LD_LIBRARY_PATH instead
-of AppRun: AppRun's own OpenGL check fails when the host libs live
-only in the sysroot.)
-
-## Status: G-code generated (Oct 31, 2026)
-
-20 files in `gcode/` (run `scripts/slice_all.sh` to regenerate):
-
-- `gcode/s1_lwpla/` (8): wing_root/mid/tip, vtail_panel,
-  fuse_1–4 — LW-PLA vase mode, 235 °C (220 °C first layer), bed 45.
-- `gcode/x_lwpla/` (8): same parts, Kobra X machine profile.
-- `gcode/s1_petg/` (4): tilt_nacelle_r/l, tilt_bracket (3 walls,
-  20% infill), motor_mount_rear (100% infill) — PETG 255 °C, bed 45.
-
-Verified in the output: `spiral_mode = 1` in the LW-PLA files,
-`G9111 bedTemp=45 extruderTemp=255` (PETG) / `220` first layer then
-`M104 S235` (LW-PLA) in the start sections, 1100–1101 layers for
-the 220 mm wing sections, and distinct S1 vs X start G-code.
-Print the LW-PLA parts from either printer folder; PETG parts only
-from the S1 folder (enclosed printer).
-
-## Solved issues (for the record)
-
-- Host libs: solved with the sysroot (`~/workspace/tools/sysroot`,
-  built by `~/workspace/tools/build_sysroot.py`). Run the slicer
-  binary directly with the sysroot + AppImage lib dirs on
-  LD_LIBRARY_PATH (AppRun's own OpenGL check fails when host libs
-  live only in the sysroot). The AppImage `lib/` dir (not just
-  `usr/lib/`) must be on the path for Anycubic's `libcloud_mqtt.so`.
-- "setup params error": solved with self-contained profiles
-  (`slicer_profiles/`, no `inherits` chains).
-- Settings types: Orca/Anycubic preset JSONs store numbers as
-  STRINGS ("1", "0.2", "0%"). Integer overrides were rejected
-  with "invalid json type" — all overrides are strings now.
-- CLI `--rotate-*` segfaults in this build: orientations are baked
-  into `parts/print_ready/` by `scripts/make_print_ready.py`
-  instead; `slice_all.sh` slices those with no rotation flags.
-- Process presets carry `compatible_printers`: each printer needs
-  process variants derived from its own stock preset
-  (`process_lwpla_vase.json` for S1, `process_lwpla_vase_x.json`
-  for X); an S1-derived process is rejected by the X.
-
-## Remaining
-
-- Booms (2) and servo doors / FC mount have no STL yet, so no
-  G-code for them. They are the only parts left to model.
-- LW-PLA flow (55%) and vase-mode wall quality need a real test
-  print before committing to full parts — G-code correctness is
-  verified, print quality is not.
+Not checked: print quality. The LW-PLA flow (0.55) and vase-mode wall quality need a real test print
+(one `wing_tip_r`) before the full set is printed, and the boom-rib tree supports should be watched
+on the first print.

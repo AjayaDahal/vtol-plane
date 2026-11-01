@@ -40,10 +40,10 @@ means the flow is wrong; recalibrate before printing more.
 | `coupler_370` | PETG | S1 | 1 | 19.2 | 0h 37m | sliced |
 | `coupler_610` | PETG | S1 | 1 | 22.4 | 0h 52m | sliced |
 | `fc_shelf` | PETG | S1 | 1 | 15.3 | 0h 34m | sliced |
-| `frame_main` | PETG | S1 | 1 | 20.1 | 0h 49m | sliced |
+| `frame_main` | PETG | S1 | 1 | 20.3 | 0h 49m | sliced |
 | `frame_rear` | PETG | S1 | 1 | 14.9 | 0h 37m | sliced |
 | `pod_collar` | PETG | S1 | 1 | 4.7 | 0h 16m | sliced |
-| `rear_motor_mount` | PETG + supports | S1 | 1 | 14.2 | 0h 52m | sliced |
+| `rear_motor_mount` | PETG + supports | S1 | 1 | 14.5 | 0h 53m | sliced |
 | `rib_midtip_l` | PETG | S1 | 1 | 14.7 | 0h 35m | sliced |
 | `rib_midtip_r` | PETG | S1 | 1 | 14.7 | 0h 35m | sliced |
 | `rib_root_l` | PETG | S1 | 1 | 16.1 | 0h 36m | sliced |
@@ -63,7 +63,7 @@ Totals, quantities included:
 |---|---|---|---|
 | S1 | LW-PLA | 124 g | 23.0 h |
 | X | LW-PLA | 105 g | 20.7 h |
-| S1 | PETG (incl. supports) | 462 g | 22.7 h |
+| S1 | PETG (incl. supports) | 463 g | 22.8 h |
 
 Suggested order: one `wing_tip_r` first as the LW-PLA flow test (target 14.7 g); then the
 PETG ribs, so each spigot can be test-fitted in its skin before the full set is printed.

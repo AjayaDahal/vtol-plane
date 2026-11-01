@@ -24,11 +24,12 @@ can override any of them.
   rules, so the spec was corrected to match it.)
 - Wing: Clark Y airfoil (flat bottom, forgiving, easy to build), root chord
   220 mm, tip chord 150 mm, mean chord ~185 mm, wing area ~0.263 m².
-- Wing loading at 1880 g AUW: ~71 g/dm². Estimated stall speed
+- Wing loading at 1923 g AUW: ~72 g/dm². Estimated stall speed
   ~9.8 m/s (~35 km/h) at Clmax 1.2 (estimate, not a guarantee — first
   flights will confirm).
-- AUW budget: printed airframe ~730 g, electronics ~600 g, 4S battery
-  ~500 g, hardware/fasteners ~50 g → ~1880 g total.
+- AUW budget (`scripts/mass_balance.py`, printed parts from the sliced
+  G-code): printed airframe ~690 g, 4S battery ~520 g, everything else
+  (motors, ESCs, servos, FC, carbon, wiring, hardware) ~710 g → ~1923 g.
 
 ## Power system (sized from the Stallion's proven setup)
 

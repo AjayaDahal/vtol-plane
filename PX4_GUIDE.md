@@ -72,7 +72,7 @@ multicopter build: AUX bus on dual-bus Pixhawks, MAIN otherwise).
 
 1. Balance: fingertips under the wing at 430 mm aft of the nose tip
    (27% MAC). Battery slides on its tray to trim: battery center
-   230–268 mm from the nose holds CG in the 25–30% band. If it will
+   267–301 mm from the nose (nominal 282) holds CG in the 25–30% band. If it will
    not balance there, DO NOT FLY — move equipment, do not add dead
    weight to the tail.
 2. Motor order + direction (props OFF, then brief spin-up): confirm

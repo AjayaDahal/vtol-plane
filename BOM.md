@@ -25,8 +25,8 @@ with its printer and status in `tracker.md`; masses are in `DESIGN.md`.
 | V-tail root rib, V-tail tip cap | 2 each | PETG | same file for L and R |
 | Servo cage, control horn | 6 each | PETG | 4 ailerons + 2 ruddervators |
 
-Filament (from the sliced G-code, see `DESIGN.md`): LW-PLA ~270 g,
-PETG ~350 g including supports.
+Filament (from the sliced G-code, see `DESIGN.md`): LW-PLA ~230 g,
+PETG ~460 g including supports.
 
 ## Electronics
 

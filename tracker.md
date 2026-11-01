@@ -65,6 +65,14 @@ Totals, quantities included:
 | X | LW-PLA | 105 g | 20.7 h |
 | S1 | PETG (incl. supports) | 463 g | 22.8 h |
 
+## Reminders for print time (agents: raise these with the user when printing starts)
+
+- [ ] **Print quality is unverified.** G-code checks cannot show it. The LW-PLA flow of 0.55 and
+  the vase-mode walls need a real test print, such as `wing_tip_r`, before the full set is printed.
+- [ ] **Boom-rib supports.** Watch the tree supports on the `boom_rib_l/r` parts on their first print.
+
+Tick a box once the user confirms it is done.
+
 Suggested order: one `wing_tip_r` first as the LW-PLA flow test (target 14.7 g); then the
 PETG ribs, so each spigot can be test-fitted in its skin before the full set is printed.
 

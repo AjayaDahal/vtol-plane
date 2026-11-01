@@ -413,11 +413,17 @@ def gcode_path(name):
 
 
 def check_gcode():
-    """The sliced files: present, sliced from the current STL, no support extrusions, one vase
-    speed band."""
+    """The sliced files: present, sliced from the current STL, inside the printer's height
+    (end-of-print lift included), no support extrusions, one vase speed band."""
+    import json
     import re
-    from slice_all import STAMP, stl_hash
-    missing, stale, with_support, vase = [], [], [], {}
+    from slice_all import MACHINE, PROFILES, STAMP, stl_hash
+    height = {}
+    for printer, fname in MACHINE.items():
+        with open(os.path.join(PROFILES, fname)) as fh:
+            height[printer] = float(json.load(fh)["printable_height"])
+    missing, stale, with_support, too_tall, vase = [], [], [], [], {}
+    z_top = {}
     for name, spec in sorted(PARTS.items()):
         path = gcode_path(name)
         if not os.path.exists(path):
@@ -429,15 +435,18 @@ def check_gcode():
         stamp = re.search(re.escape(STAMP) + r"([0-9a-f]{64})", tail)
         if not stamp or stamp.group(1) != stl_hash(name):
             stale.append(name)
-        typ, f, x, y = "", 0.0, 0.0, 0.0
+        typ, f, x, y, z_max = "", 0.0, 0.0, 0.0, 0.0
         n_sup, speeds, lens = 0, [], []
         with open(path, errors="ignore") as fh:
             for line in fh:
                 if line.startswith(";TYPE:"):
                     typ = line[6:].strip()
                     continue
-                if not line.startswith("G1"):
+                if not (line.startswith("G1") or line.startswith("G0")):
                     continue
+                mz = re.search(r"Z(-?[\d.]+)", line)
+                if mz:
+                    z_max = max(z_max, float(mz.group(1)))
                 mf = re.search(r"F([\d.]+)", line)
                 if mf:
                     f = float(mf.group(1))
@@ -452,6 +461,9 @@ def check_gcode():
                         speeds.append(f / 60.0)
                         lens.append(math.hypot(nx - x, ny - y))
                 x, y = nx, ny
+        z_top[name] = z_max
+        if z_max > height[spec["printer"]]:
+            too_tall.append(f"{name} Z {z_max:.1f} > {height[spec['printer']]:.0f}")
         if n_sup:
             with_support.append(f"{name} ({n_sup} moves)")
         if spec["material"] == "lwpla_vase" and speeds:
@@ -462,6 +474,10 @@ def check_gcode():
     check("G-code present for every part", not missing, ", ".join(missing) or f"{len(PARTS)} files")
     check("G-code sliced from the current print-ready STL (hash stamp)", not stale,
           ", ".join(stale) or "all current")
+    tallest = max(z_top, key=z_top.get) if z_top else None
+    check("G-code stays inside the printer's height, end-of-print lift included", not too_tall,
+          "; ".join(too_tall) or (f"highest move Z {z_top[tallest]:.1f} ({tallest}); "
+                                  + ", ".join(f"{k} {v:.0f} mm" for k, v in height.items())))
     check("G-code has no support extrusions (profile sanity)", not with_support,
           "; ".join(with_support) or "0 support moves")
     if vase:
@@ -471,6 +487,53 @@ def check_gcode():
         fast = max(vase, key=lambda k: vase[k][1])
         check("LW-PLA vase walls print in one speed band (one flow calibration)", hi <= 2.0 * lo,
               f"{lo:.0f} mm/s ({slow}) to {hi:.0f} mm/s ({fast}), want max <= 2x min")
+
+
+def _mesh_dist(pts, tris):
+    """Distance from each point to the nearest triangle (projection if it lands inside the
+    triangle, else the nearest vertex: exact for points on or near the surface)."""
+    a, ab, ac = tris[:, 0], tris[:, 1] - tris[:, 0], tris[:, 2] - tris[:, 0]
+    n = np.cross(ab, ac)
+    nn = np.einsum("ij,ij->i", n, n) + 1e-18
+    out = np.empty(len(pts))
+    for i, p in enumerate(pts):
+        ap = p - a
+        v = np.einsum("ij,ij->i", np.cross(ap, ac), n) / nn
+        w = np.einsum("ij,ij->i", np.cross(ab, ap), n) / nn
+        inside = (v >= 0) & (w >= 0) & (v + w <= 1)
+        dq = np.abs(np.einsum("ij,ij->i", ap, n)) / np.sqrt(nn)
+        dv = np.min(np.linalg.norm(tris - p, axis=2), axis=1)
+        out[i] = np.min(np.where(inside, dq, dv))
+    return out
+
+
+def check_shared_files():
+    """A part printed from one file in several copies for both sides (V-tail ribs and caps,
+    servo cages, horns) must be mirror-symmetric, so its mirror image is the same part turned
+    over and either copy fits either side."""
+    rng = np.random.default_rng(2)
+    bad, done = [], []
+    for name, spec in sorted(PARTS.items()):
+        if spec["qty"] < 2:
+            continue
+        t = load(spec["src"] or name)
+        area = 0.5 * np.linalg.norm(np.cross(t[:, 1] - t[:, 0], t[:, 2] - t[:, 0]), axis=1)
+        k = rng.choice(len(t), 800, p=area / area.sum())
+        r1, r2 = rng.random((2, 800))
+        s = r1 + r2 > 1
+        r1[s], r2[s] = 1 - r1[s], 1 - r2[s]
+        pts = t[k, 0] + r1[:, None] * (t[k, 1] - t[k, 0]) + r2[:, None] * (t[k, 2] - t[k, 0])
+        # Candidate mirror planes: principal planes of the exact (area-weighted) surface moments.
+        s3 = t.sum(1)
+        c = (area[:, None] * s3).sum(0) / (3 * area.sum())
+        d0, s0 = t - c, s3 - 3 * c
+        cov = (area[:, None, None] / 12 * (np.einsum("tvi,tvj->tij", d0, d0)
+                                           + np.einsum("ti,tj->tij", s0, s0))).sum(0)
+        _, vecs = np.linalg.eigh(cov)
+        best = min(_mesh_dist(pts - 2 * np.outer((pts - c) @ nv, nv), t).max() for nv in vecs.T)
+        (done if best <= 0.05 else bad).append(f"{name} ({best:.2f} mm)")
+    check("one file for both sides only where the part is mirror-symmetric", not bad,
+          "; ".join(bad) or ", ".join(done))
 
 
 def check_balance():
@@ -493,6 +556,7 @@ if __name__ == "__main__":
     check_mechanism()
     check_balance()
     check_overhangs()
+    check_shared_files()
     if "--no-gcode" not in sys.argv:
         check_gcode()
     failed = [n for n, ok in RESULTS if not ok]

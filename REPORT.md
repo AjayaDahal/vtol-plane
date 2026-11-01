@@ -15,13 +15,14 @@ the plane flies. That needs the physical checks listed under "Open".
 **Ready to print, starting with the test prints.** Print `wing_tip_r`
 (flow) and `rib_tip_r` (fit) first, then the rest (`tracker.md`).
 
-- Verification gate: `python scripts/check_parts.py` passes **76/76**.
+- Verification gate: `python scripts/check_parts.py` passes **78/78**.
   It covers mesh integrity, mirrored L/R parts, bed fit, every spigot,
   coupler and frame fit, spar, joiner, boom and wire paths, motor holes
   and hex-key room, the tilt sweep, prop clearances, thrust split, CG and
-  static margin, and overhangs judged on the geometry (no part needs
-  supports). It also checks the G-code: present, sliced from the current
-  STL (hash stamp), and one vase speed band.
+  static margin, overhangs judged on the geometry (no part needs
+  supports), and mirror symmetry of every part printed from one file for
+  both sides. It also checks the G-code: present, sliced from the current
+  STL (hash stamp), inside the printer's height, and one vase speed band.
 - 46 G-code files, no supports anywhere. S1 LW-PLA 124 g / 23.7 h,
   X LW-PLA 105 g / 20.2 h, S1 PETG 448 g / 20.2 h.
 - AUW ~1.91 kg, CG 431 mm from the nose (27 % MAC), hover split
@@ -84,6 +85,17 @@ the table.
 | 5.20 | P1 check | **Stale-G-code check used file times,** which git does not keep. It failed on every fresh clone and passed after restoring old G-code. | `slice_all.py` stamps each G-code file with the SHA-256 of its STL; the gate compares hashes. | fixed |
 | 5.21 | P0 flight | **PX4 rotor count:** airframe 13100 defaults to `CA_ROTOR_COUNT` 4, a phantom rotor 1 m out that takes part of every command. | Guide sets `CA_ROTOR_COUNT` = 3. | fixed |
 | 5.22 | P0 flight | **PX4 tilt servos are mirror images:** one needs Rev Range. The tilts also sit at the raw Disarmed PWM while disarmed and during spool-up. On the reversed output, the PWM min is the forward end. | Guide: Rev Range on one tilt output, with its end points and hover disarmed value given separately; Disarmed PWM at the hover (0°) position on both. | fixed |
+
+### External review of the pushed files (Oct 31, 2026)
+
+Three further claims were checked against the files. Two are not defects, but each now has a
+gate check so the fact stays verified.
+
+| # | Claim | Finding | Status |
+|---|---|---|---|
+| 5.23 | The left V-tail root rib and tip cap have no print file. "Same file L and R" is wrong, so printing two gives two right parts. | Not a defect. Both parts are mirror-symmetric about their own chord plane: mirroring deviates 0.00 mm and the volumes are equal. The mirrored left part is therefore the right part turned over, and either copy fits either side. The same holds for `servo_cage` and `control_horn`. New check: every part printed from one shared file must be mirror-symmetric (it fails the pod and boom rib, ~12 mm). Tracker and BOM wording clarified. | verified, gated |
+| 5.24 | `fuse_1`, `fuse_3` and `vtail_r` print to Z 242, but the S1 lid clearance is 240. | Not a defect. The top layer is 240.0 mm. 242 is the end-of-print lift (last layer + 2 mm, capped at the printable height). The S1's printable height is 250 mm. The 240 mm `extruder_clearance_height_to_lid` is OrcaSlicer's by-object collision setting ("Used for collision avoidance in by-object printing"), which this project does not use. New check: every G-code move is inside the printer's height. | verified, gated |
+| 5.25 | `DESIGN.md` and `PX4_GUIDE.md` are still v0.1: 13 m/s, nose tape, M3×6, MAIN plus DShot. | Already fixed in `6d1b24a` (5.5–5.8). Both docs are v0.2 on `origin/main`: 17 m/s, nylon nose screw, M3×8, motors on AUX1–3 with DShot. The claim was based on the earlier files. | fixed earlier |
 
 ## Round 4 — independent audit of v0.1 (statuses as of v0.2)
 

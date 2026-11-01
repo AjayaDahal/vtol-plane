@@ -23,7 +23,7 @@ part goes and how it is assembled is in `DESIGN.md`.
 | FC shelf, battery tray, pod collar | 1 each | PETG | |
 | Rear motor mount | 1 | PETG | clamps the tail boom, vertical thrust |
 | Tail block | 1 | PETG | carries both V-tail panels |
-| V-tail root rib, V-tail tip cap | 2 each | PETG | same file for L and R |
+| V-tail root rib, V-tail tip cap | 2 each | PETG | one file for both sides: the parts are mirror-symmetric, so either copy fits either side |
 | Servo cage, control horn | 6 each | PETG | 4 ailerons + 2 ruddervators |
 
 Filament (from the sliced G-code, see `tracker.md`): LW-PLA ~230 g,

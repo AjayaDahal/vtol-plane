@@ -14,7 +14,7 @@ python scripts/structure.py        # PETG structure   -> parts/assembly/*.stl
 python scripts/make_print_ready.py # rotates into print orientation -> parts/print_ready/*.stl
 python scripts/slice_all.py        # -> gcode/<s1|x>_<lwpla|petg>/<part>.gcode  (one part: slice_all.py fuse_1)
 python scripts/mass_balance.py     # mass, CG, battery position (reads masses from the G-code)
-python scripts/check_parts.py      # the gate: geometry, fits, mechanism, balance, overhangs, G-code (76 checks)
+python scripts/check_parts.py      # the gate: geometry, fits, mechanism, balance, overhangs, G-code (78 checks)
 ```
 
 `scripts/make_print_ready.py` holds the print table: printer, material, slicer process,
@@ -49,6 +49,12 @@ carries over to the rest. Total time is about the same.
 - Every file is present and was sliced from the current STL. `slice_all.py` ends each file with a
   `; vtol_stl_sha256 = ...` stamp, and the gate compares it with the STL's hash; file times are
   not used, because git does not keep them.
+- Every move stays inside the printer's printable height, the end-of-print lift included (S1
+  250 mm, X 260 mm). The tallest parts reach 242 mm: a 240 mm top layer plus the 2 mm lift. The
+  S1 profile's 240 mm `extruder_clearance_height_to_lid` only applies to by-object printing,
+  which is not used.
+- Parts printed from one file for both sides (`vtail_root_rib`, `vtail_tip_cap`, `servo_cage`,
+  `control_horn`) are checked to be mirror-symmetric, so either copy fits either side.
 - No part needs supports, judged on the geometry: every PETG face more than 60° from vertical is
   bridged (span ≤ 30 mm, e.g. the top of a hole), and flat faces may also be ledges of ≤ 3 mm.
   Vase skins lean ≤ 45°. The pods print upright (45° gusset under the axle boss, 45° nose

@@ -74,8 +74,8 @@ Suggested order: `wing_tip_r` (flow test), then `rib_tip_r` (fit test), then the
 | `rib_tip_r` | PETG | S1 | 1 | 8.1 | 0h 22m | sliced |
 | `servo_cage` | PETG | S1 | 6 | 2.1 | 0h 15m | sliced |
 | `tail_block` | PETG | S1 | 1 | 28.2 | 1h 10m | sliced |
-| `vtail_root_rib` (same file L and R) | PETG | S1 | 2 | 9.3 | 0h 23m | sliced |
-| `vtail_tip_cap` (same file L and R) | PETG | S1 | 2 | 2.9 | 0h 12m | sliced |
+| `vtail_root_rib` (one file, both sides) | PETG | S1 | 2 | 9.3 | 0h 23m | sliced |
+| `vtail_tip_cap` (one file, both sides) | PETG | S1 | 2 | 2.9 | 0h 12m | sliced |
 | `yoke_l` | PETG | S1 | 1 | 12.6 | 0h 44m | sliced |
 | `yoke_r` | PETG | S1 | 1 | 12.6 | 0h 44m | sliced |
 
@@ -86,6 +86,17 @@ Totals, quantities included:
 | S1 | LW-PLA | 124 g | 23.7 h |
 | X | LW-PLA | 105 g | 20.2 h |
 | S1 | PETG | 448 g | 20.2 h |
+
+Notes:
+
+- **One file for both sides.** `vtail_root_rib`, `vtail_tip_cap`, `servo_cage` and
+  `control_horn` are mirror-symmetric, so a mirrored "left" part is the same part turned over.
+  Print the quantity shown; any copy fits either side. `check_parts.py` verifies this for every
+  shared file.
+- **240 mm parts on the S1.** `fuse_1`, `fuse_3` and `vtail_r` are 240 mm tall. The highest move is
+  242 mm, the 2 mm lift after the last layer, against the S1's 250 mm printable height. The
+  slicer's 240 mm "height to lid" setting only applies to by-object printing, which this
+  project does not use. Leave the lid on.
 
 Status values: sliced / printing / printed / fitted / failed. Superseded v0.1 parts and their
 G-code (nacelles, brackets, sleeves, pivot blocks, socket rear mount) were deleted; do not

@@ -638,6 +638,303 @@ def check_balance():
     check("static margin 10-25 % MAC", 0.10 <= r["static_margin"] <= 0.25, f"{100 * r['static_margin']:.0f} %")
 
 
+# --- inserts, equipment, GPS saddle --------------------------------------------------
+INSERTS = ("coupler_240", "coupler_370", "coupler_610", "frame_main", "frame_rear", "fc_shelf",
+           "battery_tray", "pod_collar")
+_SKEW = np.array([0.0123, 0.0071, 1.0]) / np.linalg.norm([0.0123, 0.0071, 1.0])
+
+
+def inside_mesh(pts, tris):
+    """Ray-parity point-in-solid test. The ray is skewed off the axes so it misses edges, and
+    only triangles whose x-y extent can meet it are tested."""
+    lo, hi = tris[:, :, :2].min(1) - 3.0, tris[:, :, :2].max(1) + 3.0
+    out = np.zeros(len(pts), bool)
+    for i, p in enumerate(pts):
+        m = np.all((p[:2] >= lo) & (p[:2] <= hi), axis=1)
+        out[i] = len(ray_hits(tris[m], p, _SKEW)) % 2 == 1
+    return out
+
+
+def surface_samples(tris, n=3000, seed=0):
+    """Every vertex plus area-weighted random points on the surface."""
+    rng = np.random.default_rng(seed)
+    area = 0.5 * np.linalg.norm(np.cross(tris[:, 1] - tris[:, 0], tris[:, 2] - tris[:, 0]), axis=1)
+    k = rng.choice(len(tris), n, p=area / area.sum())
+    r1, r2 = rng.random((2, n))
+    s = r1 + r2 > 1
+    r1[s], r2[s] = 1 - r1[s], 1 - r2[s]
+    pts = tris[k, 0] + r1[:, None] * (tris[k, 1] - tris[k, 0]) + r2[:, None] * (tris[k, 2] - tris[k, 0])
+    return np.concatenate([np.unique(tris.reshape(-1, 3).round(4), axis=0), pts])
+
+
+def penetration(a, b):
+    """How deep the surface of mesh a reaches inside closed mesh b (0 if it doesn't)."""
+    lo, hi = b.reshape(-1, 3).min(0) - 0.01, b.reshape(-1, 3).max(0) + 0.01
+    pts = surface_samples(a)
+    pts = pts[np.all((pts >= lo) & (pts <= hi), axis=1)]
+    if len(pts) == 0:
+        return 0.0
+    ins = inside_mesh(pts, b)
+    return float(_mesh_dist(pts[ins], b).max()) if ins.any() else 0.0
+
+
+def check_inserts():
+    """No two PETG inserts in the fuselage overlap, e.g. the tray's rails and the shelf's edges
+    where they pass through a coupler ring."""
+    meshes = {n: load(n) for n in INSERTS}
+    box = {n: (t.reshape(-1, 3).min(0), t.reshape(-1, 3).max(0)) for n, t in meshes.items()}
+    worst, pairs = (0.0, ""), 0
+    for i, a in enumerate(INSERTS):
+        for b in INSERTS[i + 1:]:
+            if np.any(box[a][1] < box[b][0] - 0.5) or np.any(box[b][1] < box[a][0] - 0.5):
+                continue
+            pairs += 1
+            for p, q in ((a, b), (b, a)):
+                d = penetration(meshes[p], meshes[q])
+                if d > worst[0]:
+                    worst = (d, f"{p} {d:.2f} mm inside {q}")
+    check("fuselage inserts do not overlap each other", worst[0] <= 0.05,
+          worst[1] or f"{pairs} touching pairs checked, deepest 0.00 mm")
+
+
+def box_points(c, size, n=5):
+    """A grid of points over the surface of an axis-aligned box."""
+    c, h = np.asarray(c, float), np.asarray(size, float) / 2
+    g = np.linspace(-1, 1, n)
+    u, v = (a.ravel() for a in np.meshgrid(g, g))
+    pts = []
+    for ax in range(3):
+        o = [k for k in range(3) if k != ax]
+        for s in (-1.0, 1.0):
+            p = np.zeros((len(u), 3))
+            p[:, ax], p[:, o[0]], p[:, o[1]] = s, u, v
+            pts.append(p)
+    return c + np.concatenate(pts) * h
+
+
+# Room each item needs from the LW-PLA skin: a LiPo swells, and an ESC must never touch the
+# skin (LW-PLA softens at 55-60 C).
+SKIN_ROOM = {"battery": 3.0, "esc": 5.0}
+
+
+def check_equipment():
+    """The equipment inside the fuselage (payload.py) fits: clear of the skin, not cut by any
+    printed part or by each other, and the battery slides out through the nose opening."""
+    import payload as PL
+    items = [e for e in PL.equipment() if e["inside"]]
+    meshes = {n: load(n) for n in INSERTS}
+    skin, cut = [], []
+    room_min = (np.inf, "")
+    for e in items:
+        c, s = np.array(e["pos"]), np.array(e["size"], float)
+        need = next((v for k, v in SKIN_ROOM.items() if e["name"].startswith(k)), 2.0)
+        pts = box_points(c, s)
+        room = min(G.fuse_half_width(x, z, need) - abs(y) for x, y, z in pts)
+        if room < 0:
+            skin.append(f"{e['name']} short by {-room:.1f} mm")
+        if room < room_min[0]:
+            room_min = (room, e["name"])
+        lo, hi = c - s / 2, c + s / 2
+        for n, t in meshes.items():
+            v = t.reshape(-1, 3)
+            if np.any(np.all((v > lo + 0.05) & (v < hi - 0.05), axis=1)):
+                cut.append(f"{n} inside {e['name']}")
+            tlo, thi = v.min(0), v.max(0)
+            near = pts[np.all((pts >= tlo - 0.01) & (pts <= thi + 0.01), axis=1)]
+            if len(near):
+                ins = inside_mesh(near, t)
+                if ins.any() and _mesh_dist(near[ins], t).max() > 0.05:
+                    cut.append(f"{e['name']} inside {n}")
+    check("equipment inside the fuselage clears the skin", not skin,
+          "; ".join(skin) or f"tightest: {room_min[1]} with {room_min[0]:.1f} mm to spare beyond its "
+                             f"required room (battery 3, ESCs 5, others 2 mm)")
+    check("equipment is not cut by any printed insert", not cut, "; ".join(cut) or f"{len(items)} items")
+    overlap = []
+    for i, a in enumerate(items):
+        for b in items[i + 1:]:
+            ga = np.abs(np.array(a["pos"]) - np.array(b["pos"])) - (np.array(a["size"]) + np.array(b["size"])) / 2
+            if np.all(ga < 0.5):
+                overlap.append(f"{a['name']}/{b['name']}")
+    check("equipment items keep >= 0.5 mm from each other", not overlap, ", ".join(overlap) or "ok")
+    # Battery change: the pack slides forward off the tray and out through coupler_240.
+    bat = next(e for e in items if e["name"] == "battery")
+    c, s = np.array(bat["pos"]), np.array(bat["size"])
+    lo = np.array([P.FUSE_SPLITS[1] - P.COUPLER_HALF - 5.0, -s[1] / 2, c[2] - s[2] / 2 + 0.3])
+    hi = c + s / 2
+    blocked = [n for n in ("coupler_240", "fc_shelf", "battery_tray")
+               if np.any(np.all((meshes[n].reshape(-1, 3) > lo) & (meshes[n].reshape(-1, 3) < hi), axis=1))]
+    xs = np.arange(lo[0], hi[0], 2.0)
+    ring = min(G.fuse_half_width(x, z, P.INSET + P.COUPLER_WALL + 1.0) - s[1] / 2 for x in xs for z in (lo[2], hi[2]))
+    check("battery slides out through the nose opening", not blocked and ring > 0,
+          ", ".join(blocked) or f"{ring:.1f} mm each side at the tightest point of its path")
+
+
+def skin_distance(pts):
+    """Signed distance from points to the fuselage's outer surface (+ outside), from the
+    elliptic stations in params."""
+    th = np.linspace(0, 2 * math.pi, 3600, endpoint=False)
+    out = np.empty(len(pts))
+    for i, (x, y, z) in enumerate(pts):
+        w, h, zc = G.fuse_dims(x)
+        a, b = w / 2, h / 2
+        d = np.min(np.hypot(y - a * np.cos(th), z - zc - b * np.sin(th)))
+        out[i] = d if (y / a) ** 2 + ((z - zc) / b) ** 2 > 1 else -d
+    return out
+
+
+def check_gps_mount():
+    """The external GPS saddle sits on fuse_3 with a glue gap, takes the puck, and its cable
+    hole is open."""
+    import payload as PL
+    t = load("gps_mount")
+    v = np.unique(t.reshape(-1, 3).round(4), axis=0)
+    d = skin_distance(v)
+    # The skirt's bottom edge: the lowest vertex in each 2 mm stretch of the outer perimeter.
+    xc, a = P.GPS_X, P.GPS_PAD / 2
+    rim = v[(np.abs(np.abs(v[:, 0] - xc) - a) < 0.01) | (np.abs(np.abs(v[:, 1]) - a) < 0.01)]
+    s = np.where(np.abs(np.abs(rim[:, 1]) - a) < 0.01, rim[:, 0] - xc + 4 * a * (rim[:, 1] > 0), rim[:, 1] + 2 * a
+                 + 4 * a * (rim[:, 0] > xc))
+    edge = np.array([rim[s // 2 == k][np.argmin(rim[s // 2 == k][:, 2])] for k in np.unique(s // 2)])
+    de = skin_distance(edge)
+    check("GPS saddle follows the skin with a 0.05-0.4 mm glue gap", d.min() >= 0.05 and de.max() <= 0.4,
+          f"skirt edge {de.min():.2f}-{de.max():.2f} mm off the skin all round ({len(edge)} points); "
+          f"nothing closer than {d.min():.2f} mm")
+    top = v[:, 2].max()
+    pad = v[np.abs(v[:, 2] - top) < 0.01]
+    ext = pad.max(0) - pad.min(0)
+    check("GPS puck fits the saddle pad", min(ext[0], ext[1]) >= PL.GPS_D and abs(top - PL.gps_top()) < 0.01,
+          f"pad {ext[0]:.0f} x {ext[1]:.0f} mm for a {PL.GPS_D:.0f} mm puck, top z {top:.1f}")
+    clear_path("GPS saddle cable hole", t, (P.GPS_X, 0, top + 5), (0, 0, -1), 30)
+
+
+# --- wing webs ------------------------------------------------------------------------
+WEB_SECTIONS = (("wing_root_r", "root", P.Y_ROOT_SEC), ("wing_mid_r", "mid", P.Y_MID_SEC),
+                ("wing_tip_r", "tip", P.Y_TIP_SEC))
+
+
+def check_webs():
+    """The spanwise webs in the wing skins leave room for the spars along the whole span, for the
+    wire/pitot hole wherever leads run (out to the tip aileron servo), and for the boom's motor
+    leads, not just at the section ends."""
+    import payload as PL
+    from structure import BOOM_WIRE_X_END
+    ang = np.linspace(0, 2 * math.pi, 24, endpoint=False)
+    rings = [(s["x"], s["z"], s["od"] / 2, np.inf) for s in (P.MAIN_SPAR, P.REAR_SPAR)]
+    rings.append((P.RIB_WIRE_X, P.RIB_WIRE_Z, P.RIB_WIRE_R, max(PL.AIL_SERVO_Y) + 15.0))
+    worst, where, n = np.inf, "", 0
+    for name, sec, (y0, y1) in WEB_SECTIONS:
+        t = load(name)
+        for y in np.arange(y0 + 1.0, y1 - 0.5, 4.0):
+            segs = slice_points(t, 1, y)[:, :, [0, 2]]
+            n += 1
+            for cx, cz, r, y_max in rings:
+                if y > y_max:
+                    continue
+                ring = np.stack([cx + r * np.cos(ang), cz + r * np.sin(ang)], axis=1)
+                d = dist_2d(ring, segs).min() if inside_2d(ring, segs).all() else -1.0
+                if d < worst:
+                    worst, where = d, f"{name} y={y:.0f}, hole at x={cx:.0f}"
+    check("spars and wire hole clear the wing webs along the whole span", worst >= P.LWPLA_WALL + 1.0,
+          f"min {worst:.2f} mm over {n} stations ({where})")
+
+    def route_hits(t, pts):
+        hits = 0
+        for a, b in zip(pts, pts[1:]):
+            a, b = np.array(a, float), np.array(b, float)
+            h = ray_hits(t, a, (b - a) / np.linalg.norm(b - a))
+            hits += int(np.sum(h < np.linalg.norm(b - a)))
+        return hits
+
+    # Motor and tilt-servo leads leave the boom cup at x=412 and cross the main spar near the
+    # outboard end of the root section, where the webs have run out, then follow the wire hole.
+    y1 = P.Y_ROOT_SEC[1]
+    leads = [(BOOM_WIRE_X_END, y1 - 3.0, P.Z_WING + 7.0), (P.MAIN_SPAR["x"], y1 - 11.0, 13.0),
+             (P.RIB_WIRE_X, y1 - 15.0, P.RIB_WIRE_Z), (P.RIB_WIRE_X, P.Y_ROOT_SEC[0] + 1.0, P.RIB_WIRE_Z)]
+    h1 = route_hits(load("wing_root_r"), leads)
+    # Pitot tubing: from the tube's end straight back to the wire hole through the pitot gap,
+    # then inboard along the wire hole.
+    y0m = P.Y_MID_SEC[0]
+    pitot = [(P.X_LE + 3.0, P.PITOT_Y, PL.pitot_z()), (PL.PITOT_X[1], P.PITOT_Y, PL.pitot_z()),
+             (P.RIB_WIRE_X, P.PITOT_Y, P.RIB_WIRE_Z), (P.RIB_WIRE_X, y0m + 1.0, P.RIB_WIRE_Z)]
+    h2 = route_hits(load("wing_mid_r"), pitot)
+    check("motor-lead and pitot routes cross no web", h1 == 0 and h2 == 0,
+          f"{h1} skin crossings on the boom-cup lead route, {h2} on the pitot route")
+
+
+def gcode_band(path, z0, dz=0.2):
+    """Extruding moves of one layer band [z0, z0+dz) as (n, 2, 2) segments."""
+    import re
+    x = y = z = 0.0
+    segs = []
+    with open(path, errors="ignore") as fh:
+        for line in fh:
+            if not line.startswith(("G1", "G0")):
+                continue
+            m = dict(re.findall(r"([XYZE])(-?[\d.]+)", line))
+            nx, ny, nz = float(m.get("X", x)), float(m.get("Y", y)), float(m.get("Z", z))
+            if z0 <= nz < z0 + dz and "E" in m and float(m["E"]) > 0:
+                segs.append(((x, y), (nx, ny)))
+            if nz > z0 + 3 * dz:
+                break
+            x, y, z = nx, ny, nz
+    return np.array(segs, float).reshape(-1, 2, 2)
+
+
+def turnarounds(segs, step=0.05, win=1.2):
+    """180-degree turns along an extrusion path, and for each the distance from its apex to the
+    nearest part of the path more than 4 mm away along it (the line it should fuse with)."""
+    pts, s, acc = [], [], 0.0
+    for p0, p1 in segs:
+        d = float(np.hypot(*(p1 - p0)))
+        k = max(1, int(d / step))
+        for j in range(k):
+            pts.append(p0 + (p1 - p0) * j / k)
+            s.append(acc + d * j / k)
+        acc += d
+    pts, s = np.array(pts), np.array(s)
+    tang = np.gradient(pts, axis=0)
+    tang /= np.linalg.norm(tang, axis=1, keepdims=True) + 1e-12
+    w = int(win / step)
+    gaps, i = [], w
+    while i < len(pts) - w:
+        if np.dot(tang[i - w], tang[i + w]) < -0.9:
+            j = i - w + int(np.argmax(pts[i - w:i + w] @ tang[i - w]))
+            far = np.abs(s - s[j]) > 4.0
+            gaps.append(float(np.min(np.linalg.norm(pts[far] - pts[j], axis=1))))
+            i += 3 * w
+        else:
+            i += 1
+    return gaps
+
+
+def check_web_gcode():
+    """Every web prints: in a layer where all of a section's webs are at full depth, the vase
+    path turns back once per web, and each turn lands on the top-skin line (fused)."""
+    from skins import _web_full, web_spans
+    bad, info = [], []
+    for name, sec, (y0, y1) in WEB_SECTIONS:
+        if sec not in P.WING_WEBS:
+            continue
+        # Lowest layer at least 15 % up the part where every web has finished its ramp.
+        ready = max(ya + _web_full(x, ya) / P.WEB_RAMP for x in P.WING_WEBS[sec] for ya, _ in web_spans(sec, y0, y1, x)[:1])
+        z0 = round(max(ready - y0 + 4.0, 0.15 * (y1 - y0)) / 0.2) * 0.2
+        want = len(P.WING_WEBS[sec])
+        for side in ("r", "l"):
+            part = name[:-1] + side
+            path = gcode_path(part)
+            if not os.path.exists(path):
+                bad.append(f"{part}: no G-code")
+                continue
+            gaps = turnarounds(gcode_band(path, z0))
+            ok = len(gaps) >= want and sorted(gaps)[want - 1] <= P.LINE_W
+            info.append(f"{part} z{z0:.1f}: {len(gaps)} turns, worst web gap {sorted(gaps)[min(want, len(gaps)) - 1]:.2f}"
+                        if gaps else f"{part} z{z0:.1f}: 0 turns")
+            if not ok:
+                bad.append(info[-1])
+    check("wing webs print as fused double walls (G-code)", not bad,
+          "; ".join(bad) or f"{len(info)} skins, every web fused (<= {P.LINE_W} mm): " + "; ".join(info))
+
+
 if __name__ == "__main__":
     check_meshes()
     check_handedness()
@@ -649,8 +946,13 @@ if __name__ == "__main__":
     check_balance()
     check_overhangs()
     check_shared_files()
+    check_inserts()
+    check_equipment()
+    check_gps_mount()
+    check_webs()
     if "--no-gcode" not in sys.argv:
         check_gcode()
+        check_web_gcode()
     failed = [n for n, ok in RESULTS if not ok]
     print(f"\n{len(RESULTS) - len(failed)}/{len(RESULTS)} checks passed")
     sys.exit(1 if failed else 0)

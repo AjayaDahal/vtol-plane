@@ -30,6 +30,11 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "slicer_pro
 # full fan cools well inside 4 s.
 VASE_SPEED = {"outer_wall_speed": "30"}
 LWPLA_COOLING = {"slow_down_layer_time": ["4"]}
+# The wing skins' internal webs are 0.06 mm slots that the vase wall runs into (skins.py). The
+# stock 0.049 mm closing radius fills them in, and thin-wall detection (on in the stock S1
+# preset, off in the X preset) cuts the section into islands at the 0.6 mm necks, so both
+# printers use these values.
+VASE_WEBS = {"slice_closing_radius": "0.01", "detect_thin_wall": "0"}
 
 
 def load(folder, name):
@@ -89,6 +94,7 @@ def main():
         "brim_type": "outer_only",
         "brim_width": "8",
         **VASE_SPEED,
+        **VASE_WEBS,
     }
     vase = dict(std)
     vase.update(vase_overrides)
@@ -132,8 +138,9 @@ def petg_variants():
 
 
 def lwpla_tuning():
-    """Apply the LW-PLA speed/cooling settings to the committed profiles (idempotent)."""
-    for name, extra in (("process_lwpla_vase.json", VASE_SPEED), ("process_lwpla_vase_x.json", VASE_SPEED),
+    """Apply the LW-PLA speed/cooling/web settings to the committed profiles (idempotent)."""
+    vase = {**VASE_SPEED, **VASE_WEBS}
+    for name, extra in (("process_lwpla_vase.json", vase), ("process_lwpla_vase_x.json", vase),
                         ("filament_lwpla.json", LWPLA_COOLING)):
         path = os.path.join(OUT, name)
         with open(path) as f:

@@ -29,7 +29,7 @@ slicer is called with `--orient 0 --arrange 1 --ensure-on-bed`.
 | File | Use |
 |---|---|
 | `machine_kobra_s1.json`, `machine_kobra_x.json` | printer definitions |
-| `process_lwpla_vase.json` (S1), `process_lwpla_vase_x.json` (X) | spiral mode, 1 wall, 0.2 mm, 8 mm outer brim, wall speed capped at 30 mm/s. Each printer needs its own variant: a process derived from one printer is rejected by the other |
+| `process_lwpla_vase.json` (S1), `process_lwpla_vase_x.json` (X) | spiral mode, 1 wall, 0.2 mm, 8 mm outer brim, wall speed capped at 30 mm/s, `slice_closing_radius` 0.01, `detect_thin_wall` 0. Each printer needs its own variant: a process derived from one printer is rejected by the other |
 | `process_petg.json` | 3 walls, 15 % crosshatch infill, 5 top / 3 bottom layers, 5 mm auto brim, no supports. Every PETG part uses it |
 | `process_petg_support.json` | same, with tree supports. No part uses it any more; kept for one-off prints |
 | `filament_lwpla.json` | 235 C (220 C first layer), flow 0.55, fan 100 %, 4 s minimum layer time |
@@ -43,9 +43,24 @@ ailerons, 55 mm/s on the wing roots. No single flow setting suits that range. Wi
 cap and a 4 s minimum, every vase part prints at 17–30 mm/s, so the `wing_tip_r` calibration
 carries over to the rest. Total time is about the same.
 
-## G-code check (Oct 31, 2026)
+The root and mid wing skins carry internal webs: 0.06 mm slots cut up from the bottom surface,
+which the single vase wall runs into and back out of (`DESIGN.md`, "Inside the wing"). Two
+settings in both vase profiles make that work, and must not go back to the presets' values:
 
-`check_parts.py` checks the print-ready meshes and parses all 46 files in `gcode/` on every run:
+- `slice_closing_radius` 0.01 (preset 0.049). The preset radius closes a 0.06 mm slot, and
+  the web disappears from the G-code.
+- `detect_thin_wall` 0 (on in the S1 preset, off in the X one). With it on, the outer wall
+  splits a section at a neck of up to ~0.8 mm into islands, and spiral mode then prints only
+  one of them. With it off the limit is one line width (0.42 mm), and the webs' 0.6 mm neck to
+  the top skin sits inside the window where the wall stays whole and the web still fuses to the
+  skin (it stops touching above ~0.84 mm). Both printers were checked in the slicer.
+
+`make_slicer_profiles.py` writes these. The G-code stamp is the STL's hash only, so after any
+profile change re-slice every part (`build_all.py` does) rather than only the changed STLs.
+
+## G-code check (Nov 2, 2026)
+
+`check_parts.py` checks the print-ready meshes and parses all 47 files in `gcode/` on every run:
 
 - Every file is present and was sliced from the current STL. `slice_all.py` ends each file with a
   `; vtol_stl_sha256 = ...` stamp, and the gate compares it with the STL's hash; file times are
@@ -63,11 +78,14 @@ carries over to the rest. Total time is about the same.
   being the separate `boom_cup`. The rear motor mount stands on one end, bore vertical. As a
   sanity check on the profiles, no G-code file contains a support extrusion.
 - LW-PLA walls print at 17 mm/s (ruddervator tips) to 30 mm/s.
+- The wing webs print: in a layer where all of a skin's webs are at full depth, the vase path
+  turns back once per web and each turn lands within 0.22 mm of the top-skin line (it fuses
+  below one line width, 0.42 mm). Checked on all four webbed skins, left and right.
 - Every part fits its bed, brim included. The largest is `wing_root`, 234 x 40 mm on the
   250 mm S1 bed; the tallest are `fuse_1`/`fuse_3`/`vtail_r` at 240 mm against 250 mm.
 - LW-PLA files: `spiral_mode = 1`, 235 C, bed 35 C. PETG files: 255 C, bed 60 C, 3 walls.
 - Masses and times in `tracker.md` equal the slicer's footer (`total filament used [g]`,
-  `print_time`). Totals: S1 LW-PLA 124 g / 23.7 h, X LW-PLA 105 g / 20.2 h, S1 PETG 448 g / 20.2 h.
+  `print_time`). Totals: S1 LW-PLA 139 g / 26.3 h, X LW-PLA 120 g / 22.9 h, S1 PETG 467 g / 21.0 h.
 
 Not checked: print quality. The LW-PLA flow (0.55) and vase-mode wall quality need a real test print
 (one `wing_tip_r`) before the full set is printed; see the reminders in `tracker.md`.

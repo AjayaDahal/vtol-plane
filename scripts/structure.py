@@ -278,6 +278,22 @@ def fuse_loft(x0, x1, inset, step=5.0):
     return loft(faces, ruled=True)
 
 
+def coupler_ranges(margin=0.5):
+    return [(xj - P.COUPLER_HALF - margin, xj + P.COUPLER_HALF + margin) for xj in P.FUSE_SPLITS[1:-1]]
+
+
+def inner_envelope(x0, x1, gap):
+    """Fuselage interior, `gap` inside the skin's insert surface, or inside the coupler ring where
+    one is. Inserts are cut to this so they can't run into a coupler."""
+    cuts = sorted({x0, x1} | {c for r in coupler_ranges() for c in r if x0 < c < x1})
+    env = None
+    for a, b in zip(cuts, cuts[1:]):
+        in_ring = any(ra <= (a + b) / 2 <= rb for ra, rb in coupler_ranges())
+        seg = fuse_loft(a, b, P.INSET + gap + (P.COUPLER_WALL if in_ring else 0.0))
+        env = seg if env is None else env + seg
+    return env
+
+
 def coupler(xj):
     x0, x1 = xj - P.COUPLER_HALF, xj + P.COUPLER_HALF
     part = fuse_loft(x0, x1, P.INSET) - fuse_loft(x0 - 1, x1 + 1, P.INSET + P.COUPLER_WALL)
@@ -321,39 +337,57 @@ def frame(spar, joiner):
 
 
 def fc_shelf():
+    """Flight-controller shelf: the Pixhawk on its front part, the ESC block hung under its aft
+    part (above the battery) by two straps that pass down through the side openings, under the
+    block and back over the centre strip. Its edges follow the skin, and inside the couplers
+    the ring."""
     x0, x1 = P.FC_SHELF_X
     zt = P.FC_SHELF_Z
-    xs = np.linspace(x0, x1, 21)
+    xs = np.linspace(x0, x1, 33)
     hw = [G.fuse_half_width(x, zt, P.INSET) - 0.2 for x in xs]
     outline = [(x, -y) for x, y in zip(xs, hw)] + [(x, y) for x, y in zip(xs[::-1], hw[::-1])]
     part = extrude(poly_face([(x, y, zt - 2.5) for x, y in outline]), amount=2.5, dir=(0, 0, 1))
-    for sgn in (-1, 1):
-        y_in, y_out = 24.0, min(hw) - 6.0
-        part -= box(x0 + 7, x1 - 7, *sorted((sgn * y_in, sgn * y_out)), zt - 5, zt + 1)
+    part &= inner_envelope(x0, x1, 0.2)
+    e0 = P.ESC_BLOCK_X[0]
+    for xa, xb in ((x0 + 7, e0 - 8), (e0, x1 - 7)):
+        y_out = min(G.fuse_half_width(x, zt, P.INSET) for x in (xa, xb)) - 6.2
+        for sgn in (-1, 1):
+            part -= box(xa, xb, *sorted((sgn * 24.0, sgn * y_out)), zt - 5, zt + 1)
     return part
 
 
 def battery_tray():
+    """The battery slides on it from the nose opening to a stop pin. The rails stand on the
+    floor 0.3 mm clear of the skin, or of the coupler ring where there is one; the plate narrows
+    aft with the fuselage and keeps 1.5 mm off it."""
     x0, x1 = P.TRAY_X
     zt, hw = P.TRAY_Z, P.TRAY_W / 2
-    part = box(x0, x1, -hw, hw, zt - 3, zt)
-    xs = np.linspace(x0, x1, 25)
+    part = box(x0, x1, -hw, hw, zt - 3, zt) & inner_envelope(x0, x1, 1.5)
+    rails = inner_envelope(x0, x1, 0.3)
     for yr in (-24.0, 24.0):
-        floor = []
-        for x in xs:
-            w, h, zc = G.fuse_dims(x)
-            a, b = w / 2 - P.INSET, h / 2 - P.INSET
-            floor.append(zc - b * math.sqrt(max(0.0, 1 - (yr / a) ** 2)) + 0.3)
-        rail = [(x0, zt - 2)] + [(x1, zt - 2)] + list(zip(xs[::-1], floor[::-1]))
-        part += prism_y(rail, yr - 1.5, yr + 1.5)
+        part += box(x0, x1, yr - 1.5, yr + 1.5, zt - 40, zt - 2) & rails
     for x in np.arange(*P.TRAY_PIN_X):
         part -= cyl_z(P.TRAY_PIN_R, x, 0, zt - 5, zt + 1)
     for x in (280.0, 330.0):
         part -= box(x - 1.5, x + 1.5, -12, 12, zt - 5, zt + 1)
-    for xa, xb in ((252.0, 275.0), (286.0, 324.0), (336.0, 360.0)):
+    for xa, xb in ((252.0, 275.0), (286.0, 324.0), (336.0, 358.0), (364.0, 386.0)):
         for ya, yb in ((5.0, 19.0), (-19.0, -5.0)):
             part -= box(xa, xb, ya, yb, zt - 5, zt + 1)
     return part
+
+
+def gps_mount():
+    """Saddle for the GPS puck on top of fuse_3, outside the skin: nothing aft of x ~450 can be
+    reached once fuse_4 is on, so the GPS must not live inside. The skirt follows the skin with
+    a 0.2 mm glue gap; the cable goes down through the pad's hole and a Ø16 hole drilled in
+    the skin (it passes the 10-pin JST-GH plug). Prints top-down."""
+    xc, a = P.GPS_X, P.GPS_PAD / 2
+    w, h, zc = G.fuse_dims(xc)
+    z_top = zc + h / 2 + 0.2 + P.GPS_PAD_T
+    s = P.GPS_SKIRT_T
+    part = box(xc - a, xc + a, -a, a, zc, z_top) - box(xc - a + s, xc + a - s, -a + s, a - s, zc - 1, z_top - P.GPS_PAD_T)
+    part -= fuse_loft(xc - a - 1, xc + a + 1, -0.2, step=2.0)
+    return part - cyl_z(P.GPS_PAD_HOLE / 2, xc, 0, zc, z_top + 1)
 
 
 def pod_collar():
@@ -493,6 +527,7 @@ def build():
     parts["frame_rear"] = frame(P.REAR_SPAR, P.REAR_JOINER)
     parts["fc_shelf"] = fc_shelf()
     parts["battery_tray"] = battery_tray()
+    parts["gps_mount"] = gps_mount()
     parts["pod_collar"] = pod_collar()
     parts["rear_motor_mount"] = rear_motor_mount()
     parts["tail_block"] = tail_block()

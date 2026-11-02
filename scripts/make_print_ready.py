@@ -51,6 +51,8 @@ PARTS = {
     "frame_rear": _p(PETG, "s1", [("y", 90)]),
     "fc_shelf": _p(PETG, "s1", []),
     "battery_tray": _p(PETG, "s1", [("x", 180)]),
+    # Top plate on the bed; the skirt's skin-following edge is the last layer.
+    "gps_mount": _p(PETG, "s1", [("x", 180)]),
     "pod_collar": _p(PETG, "s1", [("y", -90)]),
     # Constant section along the boom: stands on an end, bore vertical, no supports.
     "rear_motor_mount": _p(PETG, "s1", [("y", 90)]),

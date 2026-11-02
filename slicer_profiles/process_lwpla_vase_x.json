@@ -228,7 +228,7 @@
   "skirt_speed": "50",
   "skirt_start_angle": "-135",
   "skirt_type": "combined",
-  "slice_closing_radius": "0.049",
+  "slice_closing_radius": "0.01",
   "slicing_mode": "regular",
   "slow_down_layers": "1",
   "slowdown_for_curled_perimeters": "0",

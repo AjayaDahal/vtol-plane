@@ -6,7 +6,15 @@
    "material": "lwpla",
    "side": "l",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    45.0,
+    -390.0,
+    -35.0
+   ],
+   "role": "aileron",
+   "printer": "x",
+   "qty": 1
   },
   {
    "name": "aileron_mid_r",
@@ -14,7 +22,15 @@
    "material": "lwpla",
    "side": "r",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    45.0,
+    390.0,
+    -35.0
+   ],
+   "role": "aileron",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "aileron_tip_l",
@@ -22,7 +38,15 @@
    "material": "lwpla",
    "side": "l",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    45.0,
+    -510.0,
+    -35.0
+   ],
+   "role": "aileron",
+   "printer": "x",
+   "qty": 1
   },
   {
    "name": "aileron_tip_r",
@@ -30,7 +54,15 @@
    "material": "lwpla",
    "side": "r",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    45.0,
+    510.0,
+    -35.0
+   ],
+   "role": "aileron",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "battery_tray",
@@ -38,7 +70,15 @@
    "material": "petg",
    "side": "c",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    -120.0,
+    0.0,
+    -170.0
+   ],
+   "role": "battery tray with stop-pin holes, ESC deck behind",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "boom_cup_l",
@@ -46,7 +86,15 @@
    "material": "petg",
    "side": "l",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    -270.0,
+    0.0
+   ],
+   "role": "spigot ring on the boom rib's inboard face",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "boom_cup_r",
@@ -54,7 +102,15 @@
    "material": "petg",
    "side": "r",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "role": "spigot ring on the boom rib's inboard face",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "boom_pod_l",
@@ -62,7 +118,15 @@
    "material": "petg",
    "side": "l",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    -80.0,
+    -330.0,
+    0.0
+   ],
+   "role": "tilt-servo pod and axle boss",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "boom_pod_r",
@@ -70,7 +134,15 @@
    "material": "petg",
    "side": "r",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    -80.0,
+    330.0,
+    0.0
+   ],
+   "role": "tilt-servo pod and axle boss",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "boom_rib_l",
@@ -78,7 +150,15 @@
    "material": "petg",
    "side": "l",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    -330.0,
+    0.0
+   ],
+   "role": "boom rib with the pod tongue",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "boom_rib_r",
@@ -86,7 +166,15 @@
    "material": "petg",
    "side": "r",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    330.0,
+    0.0
+   ],
+   "role": "boom rib with the pod tongue",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "coupler_240",
@@ -94,7 +182,15 @@
    "material": "petg",
    "side": "c",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    -210.0,
+    0.0,
+    0.0
+   ],
+   "role": "nose joint, heat-set insert for the nose screw",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "coupler_370",
@@ -102,7 +198,15 @@
    "material": "petg",
    "side": "c",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    -55.0,
+    0.0,
+    0.0
+   ],
+   "role": "joins fuse_2 and fuse_3",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "coupler_610",
@@ -110,7 +214,15 @@
    "material": "petg",
    "side": "c",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    90.0,
+    0.0,
+    0.0
+   ],
+   "role": "joins fuse_3 and fuse_4, boom web",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "fc_shelf",
@@ -118,7 +230,15 @@
    "material": "petg",
    "side": "c",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    -120.0,
+    0.0,
+    190.0
+   ],
+   "role": "Pixhawk shelf; small boards hang underneath",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "frame_main",
@@ -126,7 +246,15 @@
    "material": "petg",
    "side": "c",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    0.0,
+    190.0
+   ],
+   "role": "main joiner sleeve and boom bore",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "frame_rear",
@@ -134,7 +262,15 @@
    "material": "petg",
    "side": "c",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    0.0,
+    190.0
+   ],
+   "role": "rear joiner sleeve and boom bore",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "fuse_1",
@@ -142,7 +278,15 @@
    "material": "lwpla",
    "side": "c",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    -330.0,
+    0.0,
+    0.0
+   ],
+   "role": "removable nose, one M3 nylon screw: the access opening",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "fuse_2",
@@ -150,7 +294,15 @@
    "material": "lwpla",
    "side": "c",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    -120.0,
+    0.0,
+    0.0
+   ],
+   "role": "battery and avionics bay",
+   "printer": "x",
+   "qty": 1
   },
   {
    "name": "fuse_3",
@@ -158,7 +310,15 @@
    "material": "lwpla",
    "side": "c",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "role": "wing section of the fuselage",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "fuse_4",
@@ -166,7 +326,31 @@
    "material": "lwpla",
    "side": "c",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    170.0,
+    0.0,
+    0.0
+   ],
+   "role": "tail cone",
+   "printer": "x",
+   "qty": 1
+  },
+  {
+   "name": "gps_mount",
+   "url": "../parts/assembly/gps_mount.stl",
+   "material": "petg",
+   "side": "c",
+   "group": "structure",
+   "tilt": false,
+   "burst": [
+    0.0,
+    0.0,
+    110.0
+   ],
+   "role": "external GPS saddle, glued on top",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "pod_collar",
@@ -174,7 +358,15 @@
    "material": "petg",
    "side": "c",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    260.0,
+    0.0,
+    0.0
+   ],
+   "role": "boom exit collar",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "rear_motor_mount",
@@ -182,7 +374,15 @@
    "material": "petg",
    "side": "c",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    430.0,
+    0.0,
+    80.0
+   ],
+   "role": "rear motor clamp on the boom",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "rib_midtip_l",
@@ -190,7 +390,15 @@
    "material": "petg",
    "side": "l",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    -450.0,
+    0.0
+   ],
+   "role": "mid/tip joint rib",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "rib_midtip_r",
@@ -198,7 +406,15 @@
    "material": "petg",
    "side": "r",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    450.0,
+    0.0
+   ],
+   "role": "mid/tip joint rib",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "rib_root_l",
@@ -206,7 +422,15 @@
    "material": "petg",
    "side": "l",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    -150.0,
+    0.0
+   ],
+   "role": "root rib: spars, wire hole, joiner lock pin",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "rib_root_r",
@@ -214,7 +438,15 @@
    "material": "petg",
    "side": "r",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    150.0,
+    0.0
+   ],
+   "role": "root rib: spars, wire hole, joiner lock pin",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "rib_tip_l",
@@ -222,7 +454,15 @@
    "material": "petg",
    "side": "l",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    -570.0,
+    0.0
+   ],
+   "role": "tip rib",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "rib_tip_r",
@@ -230,7 +470,15 @@
    "material": "petg",
    "side": "r",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    570.0,
+    0.0
+   ],
+   "role": "tip rib",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "ruddervator_l",
@@ -238,7 +486,15 @@
    "material": "lwpla",
    "side": "l",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    570.0,
+    -81.92,
+    57.36
+   ],
+   "role": "ruddervator",
+   "printer": "x",
+   "qty": 1
   },
   {
    "name": "ruddervator_r",
@@ -246,7 +502,15 @@
    "material": "lwpla",
    "side": "r",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    570.0,
+    81.92,
+    57.36
+   ],
+   "role": "ruddervator",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "tail_block",
@@ -254,7 +518,15 @@
    "material": "petg",
    "side": "c",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    520.0,
+    0.0,
+    0.0
+   ],
+   "role": "V-tail mount on the end of the boom",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "vtail_l",
@@ -262,7 +534,15 @@
    "material": "lwpla",
    "side": "l",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    520.0,
+    -81.92,
+    57.36
+   ],
+   "role": "V-tail panel",
+   "printer": "x",
+   "qty": 1
   },
   {
    "name": "vtail_r",
@@ -270,7 +550,15 @@
    "material": "lwpla",
    "side": "r",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    520.0,
+    81.92,
+    57.36
+   ],
+   "role": "V-tail panel",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "vtail_root_rib_l",
@@ -278,7 +566,15 @@
    "material": "petg",
    "side": "l",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    520.0,
+    -32.77,
+    22.94
+   ],
+   "role": "V-tail root rib (carbon pin into the tail block)",
+   "printer": "s1",
+   "qty": 2
   },
   {
    "name": "vtail_root_rib_r",
@@ -286,7 +582,15 @@
    "material": "petg",
    "side": "r",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    520.0,
+    32.77,
+    22.94
+   ],
+   "role": "V-tail root rib (carbon pin into the tail block)",
+   "printer": "s1",
+   "qty": 2
   },
   {
    "name": "vtail_tip_cap_l",
@@ -294,7 +598,15 @@
    "material": "petg",
    "side": "l",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    520.0,
+    -139.26,
+    97.51
+   ],
+   "role": "V-tail tip cap",
+   "printer": "s1",
+   "qty": 2
   },
   {
    "name": "vtail_tip_cap_r",
@@ -302,7 +614,15 @@
    "material": "petg",
    "side": "r",
    "group": "structure",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    520.0,
+    139.26,
+    97.51
+   ],
+   "role": "V-tail tip cap",
+   "printer": "s1",
+   "qty": 2
   },
   {
    "name": "wing_mid_l",
@@ -310,7 +630,15 @@
    "material": "lwpla",
    "side": "l",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    -390.0,
+    0.0
+   ],
+   "role": "wing skin with internal webs",
+   "printer": "x",
+   "qty": 1
   },
   {
    "name": "wing_mid_r",
@@ -318,7 +646,15 @@
    "material": "lwpla",
    "side": "r",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    390.0,
+    0.0
+   ],
+   "role": "wing skin with internal webs",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "wing_root_l",
@@ -326,7 +662,15 @@
    "material": "lwpla",
    "side": "l",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    -210.0,
+    0.0
+   ],
+   "role": "wing skin with internal webs",
+   "printer": "x",
+   "qty": 1
   },
   {
    "name": "wing_root_r",
@@ -334,7 +678,15 @@
    "material": "lwpla",
    "side": "r",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    210.0,
+    0.0
+   ],
+   "role": "wing skin with internal webs",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "wing_tip_l",
@@ -342,7 +694,15 @@
    "material": "lwpla",
    "side": "l",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    -510.0,
+    0.0
+   ],
+   "role": "wing skin with internal webs",
+   "printer": "x",
+   "qty": 1
   },
   {
    "name": "wing_tip_r",
@@ -350,7 +710,15 @@
    "material": "lwpla",
    "side": "r",
    "group": "skin",
-   "tilt": false
+   "tilt": false,
+   "burst": [
+    0.0,
+    510.0,
+    0.0
+   ],
+   "role": "wing skin with internal webs",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "yoke_l",
@@ -358,7 +726,15 @@
    "material": "petg",
    "side": "l",
    "group": "structure",
-   "tilt": true
+   "tilt": true,
+   "burst": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "role": "tilting motor mount",
+   "printer": "s1",
+   "qty": 1
   },
   {
    "name": "yoke_r",
@@ -366,7 +742,15 @@
    "material": "petg",
    "side": "r",
    "group": "structure",
-   "tilt": true
+   "tilt": true,
+   "burst": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "role": "tilting motor mount",
+   "printer": "s1",
+   "qty": 1
   }
  ],
  "tubes": [
@@ -383,7 +767,12 @@
     3.5
    ],
    "od": 10.0,
-   "id": 8.0
+   "id": 8.0,
+   "burst": [
+    0.0,
+    150.0,
+    0.0
+   ]
   },
   {
    "name": "rear_spar_r",
@@ -398,7 +787,12 @@
     1.0
    ],
    "od": 6.0,
-   "id": 4.0
+   "id": 4.0,
+   "burst": [
+    0.0,
+    150.0,
+    0.0
+   ]
   },
   {
    "name": "main_spar_l",
@@ -413,7 +807,12 @@
     3.5
    ],
    "od": 10.0,
-   "id": 8.0
+   "id": 8.0,
+   "burst": [
+    0.0,
+    -150.0,
+    0.0
+   ]
   },
   {
    "name": "rear_spar_l",
@@ -428,7 +827,12 @@
     1.0
    ],
    "od": 6.0,
-   "id": 4.0
+   "id": 4.0,
+   "burst": [
+    0.0,
+    -150.0,
+    0.0
+   ]
   },
   {
    "name": "main_joiner",
@@ -443,7 +847,12 @@
     3.5
    ],
    "od": 8.0,
-   "id": 0.0
+   "id": 0.0,
+   "burst": [
+    0.0,
+    0.0,
+    0.0
+   ]
   },
   {
    "name": "rear_joiner",
@@ -458,7 +867,12 @@
     1.0
    ],
    "od": 4.0,
-   "id": 0.0
+   "id": 0.0,
+   "burst": [
+    0.0,
+    0.0,
+    0.0
+   ]
   },
   {
    "name": "tail_boom",
@@ -473,7 +887,12 @@
     -20.0
    ],
    "od": 16.0,
-   "id": 14.0
+   "id": 14.0,
+   "burst": [
+    430.0,
+    0.0,
+    0.0
+   ]
   }
  ],
  "motors": [
@@ -490,7 +909,17 @@
     280.0,
     15.0
    ],
-   "prop_z": 37.0
+   "prop_z": 37.0,
+   "burst_pivot": [
+    -80.0,
+    330.0,
+    70.0
+   ],
+   "burst_local": [
+    0.0,
+    0.0,
+    70.0
+   ]
   },
   {
    "name": "motor_l",
@@ -505,20 +934,1681 @@
     -280.0,
     15.0
    ],
-   "prop_z": 37.0
+   "prop_z": 37.0,
+   "burst_pivot": [
+    -80.0,
+    -330.0,
+    70.0
+   ],
+   "burst_local": [
+    0.0,
+    0.0,
+    70.0
+   ]
   },
   {
    "name": "motor_rear",
    "base": [
-    820.0,
+    790.0,
     0.0,
     19.0
    ],
    "tilt": false,
-   "prop_z": 37.0
+   "prop_z": 37.0,
+   "burst": [
+    430.0,
+    0.0,
+    170.0
+   ]
   }
  ],
  "prop_d": 178.0,
+ "equipment": [
+  {
+   "name": "battery",
+   "label": "4S 5000 mAh LiPo",
+   "kind": "box",
+   "pos": [
+    290.9,
+    0.0,
+    -33.5
+   ],
+   "color": "#e8b923",
+   "group": "power",
+   "inside": true,
+   "size": [
+    155.0,
+    48.0,
+    37.0
+   ],
+   "burst": [
+    -120.0,
+    0.0,
+    -110.0
+   ],
+   "tag": "4S 5000 mAh LiPo"
+  },
+  {
+   "name": "esc_0",
+   "label": "ESC 50 A (left motor)",
+   "kind": "box",
+   "pos": [
+    385.0,
+    -15.0,
+    15.5
+   ],
+   "color": "#7a3fb0",
+   "group": "power",
+   "inside": true,
+   "size": [
+    50.0,
+    12.0,
+    28.0
+   ],
+   "burst": [
+    -120.0,
+    0.0,
+    120.0
+   ],
+   "tag": null
+  },
+  {
+   "name": "esc_1",
+   "label": "ESC 50 A (rear motor)",
+   "kind": "box",
+   "pos": [
+    385.0,
+    0.0,
+    15.5
+   ],
+   "color": "#7a3fb0",
+   "group": "power",
+   "inside": true,
+   "size": [
+    50.0,
+    12.0,
+    28.0
+   ],
+   "burst": [
+    -120.0,
+    0.0,
+    120.0
+   ],
+   "tag": "3 x ESC 50 A"
+  },
+  {
+   "name": "esc_2",
+   "label": "ESC 50 A (right motor)",
+   "kind": "box",
+   "pos": [
+    385.0,
+    15.0,
+    15.5
+   ],
+   "color": "#7a3fb0",
+   "group": "power",
+   "inside": true,
+   "size": [
+    50.0,
+    12.0,
+    28.0
+   ],
+   "burst": [
+    -120.0,
+    0.0,
+    120.0
+   ],
+   "tag": null
+  },
+  {
+   "name": "fc",
+   "label": "Pixhawk 6C",
+   "kind": "box",
+   "pos": [
+    305.0,
+    0.0,
+    41.2
+   ],
+   "color": "#2b3440",
+   "group": "avionics",
+   "inside": true,
+   "size": [
+    84.8,
+    44.0,
+    12.4
+   ],
+   "burst": [
+    -120.0,
+    0.0,
+    260.0
+   ],
+   "tag": "Pixhawk 6C"
+  },
+  {
+   "name": "power_module",
+   "label": "power module",
+   "kind": "box",
+   "pos": [
+    272.0,
+    -12.0,
+    24.5
+   ],
+   "color": "#3a7d44",
+   "group": "avionics",
+   "inside": true,
+   "size": [
+    40,
+    22,
+    10
+   ],
+   "burst": [
+    -120.0,
+    0.0,
+    120.0
+   ],
+   "tag": "power module"
+  },
+  {
+   "name": "bec",
+   "label": "servo BEC 5-6 V",
+   "kind": "box",
+   "pos": [
+    322.0,
+    -12.0,
+    24.5
+   ],
+   "color": "#3a7d44",
+   "group": "avionics",
+   "inside": true,
+   "size": [
+    36,
+    20,
+    10
+   ],
+   "burst": [
+    -120.0,
+    0.0,
+    120.0
+   ],
+   "tag": "servo BEC"
+  },
+  {
+   "name": "airspeed",
+   "label": "airspeed sensor",
+   "kind": "box",
+   "pos": [
+    280.0,
+    12.0,
+    24.5
+   ],
+   "color": "#3a7d44",
+   "group": "avionics",
+   "inside": true,
+   "size": [
+    32,
+    20,
+    10
+   ],
+   "burst": [
+    -120.0,
+    0.0,
+    120.0
+   ],
+   "tag": "airspeed sensor"
+  },
+  {
+   "name": "receiver",
+   "label": "ELRS receiver",
+   "kind": "box",
+   "pos": [
+    330.0,
+    12.0,
+    27.0
+   ],
+   "color": "#3a7d44",
+   "group": "avionics",
+   "inside": true,
+   "size": [
+    22,
+    14,
+    5
+   ],
+   "burst": [
+    -120.0,
+    0.0,
+    120.0
+   ],
+   "tag": "ELRS receiver"
+  },
+  {
+   "name": "gps",
+   "label": "GPS + compass (M10)",
+   "kind": "cyl",
+   "pos": [
+    560.0,
+    0.0,
+    66.38376068376068
+   ],
+   "color": "#30343a",
+   "group": "avionics",
+   "inside": false,
+   "r": 25.0,
+   "h": 15.0,
+   "axis": [
+    0,
+    0,
+    1
+   ],
+   "burst": [
+    0.0,
+    0.0,
+    180.0
+   ],
+   "tag": "GPS + compass"
+  },
+  {
+   "name": "pitot",
+   "label": "pitot tube",
+   "kind": "cyl",
+   "pos": [
+    365.0,
+    400.0,
+    1.418461538461539
+   ],
+   "color": "#b8bcc2",
+   "group": "avionics",
+   "inside": false,
+   "r": 2.0,
+   "h": 110.0,
+   "axis": [
+    1,
+    0,
+    0
+   ],
+   "burst": [
+    -70.0,
+    390.0,
+    0.0
+   ],
+   "tag": "pitot tube"
+  },
+  {
+   "name": "tilt_servo_r",
+   "label": "tilt servo",
+   "kind": "box",
+   "pos": [
+    321.0,
+    276.5,
+    15.0
+   ],
+   "color": "#4a4f57",
+   "group": "servos",
+   "inside": false,
+   "size": [
+    24.0,
+    21.0,
+    13.0
+   ],
+   "burst": [
+    -80.0,
+    285.0,
+    0.0
+   ],
+   "tag": "tilt servo (x2)"
+  },
+  {
+   "name": "aileron_servo_r320",
+   "label": "aileron servo",
+   "kind": "box",
+   "pos": [
+    458.0,
+    320.0,
+    3.2999999999999994
+   ],
+   "color": "#4a4f57",
+   "group": "servos",
+   "inside": false,
+   "size": [
+    23.0,
+    22.5,
+    12.2
+   ],
+   "burst": [
+    0.0,
+    390.0,
+    -45.0
+   ],
+   "tag": "aileron servo (x4)"
+  },
+  {
+   "name": "aileron_servo_r530",
+   "label": "aileron servo",
+   "kind": "box",
+   "pos": [
+    458.0,
+    530.0,
+    3.2999999999999994
+   ],
+   "color": "#4a4f57",
+   "group": "servos",
+   "inside": false,
+   "size": [
+    23.0,
+    22.5,
+    12.2
+   ],
+   "burst": [
+    0.0,
+    510.0,
+    -45.0
+   ],
+   "tag": null
+  },
+  {
+   "name": "vtail_servo_r",
+   "label": "ruddervator servo",
+   "kind": "box",
+   "pos": [
+    975.0,
+    47.86184199300463,
+    23.810939635797073
+   ],
+   "color": "#4a4f57",
+   "group": "servos",
+   "inside": false,
+   "size": [
+    23.0,
+    22.5,
+    12.2
+   ],
+   "basis": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.8191520442889918,
+     0.573576436351046
+    ],
+    [
+     0.0,
+     -0.573576436351046,
+     0.8191520442889918
+    ]
+   ],
+   "burst": [
+    520.0,
+    107.73,
+    20.5
+   ],
+   "tag": "ruddervator servo (x2)"
+  },
+  {
+   "name": "tilt_servo_l",
+   "label": "tilt servo",
+   "kind": "box",
+   "pos": [
+    321.0,
+    -276.5,
+    15.0
+   ],
+   "color": "#4a4f57",
+   "group": "servos",
+   "inside": false,
+   "size": [
+    24.0,
+    21.0,
+    13.0
+   ],
+   "burst": [
+    -80.0,
+    -285.0,
+    0.0
+   ],
+   "tag": null
+  },
+  {
+   "name": "aileron_servo_l320",
+   "label": "aileron servo",
+   "kind": "box",
+   "pos": [
+    458.0,
+    -320.0,
+    3.2999999999999994
+   ],
+   "color": "#4a4f57",
+   "group": "servos",
+   "inside": false,
+   "size": [
+    23.0,
+    22.5,
+    12.2
+   ],
+   "burst": [
+    0.0,
+    -390.0,
+    -45.0
+   ],
+   "tag": null
+  },
+  {
+   "name": "aileron_servo_l530",
+   "label": "aileron servo",
+   "kind": "box",
+   "pos": [
+    458.0,
+    -530.0,
+    3.2999999999999994
+   ],
+   "color": "#4a4f57",
+   "group": "servos",
+   "inside": false,
+   "size": [
+    23.0,
+    22.5,
+    12.2
+   ],
+   "burst": [
+    0.0,
+    -510.0,
+    -45.0
+   ],
+   "tag": null
+  },
+  {
+   "name": "vtail_servo_l",
+   "label": "ruddervator servo",
+   "kind": "box",
+   "pos": [
+    975.0,
+    -47.86184199300463,
+    23.810939635797073
+   ],
+   "color": "#4a4f57",
+   "group": "servos",
+   "inside": false,
+   "size": [
+    23.0,
+    22.5,
+    12.2
+   ],
+   "basis": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     -0.8191520442889918,
+     0.573576436351046
+    ],
+    [
+     0.0,
+     0.573576436351046,
+     0.8191520442889918
+    ]
+   ],
+   "burst": [
+    520.0,
+    -107.73,
+    20.5
+   ],
+   "tag": null
+  }
+ ],
+ "routes": [
+  {
+   "name": "battery lead to power module",
+   "d": 6.0,
+   "color": "#c0392b",
+   "pts": [
+    [
+     213.39999999999998,
+     0.0,
+     -27.0
+    ],
+    [
+     201.39999999999998,
+     0.0,
+     -22.0
+    ],
+    [
+     201.39999999999998,
+     -8.0,
+     0.0
+    ],
+    [
+     232.0,
+     -12.0,
+     24.5
+    ],
+    [
+     252.0,
+     -12.0,
+     24.5
+    ]
+   ]
+  },
+  {
+   "name": "power module to the ESCs",
+   "d": 6.0,
+   "color": "#c0392b",
+   "pts": [
+    [
+     292.0,
+     -12.0,
+     24.5
+    ],
+    [
+     330.0,
+     -18.0,
+     20.5
+    ],
+    [
+     352.0,
+     -15.0,
+     15.5
+    ],
+    [
+     360.0,
+     -15.0,
+     15.5
+    ]
+   ]
+  },
+  {
+   "name": "rear motor leads (from the boom)",
+   "d": 5.0,
+   "color": "#d4a017",
+   "pts": [
+    [
+     420.0,
+     0.0,
+     -20.0
+    ],
+    [
+     417.0,
+     0.0,
+     -2.0
+    ],
+    [
+     413.0,
+     0.0,
+     11.5
+    ],
+    [
+     410.0,
+     0.0,
+     15.5
+    ]
+   ]
+  },
+  {
+   "name": "GPS cable",
+   "d": 3.0,
+   "color": "#2e86c1",
+   "pts": [
+    [
+     560.0,
+     0.0,
+     55.883760683760684
+    ],
+    [
+     540.0,
+     0.0,
+     50.0
+    ],
+    [
+     480.0,
+     0.0,
+     52.0
+    ],
+    [
+     420.0,
+     0.0,
+     54.0
+    ],
+    [
+     360.0,
+     0.0,
+     50.0
+    ],
+    [
+     345.0,
+     0.0,
+     42.0
+    ]
+   ]
+  },
+  {
+   "name": "right wing: motor leads to plugs at x~330, then the ESC",
+   "d": 5.0,
+   "color": "#d4a017",
+   "pts": [
+    [
+     457.0,
+     60.0,
+     7.0
+    ],
+    [
+     430.0,
+     47.0,
+     5.0
+    ],
+    [
+     370.0,
+     41.0,
+     4.0
+    ],
+    [
+     330.0,
+     37.0,
+     4.0
+    ],
+    [
+     344.0,
+     27.0,
+     10.0
+    ],
+    [
+     354.0,
+     15.0,
+     15.5
+    ],
+    [
+     360.0,
+     15.0,
+     15.5
+    ]
+   ]
+  },
+  {
+   "name": "right wing: servo leads to the Pixhawk",
+   "d": 3.0,
+   "color": "#2e86c1",
+   "pts": [
+    [
+     457.0,
+     60.0,
+     7.0
+    ],
+    [
+     430.0,
+     50.0,
+     13.0
+    ],
+    [
+     370.0,
+     45.0,
+     14.0
+    ],
+    [
+     330.0,
+     40.0,
+     16.0
+    ],
+    [
+     341.0,
+     30.0,
+     36.0
+    ],
+    [
+     349.0,
+     18.0,
+     38.0
+    ]
+   ]
+  },
+  {
+   "name": "left wing: motor leads to plugs at x~330, then the ESC",
+   "d": 5.0,
+   "color": "#d4a017",
+   "pts": [
+    [
+     457.0,
+     -60.0,
+     7.0
+    ],
+    [
+     430.0,
+     -47.0,
+     5.0
+    ],
+    [
+     370.0,
+     -41.0,
+     4.0
+    ],
+    [
+     330.0,
+     -37.0,
+     4.0
+    ],
+    [
+     344.0,
+     -27.0,
+     10.0
+    ],
+    [
+     354.0,
+     -15.0,
+     15.5
+    ],
+    [
+     360.0,
+     -15.0,
+     15.5
+    ]
+   ]
+  },
+  {
+   "name": "left wing: servo leads to the Pixhawk",
+   "d": 3.0,
+   "color": "#2e86c1",
+   "pts": [
+    [
+     457.0,
+     -60.0,
+     7.0
+    ],
+    [
+     430.0,
+     -50.0,
+     13.0
+    ],
+    [
+     370.0,
+     -45.0,
+     14.0
+    ],
+    [
+     330.0,
+     -40.0,
+     16.0
+    ],
+    [
+     341.0,
+     -30.0,
+     36.0
+    ],
+    [
+     349.0,
+     -18.0,
+     38.0
+    ]
+   ]
+  },
+  {
+   "name": "pitot tubing",
+   "d": 3.0,
+   "color": "#8fbc8f",
+   "pts": [
+    [
+     420.0,
+     400.0,
+     1.418461538461539
+    ],
+    [
+     457.0,
+     380.0,
+     5.0
+    ],
+    [
+     457.0,
+     120.0,
+     5.0
+    ],
+    [
+     457.0,
+     60.0,
+     7.0
+    ],
+    [
+     420.0,
+     45.0,
+     12.0
+    ],
+    [
+     300.0,
+     22.0,
+     24.5
+    ],
+    [
+     296.0,
+     12.0,
+     24.5
+    ]
+   ]
+  }
+ ],
+ "nose": {
+  "fuse_1": {
+   "v": [
+    -260.0,
+    0.0,
+    0.0
+   ],
+   "stage": [
+    0.0,
+    0.55
+   ]
+  },
+  "battery": {
+   "v": [
+    -215.0,
+    0.0,
+    0.0
+   ],
+   "stage": [
+    0.45,
+    1.0
+   ]
+  }
+ },
+ "prints": [
+  {
+   "name": "aileron_mid_l",
+   "url": "../parts/print_ready/aileron_mid_l.stl",
+   "material": "lwpla",
+   "printer": "x",
+   "qty": 1,
+   "supports": false,
+   "bed": 260.0,
+   "size": [
+    64.4,
+    12.2,
+    199.0
+   ],
+   "grams": 5.12,
+   "minutes": 70.9,
+   "role": "aileron"
+  },
+  {
+   "name": "aileron_mid_r",
+   "url": "../parts/print_ready/aileron_mid_r.stl",
+   "material": "lwpla",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    64.4,
+    12.2,
+    199.0
+   ],
+   "grams": 5.12,
+   "minutes": 71.2,
+   "role": "aileron"
+  },
+  {
+   "name": "aileron_tip_l",
+   "url": "../parts/print_ready/aileron_tip_l.stl",
+   "material": "lwpla",
+   "printer": "x",
+   "qty": 1,
+   "supports": false,
+   "bed": 260.0,
+   "size": [
+    60.0,
+    10.8,
+    213.0
+   ],
+   "grams": 4.76,
+   "minutes": 75.4,
+   "role": "aileron"
+  },
+  {
+   "name": "aileron_tip_r",
+   "url": "../parts/print_ready/aileron_tip_r.stl",
+   "material": "lwpla",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    60.0,
+    10.8,
+    213.0
+   ],
+   "grams": 4.76,
+   "minutes": 75.7,
+   "role": "aileron"
+  },
+  {
+   "name": "battery_tray",
+   "url": "../parts/print_ready/battery_tray.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    152.0,
+    60.0,
+    11.5
+   ],
+   "grams": 22.58,
+   "minutes": 55.8,
+   "role": "battery tray with stop-pin holes, ESC deck behind"
+  },
+  {
+   "name": "boom_cup_l",
+   "url": "../parts/print_ready/boom_cup_l.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    156.4,
+    21.3,
+    10.0
+   ],
+   "grams": 9.16,
+   "minutes": 22.6,
+   "role": "spigot ring on the boom rib's inboard face"
+  },
+  {
+   "name": "boom_cup_r",
+   "url": "../parts/print_ready/boom_cup_r.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    156.4,
+    21.3,
+    10.0
+   ],
+   "grams": 9.16,
+   "minutes": 22.8,
+   "role": "spigot ring on the boom rib's inboard face"
+  },
+  {
+   "name": "boom_pod_l",
+   "url": "../parts/print_ready/boom_pod_l.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    83.0,
+    41.0,
+    28.5
+   ],
+   "grams": 28.52,
+   "minutes": 63.4,
+   "role": "tilt-servo pod and axle boss"
+  },
+  {
+   "name": "boom_pod_r",
+   "url": "../parts/print_ready/boom_pod_r.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    83.0,
+    41.0,
+    28.5
+   ],
+   "grams": 28.53,
+   "minutes": 63.6,
+   "role": "tilt-servo pod and axle boss"
+  },
+  {
+   "name": "boom_rib_l",
+   "url": "../parts/print_ready/boom_rib_l.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    188.5,
+    170.3,
+    16.0
+   ],
+   "grams": 22.65,
+   "minutes": 52.4,
+   "role": "boom rib with the pod tongue"
+  },
+  {
+   "name": "boom_rib_r",
+   "url": "../parts/print_ready/boom_rib_r.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    170.3,
+    188.5,
+    16.0
+   ],
+   "grams": 22.45,
+   "minutes": 50.9,
+   "role": "boom rib with the pod tongue"
+  },
+  {
+   "name": "control_horn",
+   "url": "../parts/print_ready/control_horn.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 6,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    18.0,
+    8.0,
+    15.0
+   ],
+   "grams": 0.64,
+   "minutes": 12.0,
+   "role": "control horn"
+  },
+  {
+   "name": "coupler_240",
+   "url": "../parts/print_ready/coupler_240.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    138.3,
+    118.3,
+    40.0
+   ],
+   "grams": 20.51,
+   "minutes": 40.0,
+   "role": "nose joint, heat-set insert for the nose screw"
+  },
+  {
+   "name": "coupler_370",
+   "url": "../parts/print_ready/coupler_370.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    133.9,
+    118.3,
+    40.0
+   ],
+   "grams": 19.17,
+   "minutes": 37.1,
+   "role": "joins fuse_2 and fuse_3"
+  },
+  {
+   "name": "coupler_610",
+   "url": "../parts/print_ready/coupler_610.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    105.2,
+    95.2,
+    40.0
+   ],
+   "grams": 22.39,
+   "minutes": 52.6,
+   "role": "joins fuse_3 and fuse_4, boom web"
+  },
+  {
+   "name": "fc_shelf",
+   "url": "../parts/print_ready/fc_shelf.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    160.0,
+    104.4,
+    2.5
+   ],
+   "grams": 24.27,
+   "minutes": 52.8,
+   "role": "Pixhawk shelf; small boards hang underneath"
+  },
+  {
+   "name": "frame_main",
+   "url": "../parts/print_ready/frame_main.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    124.2,
+    112.9,
+    11.5
+   ],
+   "grams": 20.26,
+   "minutes": 49.4,
+   "role": "main joiner sleeve and boom bore"
+  },
+  {
+   "name": "frame_rear",
+   "url": "../parts/print_ready/frame_rear.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    117.8,
+    107.9,
+    7.5
+   ],
+   "grams": 14.9,
+   "minutes": 37.9,
+   "role": "rear joiner sleeve and boom bore"
+  },
+  {
+   "name": "fuse_1",
+   "url": "../parts/print_ready/fuse_1.stl",
+   "material": "lwpla",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    140.0,
+    120.0,
+    240.0
+   ],
+   "grams": 18.23,
+   "minutes": 201.8,
+   "role": "removable nose, one M3 nylon screw: the access opening"
+  },
+  {
+   "name": "fuse_2",
+   "url": "../parts/print_ready/fuse_2.stl",
+   "material": "lwpla",
+   "printer": "x",
+   "qty": 1,
+   "supports": false,
+   "bed": 260.0,
+   "size": [
+    140.0,
+    120.0,
+    130.0
+   ],
+   "grams": 13.95,
+   "minutes": 152.4,
+   "role": "battery and avionics bay"
+  },
+  {
+   "name": "fuse_3",
+   "url": "../parts/print_ready/fuse_3.stl",
+   "material": "lwpla",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    134.3,
+    119.9,
+    240.0
+   ],
+   "grams": 22.46,
+   "minutes": 244.4,
+   "role": "wing section of the fuselage"
+  },
+  {
+   "name": "fuse_4",
+   "url": "../parts/print_ready/fuse_4.stl",
+   "material": "lwpla",
+   "printer": "x",
+   "qty": 1,
+   "supports": false,
+   "bed": 260.0,
+   "size": [
+    102.5,
+    92.6,
+    150.0
+   ],
+   "grams": 8.0,
+   "minutes": 89.8,
+   "role": "tail cone"
+  },
+  {
+   "name": "gps_mount",
+   "url": "../parts/print_ready/gps_mount.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    52.0,
+    52.0,
+    12.2
+   ],
+   "grams": 7.0,
+   "minutes": 20.4,
+   "role": "external GPS saddle, glued on top"
+  },
+  {
+   "name": "pod_collar",
+   "url": "../parts/print_ready/pod_collar.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    32.1,
+    32.2,
+    15.0
+   ],
+   "grams": 4.69,
+   "minutes": 16.3,
+   "role": "boom exit collar"
+  },
+  {
+   "name": "rear_motor_mount",
+   "url": "../parts/print_ready/rear_motor_mount.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    56.5,
+    36.0,
+    36.0
+   ],
+   "grams": 18.14,
+   "minutes": 42.6,
+   "role": "rear motor clamp on the boom"
+  },
+  {
+   "name": "rib_midtip_l",
+   "url": "../parts/print_ready/rib_midtip_l.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    130.5,
+    20.4,
+    23.0
+   ],
+   "grams": 15.03,
+   "minutes": 35.2,
+   "role": "mid/tip joint rib"
+  },
+  {
+   "name": "rib_midtip_r",
+   "url": "../parts/print_ready/rib_midtip_r.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    130.5,
+    20.4,
+    23.0
+   ],
+   "grams": 15.01,
+   "minutes": 35.8,
+   "role": "mid/tip joint rib"
+  },
+  {
+   "name": "rib_root_l",
+   "url": "../parts/print_ready/rib_root_l.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    220.0,
+    25.7,
+    13.0
+   ],
+   "grams": 16.1,
+   "minutes": 37.1,
+   "role": "root rib: spars, wire hole, joiner lock pin"
+  },
+  {
+   "name": "rib_root_r",
+   "url": "../parts/print_ready/rib_root_r.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    220.0,
+    25.7,
+    13.0
+   ],
+   "grams": 16.1,
+   "minutes": 37.3,
+   "role": "root rib: spars, wire hole, joiner lock pin"
+  },
+  {
+   "name": "rib_tip_l",
+   "url": "../parts/print_ready/rib_tip_l.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    112.7,
+    17.6,
+    13.0
+   ],
+   "grams": 8.1,
+   "minutes": 21.4,
+   "role": "tip rib"
+  },
+  {
+   "name": "rib_tip_r",
+   "url": "../parts/print_ready/rib_tip_r.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    112.7,
+    17.6,
+    13.0
+   ],
+   "grams": 8.11,
+   "minutes": 21.5,
+   "role": "tip rib"
+  },
+  {
+   "name": "ruddervator_l",
+   "url": "../parts/print_ready/ruddervator_l.stl",
+   "material": "lwpla",
+   "printer": "x",
+   "qty": 1,
+   "supports": false,
+   "bed": 260.0,
+   "size": [
+    100.1,
+    12.2,
+    231.0
+   ],
+   "grams": 5.39,
+   "minutes": 82.0,
+   "role": "ruddervator"
+  },
+  {
+   "name": "ruddervator_r",
+   "url": "../parts/print_ready/ruddervator_r.stl",
+   "material": "lwpla",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    100.1,
+    12.2,
+    231.0
+   ],
+   "grams": 5.39,
+   "minutes": 81.9,
+   "role": "ruddervator"
+  },
+  {
+   "name": "servo_cage",
+   "url": "../parts/print_ready/servo_cage.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 6,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    36.0,
+    18.0,
+    13.0
+   ],
+   "grams": 2.14,
+   "minutes": 14.7,
+   "role": "9 g servo cage, glued inside a skin"
+  },
+  {
+   "name": "tail_block",
+   "url": "../parts/print_ready/tail_block.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    39.9,
+    38.0,
+    80.0
+   ],
+   "grams": 28.16,
+   "minutes": 69.8,
+   "role": "V-tail mount on the end of the boom"
+  },
+  {
+   "name": "vtail_l",
+   "url": "../parts/print_ready/vtail_l.stl",
+   "material": "lwpla",
+   "printer": "x",
+   "qty": 1,
+   "supports": false,
+   "bed": 260.0,
+   "size": [
+    126.0,
+    21.6,
+    240.0
+   ],
+   "grams": 13.7,
+   "minutes": 150.7,
+   "role": "V-tail panel"
+  },
+  {
+   "name": "vtail_r",
+   "url": "../parts/print_ready/vtail_r.stl",
+   "material": "lwpla",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    126.0,
+    21.6,
+    240.0
+   ],
+   "grams": 13.7,
+   "minutes": 150.6,
+   "role": "V-tail panel"
+  },
+  {
+   "name": "vtail_root_rib",
+   "url": "../parts/print_ready/vtail_root_rib.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 2,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    126.6,
+    21.7,
+    13.0
+   ],
+   "grams": 9.33,
+   "minutes": 23.3,
+   "role": "V-tail root rib (carbon pin into the tail block)"
+  },
+  {
+   "name": "vtail_tip_cap",
+   "url": "../parts/print_ready/vtail_tip_cap.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 2,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    77.0,
+    13.2,
+    7.5
+   ],
+   "grams": 2.91,
+   "minutes": 11.8,
+   "role": "V-tail tip cap"
+  },
+  {
+   "name": "wing_mid_l",
+   "url": "../parts/print_ready/wing_mid_l.stl",
+   "material": "lwpla",
+   "printer": "x",
+   "qty": 1,
+   "supports": false,
+   "bed": 260.0,
+   "size": [
+    147.0,
+    22.9,
+    204.0
+   ],
+   "grams": 20.66,
+   "minutes": 227.6,
+   "role": "wing skin with internal webs"
+  },
+  {
+   "name": "wing_mid_r",
+   "url": "../parts/print_ready/wing_mid_r.stl",
+   "material": "lwpla",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    147.0,
+    22.9,
+    204.0
+   ],
+   "grams": 20.66,
+   "minutes": 226.3,
+   "role": "wing skin with internal webs"
+  },
+  {
+   "name": "wing_root_l",
+   "url": "../parts/print_ready/wing_root_l.stl",
+   "material": "lwpla",
+   "printer": "x",
+   "qty": 1,
+   "supports": false,
+   "bed": 260.0,
+   "size": [
+    219.7,
+    25.7,
+    214.0
+   ],
+   "grams": 33.49,
+   "minutes": 366.5,
+   "role": "wing skin with internal webs"
+  },
+  {
+   "name": "wing_root_r",
+   "url": "../parts/print_ready/wing_root_r.stl",
+   "material": "lwpla",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    219.7,
+    25.7,
+    214.0
+   ],
+   "grams": 33.49,
+   "minutes": 364.6,
+   "role": "wing skin with internal webs"
+  },
+  {
+   "name": "wing_tip_l",
+   "url": "../parts/print_ready/wing_tip_l.stl",
+   "material": "lwpla",
+   "printer": "x",
+   "qty": 1,
+   "supports": false,
+   "bed": 260.0,
+   "size": [
+    130.3,
+    20.3,
+    217.0
+   ],
+   "grams": 14.7,
+   "minutes": 161.5,
+   "role": "wing skin with internal webs"
+  },
+  {
+   "name": "wing_tip_r",
+   "url": "../parts/print_ready/wing_tip_r.stl",
+   "material": "lwpla",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    130.3,
+    20.3,
+    217.0
+   ],
+   "grams": 14.7,
+   "minutes": 161.3,
+   "role": "wing skin with internal webs"
+  },
+  {
+   "name": "yoke_l",
+   "url": "../parts/print_ready/yoke_l.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    36.0,
+    63.0,
+    40.0
+   ],
+   "grams": 12.61,
+   "minutes": 44.4,
+   "role": "tilting motor mount"
+  },
+  {
+   "name": "yoke_r",
+   "url": "../parts/print_ready/yoke_r.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 1,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    36.0,
+    63.0,
+    40.0
+   ],
+   "grams": 12.61,
+   "minutes": 44.4,
+   "role": "tilting motor mount"
+  }
+ ],
  "tilt_range": [
   -20.0,
   90.0

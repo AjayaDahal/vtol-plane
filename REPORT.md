@@ -13,37 +13,74 @@ the plane flies. That needs the physical checks listed under "Open".
 ## Current status (v0.2, Nov 2, 2026)
 
 **Ready to print, starting with the test prints.** Print `wing_tip_r`
-(flow) and `rib_tip_r` (fit) first, then the rest (`tracker.md`).
+(flow), `rib_tip_r` (fit) and `wing_mid_r` (web check) first, then the
+rest (`tracker.md`).
 
-- Verification gate: `python scripts/check_parts.py` passes **80/80**.
+- Verification gate: `python scripts/check_parts.py` passes **91/91**.
   It covers mesh integrity, mirrored L/R parts, bed fit, every spigot,
   coupler and frame fit, flush glued skin joints (wing, V-tail and
   fuselage) with crease-free rib flanges, spar, joiner, boom and wire paths, motor holes
   and hex-key room, the tilt sweep, prop clearances, thrust split, CG and
   static margin, overhangs judged on the geometry (no part needs
   supports), and mirror symmetry of every part printed from one file for
-  both sides. It also checks the G-code: present, sliced from the current
-  STL (hash stamp), inside the printer's height, and one vase speed band.
-- 46 G-code files, no supports anywhere. S1 LW-PLA 124 g / 23.7 h,
-  X LW-PLA 105 g / 20.2 h, S1 PETG 448 g / 20.2 h.
-- AUW ~1.91 kg, CG 431 mm from the nose (27 % MAC), hover split
-  38/38/23 %, static margin ~20 %.
+  both sides. Since round 6 it also checks that no two fuselage inserts
+  overlap, that the equipment fits (clear of the skin, the inserts and each
+  other) and the battery slides out through the nose, the GPS saddle, and
+  the wing webs (clear of the spars and wires along the whole span). It
+  also checks the G-code: present, sliced from the current STL (hash
+  stamp), inside the printer's height, one vase speed band, and every wing
+  web printed fused to the skin.
+- 47 G-code files, no supports anywhere. S1 LW-PLA 139 g / 26.3 h,
+  X LW-PLA 120 g / 22.9 h, S1 PETG 467 g / 21.0 h.
+- AUW ~1.97 kg, CG target 431 mm from the nose (27 % MAC; the stop pin at
+  x = 370 gives 429 mm), hover split 38/38/25 %, front motors at 59 % of
+  their near-empty maximum, static margin ~20 %.
 - Docs match the files: `DESIGN.md` (design and assembly), `BOM.md`,
   `PX4_GUIDE.md`, `SLICING.md`, `tracker.md`.
-- Renders of the whole aircraft and every wing joint are in `renders/`
-  (3-D viewer: `DESIGN.md`, "Renders and the 3-D viewer").
+- Renders of the whole aircraft, every wing joint, the burst view, cuts
+  through the fuselage and wing, and every print file on its bed are in
+  `renders/` (3-D viewer: `DESIGN.md`, "Renders and the 3-D viewer").
 
 **Open, can only be closed by building and flying** (in order):
 
-1. LW-PLA flow and spigot fit: the two test prints above.
+1. LW-PLA flow, spigot fit and web fusion: the three test prints above.
 2. Tilt servo dimensions against the pod bay, before printing pods and
    yokes.
 3. Real masses: weigh the parts and re-run `mass_balance.py`.
 4. CG: balance at 431 mm, then glide-test.
 5. Bench: motor order and direction, tilt calibration (−20…90°),
    surface directions, ruddervator mixing, props off.
-6. First hover: vibration and compass interference in the logs.
+6. First hover: vibration and compass interference in the logs, and
+   the temperature of the ESC block and battery afterwards.
 7. Transition tuning: at altitude, into wind, back-transition ready.
+
+## Round 6 — access, internal structure and the electronics bay (v0.2, Nov 2, 2026)
+
+Questions: is there an opening in the fuselage for the FC, battery and the rest, from every
+angle? Do the wings, and anything else, have the ribs they need? Method: every service point
+was measured from the nose opening; the skins were checked for strength by hand calculation;
+the webs were proven in the slicer on both printers; and the electronics were placed as
+envelopes (`scripts/payload.py`) that the gate checks against the printed parts. The result
+is in `DESIGN.md` ("Inside the wing", "Access and openings") and in the viewer, which gained
+a burst view, a nose-open animation, equipment and cable models, section cuts and a gallery
+of every print file (renders 27–38). All parts were rebuilt and re-sliced (47 files). This
+round supersedes 5.14 (ESCs tied to the spars), 5.16 (rear ESC at x ≈ 400) and 5.17 (nose tip
+taped).
+
+| # | Severity | Finding | Fix | Status |
+|---|---|---|---|---|
+| 6.1 | P1 structure | **The wing skins had no internal structure.** Each spans 204–217 mm between ribs. At the root the top skin is strained to 0.44/0.87/1.31 × 10⁻³ at 1/2/3 g, while a wide, gently curved 0.5 mm panel wrinkles at about 0.5–0.9 × 10⁻³. In hover the root bends the other way: the flat bottom is compressed to ~1 × 10⁻⁴, above flat-plate buckling (~4 × 10⁻⁵ for 150 mm panels), so it would oil-can in steady hover. | Spanwise webs in the root (6) and mid (4) sections, top skin to bottom skin, cutting every panel to ≤ 37 mm. Each is a 0.06 mm slot that the single vase wall runs into and out of, so it prints as a fused double wall with no extra moves (`webbed_wing_skin`). The tip needs none (0.25 × 10⁻³ at 3 g). +30 g. New checks: spars and wire hole clear of the webs at 159 stations (min 1.62 mm); the boom-cup motor leads and the pitot tubing cross no web; and every web is fused in the G-code (turn-backs within 0.22 mm of the skin line). | fixed, gated |
+| 6.2 | P1 print | **The two vase profiles differed,** and neither could print the webs. The S1 had thin-wall detection on, which splits a section at a neck of up to ~0.8 mm, and both had the preset 0.049 mm closing radius, which erases a 0.06 mm slot. | Both profiles: `slice_closing_radius` 0.01 and `detect_thin_wall` 0, set by `make_slicer_profiles.py`. A sweep in the slicer showed one continuous path (0.96–1.02× the outline) with every web fused on both printers. `SLICING.md` explains why the values must stay. | fixed, gated |
+| 6.3 | P1 build | **Inserts ran into the coupler rings.** The battery tray's rail feet sat 0.46–1.05 mm inside `coupler_240` and `coupler_370`, and the FC shelf's edges 0.15–0.44 mm inside them. Neither part would have gone in. | Inserts are cut to the fuselage interior, or to the coupler ring where there is one, plus clearance (`inner_envelope` in `structure.py`). New check "fuselage inserts do not overlap": it reports those depths on the old parts and 0.00 mm now. | fixed, gated |
+| 6.4 | P0 build | **The GPS could never be fitted or serviced.** It was to sit inside `fuse_3` at x = 560, but that bay is sealed when `fuse_4` goes on (step 3.7), and it was installed in step 5. | External PETG saddle (`gps_mount`) glued on top of `fuse_3`, with a Ø16 cable hole that passes the 10-pin plug. The cable, or a pull cord, is laid in during step 3.3. New checks: the skirt follows the skin with a 0.15–0.20 mm glue gap all round, the 50 mm puck fits the pad, and the cable hole is open. | fixed, gated |
+| 6.5 | P1 build | **No way to take a wing off.** The wing connectors were undefined, at the wing root ~240 mm from the opening. | Wing plugs at x ≈ 330 (3.5 mm bullets and servo plugs), 90 mm from the nose opening. Procedure in "Access and openings"; extension lengths and bullets in the BOM. | fixed (procedure) |
+| 6.6 | P1 build | **The front ESCs had no home.** "Between the spars" in the root bay is where the Ø10 wire bundle runs. With webs the ESCs could not be tied to the spars, and they needed 40–50 cm DShot leads. | All three ESCs taped into one block, hung under the FC shelf's aft part (x 360–410) above the battery. It sits > 10 mm from any skin, its DShot leads are short, and the rear motor's leads arrive from the boom right behind it. The shelf now runs x 255–415. (A deck on the tray behind the battery was tried first; it blocked the battery from its CG target, see 6.8.) New checks: equipment clears the skin, is not cut by any insert, and keeps ≥ 0.5 mm from other equipment. | fixed, gated |
+| 6.7 | P1 access | **Access audit.** The nose is the only opening (115 × 135 mm). | Battery, Pixhawk, boards, wing plugs and the ESC block are 25–180 mm in; nothing serviceable lives aft of x ≈ 450. New check: the battery slides out through `coupler_240` (10.4 mm to spare each side). | verified, gated |
+| 6.8 | P0 flight | **Hover margin.** The webs, the GPS saddle, the longer tray and the servo BEC (12 g, missing from the mass list) raised the AUW from 1909 to 1998 g. With the ESC block on the tray deck the battery could not reach the CG target either, so the front motors needed 61–62 % of their near-empty thrust (limit 60 %). | Tip webs and the main spar's front web dropped (−17 g); wiring estimate corrected; tray shortened; saddle lightened. The ESC block moved under the shelf, so the battery reaches the target. The rear motor moved forward from x = 820 to 790: its clearance improves (35.4 → 37.5 mm), PX4 `CA_ROTOR2_PX` −0.36. The thrust split is now computed at the CG the stop pin actually gives. Result: AUW 1974 g, front motors 743 g = 59 % of near-empty maximum, CG 429.4 mm (26.4 % MAC). | fixed, gated |
+| 6.9 | P2 build | **Cooling.** Three ESCs, the power module, the BEC and the LiPo sit in a closed LW-PLA fuselage (softens at 55–60 °C), and the nose-tip opening was taped. | The nose tip stays open as an air inlet (mesh optional); two Ø10 outlets in the belly at x = 445. In `DESIGN.md`, the holes table and the preflight list. | procedure (check after the first long hover) |
+| 6.10 | P2 flight | **PX4 sensors.** The Pixhawk's internal compass now sits next to the ESC block, and the guide said nothing about the GPS's safety button. | `PX4_GUIDE.md`: disable the internal compass (`CAL_MAGn_PRIO` 0) and use the GPS one. The safety button is optional: PX4 v1.15 defaults `CBRK_IO_SAFETY` to 22027 (safety off); set 0 to use it, or `COM_SAFETY_MODE` = 1 on newer releases. | documented |
+| 6.11 | P2 structure | **V-tail and fuselage.** Do they need spars or webs? | No. The V-tail skin is ~12× stiffer in bending than a 4 mm spar would be, and sees ~0.56 × 10⁻³ at CL 0.5 and 25 m/s: fine for normal flight. The fuselage shell has a 4–15× buckling margin. `DESIGN.md`: never lift the plane by the V-tail. | verified |
+| 6.12 | P2 check | **Equipment positions were scattered.** The mass list held only x positions, the BEC was missing, and the docs disagreed with them. | `scripts/payload.py` is the single source for every item's envelope and position. The mass balance, the gate and the viewer all read it. | fixed |
 
 ## Round 5 — final pre-print audit and premortem (v0.2, Oct 31, 2026)
 
@@ -79,10 +116,10 @@ the table.
 | 5.11 | P1 build | **Pod bolts:** M3×30 through the 28 mm pod leaves no thread for a nyloc nut. | M3×35 in the BOM and guide. | fixed |
 | 5.12 | P2 print | **`coupler_240`:** the nose-screw boss started 2 mm above the bed. | Boss starts on the bed. | fixed |
 | 5.13 | P1 build | **Tilt servo size:** the pod bay fits a 12 mm mini servo; a different servo means a reprint. | Measure before printing (tracker reminder; `SERVO_*` in `params.py`). | open (physical) |
-| 5.14 | P2 build | **ESC heat:** ESCs sit inside closed LW-PLA sections; LW-PLA softens at 55–60 °C. | Rule in `DESIGN.md`: no ESC touches a skin; heat-shrink and tie to the spars with an air gap. | procedure |
+| 5.14 | P2 build | **ESC heat:** ESCs sit inside closed LW-PLA sections; LW-PLA softens at 55–60 °C. | Rule in `DESIGN.md`: no ESC touches a skin; heat-shrink and tie to the spars with an air gap. | superseded by 6.6 (ESC block under the FC shelf) and 6.9 (cooling) |
 | 5.15 | P2 build | **Nominal carbon fits:** an 8.0 joiner in an 8.0 ID spar, and the 16.0 boom in 16.3 printed holes. | Dry-fit, sand or ream; documented. | procedure |
-| 5.16 | P2 flight | **Compass:** the rear ESC supply ran past the GPS at x = 560. | Rear ESC moved to x ≈ 400 (5.18), so the battery leads stay ahead of the GPS. The rear motor's phase leads still run in the boom ~70 mm below it: keep them twisted together, and check interference in the first hover log. | fixed + procedure |
-| 5.17 | P2 build | **Landing:** no gear; the plane lands on its LW-PLA belly. The nose tip is open (vase mode). | EVA foam belly strip (BOM), land on grass; tape the nose tip. | procedure |
+| 5.16 | P2 flight | **Compass:** the rear ESC supply ran past the GPS at x = 560. | Rear ESC moved to x ≈ 400 (5.18), so the battery leads stay ahead of the GPS. The rear motor's phase leads still run in the boom ~70 mm below it: keep them twisted together, and check interference in the first hover log. | superseded by 6.4 (GPS outside), 6.6 and 6.10 (GPS compass only) |
+| 5.17 | P2 build | **Landing:** no gear; the plane lands on its LW-PLA belly. The nose tip is open (vase mode). | EVA foam belly strip (BOM), land on grass; tape the nose tip. | belly strip: procedure; nose tip superseded by 6.9 (now the air inlet) |
 | 5.18 | P0 build | **Tail assembly order impossible** (found by an independent code review of this round). The motor mount is a closed clamp, so it can only go on over the boom's aft end, before the tail block. The rear ESC (x ≈ 700) and its leads were inside `fuse_4`, sealed before they could be connected. A second review pass also found that `frame_rear` and the `coupler_610` web could not be reached for reaming or gluing, and that pull strings left in the holes would be pinched. | Rear ESC moved to the front of `fuse_3` (x ≈ 400). Every boom hole is reamed while the parts are loose. The boom goes into `fuse_3` before `fuse_4`, so all its glue joints can be reached. The mount, then the tail block, go over its aft end; the leads are fished through the boom afterwards. | fixed |
 | 5.19 | P1 check | **The supports check could never fail:** supports are off in every profile. It missed a 7.7 mm unsupported ledge on the mid/tip rib flange, and the first gusset (5.1) left the underside at the boss tip unsupported. The first geometric version could itself be fooled in three ways: large faces were under-counted, a sloped face could anchor on itself, and a partial ledge counted as a bridge. | New geometric check on the print-ready meshes. Faces > 60° from vertical must be bridged (≤ 30 mm, with the overhang continuing across the whole span). Flat faces may also be ledges of ≤ 3 mm. Sampling is area-weighted, and the probed face's own plane is ignored. It now fails all four pre-fix parts (pod 237 mm², boom rib 1361, mid/tip rib 43, rear mount 354) and synthetic shelf, wedge and partial-ledge cases, and passes bridges, holes and 45° chamfers. Spigot rings now stop 2 mm ahead of a hinge, not 8; the gusset runs from the boss's lowest point at its tip. The support-move count stays as a profile sanity check. | fixed |
 | 5.20 | P1 check | **Stale-G-code check used file times,** which git does not keep. It failed on every fresh clone and passed after restoring old G-code. | `slice_all.py` stamps each G-code file with the SHA-256 of its STL; the gate compares hashes. | fixed |
@@ -133,7 +170,7 @@ rest. "Check" names the `check_parts.py` test that guards each fix.
 
 | # | Finding | Status |
 |---|---|---|
-| 4.1 | Rear motor pointed backwards; its socket barely engaged. | **Fixed (v0.2):** vertical lift motor on a boom clamp at x = 820 (round 5 made it printable and serviceable). Check: rear prop disc clearance, motor holes, hex-key room. |
+| 4.1 | Rear motor pointed backwards; its socket barely engaged. | **Fixed (v0.2):** vertical lift motor on a boom clamp at x = 820, x = 790 since 6.8 (round 5 made it printable and serviceable). Check: rear prop disc clearance, motor holes, hex-key room. |
 | 4.2 | Both printers printed the same-handed wing. | **Fixed (v0.2):** separate mirrored `_r` (S1) and `_l` (X) files. Check: "left/right parts are mirror images". |
 | 4.3 | Wing had no structural load path. | **Fixed (v0.2):** PETG ribs with spar bosses on 10×8 / 6×4 spars, joiners through two fuselage frames. Checks: spar paths, spigot fits, joiner sleeves. |
 | 4.4 | No ailerons. | **Fixed (v0.2):** two ailerons per side, tape hinge, servo cages and horns. |
@@ -148,7 +185,7 @@ rest. "Check" names the `check_parts.py` test that guards each fix.
 | # | Finding | Status |
 |---|---|---|
 | 4.10 | Wing-section mass target ~3× too high. | **Fixed:** tracker targets are the slicer's masses. |
-| 4.11 | Printed mass and AUW inconsistent between docs. | **Fixed:** `mass_balance.py` reads the G-code; all docs quote it (1909 g). |
+| 4.11 | Printed mass and AUW inconsistent between docs. | **Fixed:** `mass_balance.py` reads the G-code; all docs quote it (1909 g then, 1974 g since round 6). |
 | 4.12 | Nacelle station 3 mm from a glue joint. | **Fixed (v0.2):** the boom has its own rib at y = ±280. |
 | 4.13 | Fuselage joint inside the wing root chord. | **Fixed (v0.2):** joints at x = 370 and 610, outside the chord (380–600). |
 | 4.14 | FC on the loose battery tray; tray had no stop. | **Fixed (v0.2):** separate FC shelf; tray stop-pin holes every 10 mm. |

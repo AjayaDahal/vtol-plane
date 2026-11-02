@@ -5,19 +5,28 @@
 <title>VTOL plane — 3D viewer</title>
 <style>
   html, body { margin: 0; height: 100%; overflow: hidden; background: #eef1f4; font: 13px system-ui, sans-serif; }
-  #ui { position: absolute; top: 8px; left: 8px; background: #ffffffe6; border-radius: 8px; padding: 8px 10px;
-        box-shadow: 0 1px 4px #0003; max-width: 330px; }
+  canvas { display: block; }
+  #ui { position: absolute; top: 8px; left: 8px; z-index: 2; background: #ffffffeb; border-radius: 8px; padding: 8px 10px;
+        box-shadow: 0 1px 4px #0003; max-width: 360px; max-height: calc(100% - 56px); overflow-y: auto; }
   #ui h1 { font-size: 14px; margin: 0 0 6px; cursor: pointer; user-select: none; }
   #ui h1::after { content: " \25BE"; color: #888; }
   #ui.min h1 { margin: 0; }
   #ui.min h1::after { content: " \25B8  (show controls)"; font-weight: normal; font-size: 12px; }
   #ui.min .row { display: none; }
   #ui button { margin: 2px 2px 2px 0; padding: 3px 7px; font-size: 12px; cursor: pointer; }
+  #ui button.big { font-weight: 600; }
   #ui label { display: inline-block; margin: 3px 8px 3px 0; }
+  #ui select { font-size: 12px; max-width: 250px; }
   #ui .row { margin: 4px 0; }
-  #status { position: absolute; bottom: 8px; left: 8px; color: #555; }
-  #legend { position: absolute; bottom: 8px; right: 8px; background: #ffffffe6; border-radius: 8px; padding: 6px 10px; }
+  #ui .hd { font-weight: 600; margin-top: 8px; padding-top: 6px; border-top: 1px solid #dde2e8; }
+  #ui .note { color: #666; font-size: 12px; }
+  #ui input[type=range] { vertical-align: middle; width: 130px; }
+  #status { position: absolute; bottom: 8px; left: 8px; color: #555; z-index: 2; }
+  #legend { position: absolute; bottom: 8px; right: 8px; background: #ffffffe6; border-radius: 8px; padding: 6px 10px; z-index: 2; }
   .sw { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -2px; margin: 0 4px 0 10px; }
+  #overlay { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 1; }
+  #tip { position: absolute; pointer-events: none; background: #1f2630ee; color: #fff; padding: 4px 8px; border-radius: 4px;
+         font-size: 12px; display: none; white-space: pre; z-index: 3; }
 </style>
 <script type="importmap">
 { "imports": {
@@ -28,33 +37,67 @@
 <body>
 <div id="ui">
   <h1>VTOL plane v0.2</h1>
-  <div class="row">
+  <div class="row aircraft">
     <button data-view="iso_front">3/4 front</button><button data-view="iso_rear">3/4 rear</button>
     <button data-view="front">Front</button><button data-view="rear">Rear</button>
     <button data-view="left">Left</button><button data-view="right">Right</button>
     <button data-view="top">Top</button><button data-view="bottom">Bottom</button>
   </div>
-  <div class="row">
+  <div class="row aircraft">
     Wing: <button data-view="wing_top">top</button><button data-view="wing_le">leading edge</button>
     <button data-view="wing_span">sight down span</button><button data-view="wing_under">underside</button><br>
     Joints: <button data-view="joint_root">root</button><button data-view="joint_boom">boom rib</button>
     <button data-view="joint_midtip">mid/tip</button><button data-view="joint_tip">tip</button>
   </div>
-  <div class="row">
+  <div class="row aircraft">
     Colours:
     <label><input type="radio" name="mode" value="printed" checked> as printed</label>
     <label><input type="radio" name="mode" value="paint"> one colour</label>
     <label><input type="radio" name="mode" value="zebra"> reflection stripes</label>
     <label><input type="radio" name="mode" value="parts"> by part</label>
   </div>
-  <div class="row">
+  <div class="row aircraft">
     <label><input type="checkbox" id="xray"> x-ray skins</label>
     <label><input type="checkbox" id="extras" checked> motors, props, carbon</label>
     <label><input type="checkbox" id="graze"> grazing light</label>
   </div>
-  <div class="row">Tilt <input type="range" id="tilt" min="-20" max="90" value="0"> <span id="tiltv">0°</span>
+  <div class="row aircraft">Tilt <input type="range" id="tilt" min="-20" max="90" value="0"> <span id="tiltv">0°</span>
     (0 = hover, 90 = forward flight)</div>
+  <div class="row hd aircraft">Burst view and inside</div>
+  <div class="row aircraft">
+    <button id="burst" class="big">Burst ▸</button>
+    <input type="range" id="explode" min="0" max="100" value="0"> <span id="explodev">0 %</span>
+  </div>
+  <div class="row aircraft"><button id="nose">Open the nose, slide the battery out</button></div>
+  <div class="row aircraft">
+    <label><input type="checkbox" id="equip" checked> equipment</label>
+    <label><input type="checkbox" id="cables" checked> cables</label>
+    <label><input type="checkbox" id="labels" checked> labels</label>
+  </div>
+  <div class="row aircraft">Cut:
+    <select id="section">
+      <option value="none">no cut</option>
+      <option value="y0">along the centreline (y = 0)</option>
+      <option value="x305">across the Pixhawk (x = 305)</option>
+      <option value="x385">across the ESC block (x = 385)</option>
+      <option value="wing">across the right wing root bay (y = 170)</option>
+    </select>
+  </div>
+  <div class="row hd">Printable parts</div>
+  <div class="row">
+    <button id="gallery" class="big">Show the print files</button>
+    <button id="back" class="big" style="display:none">Back to the aircraft</button>
+    <select id="gfilter">
+      <option value="all">all print files</option>
+      <option value="s1_petg">Kobra S1, PETG</option>
+      <option value="s1_lwpla">Kobra S1, LW-PLA (right-hand set)</option>
+      <option value="x_lwpla">Kobra X, LW-PLA (left-hand set)</option>
+    </select>
+  </div>
+  <div class="row note">Hover a part for its name; double-click to zoom to it.</div>
 </div>
+<canvas id="overlay"></canvas>
+<div id="tip"></div>
 <div id="legend"></div>
 <div id="status">loading…</div>
 <script type="module">
@@ -65,10 +108,13 @@ import * as BGU from 'three/addons/utils/BufferGeometryUtils.js';
 
 const params = new URLSearchParams(location.search);
 const capture = params.has('capture');
-const status = document.getElementById('status');
+const $ = id => document.getElementById(id);
+const status = $('status');
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(capture ? 1 : window.devicePixelRatio);
+renderer.localClippingEnabled = true;
 document.body.appendChild(renderer.domElement);
+const overlay = $('overlay'), octx = overlay.getContext('2d');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xeef1f4);
 const camera = new THREE.PerspectiveCamera(30, 1, 5, 20000);
@@ -87,36 +133,58 @@ setLights(false);
 const grid = new THREE.GridHelper(2400, 48, 0xb9c0c8, 0xd5dae0);
 grid.rotation.x = Math.PI / 2; grid.position.set(550, 0, -75); scene.add(grid);
 
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const V3 = a => new THREE.Vector3(a[0], a[1], a[2]);
 const COL = { lwpla: 0xeae6da, petg: 0x2f6db5, carbon: 0x1b1b1b, motor: 0x3b3b3b, bell: 0xb03030, prop: 0x9aa3ad, paint: 0xd8dbdf };
-const mats = {
-  lwpla: new THREE.MeshStandardMaterial({ color: COL.lwpla, roughness: 0.85, metalness: 0 }),
-  petg: new THREE.MeshStandardMaterial({ color: COL.petg, roughness: 0.45, metalness: 0 }),
-  carbon: new THREE.MeshStandardMaterial({ color: COL.carbon, roughness: 0.35, metalness: 0.2 }),
-  motor: new THREE.MeshStandardMaterial({ color: COL.motor, roughness: 0.4, metalness: 0.6 }),
-  bell: new THREE.MeshStandardMaterial({ color: COL.bell, roughness: 0.4, metalness: 0.5 }),
-  prop: new THREE.MeshStandardMaterial({ color: COL.prop, roughness: 0.6, transparent: true, opacity: 0.28,
-                                         side: THREE.DoubleSide, depthWrite: false }),
+
+// Section cuts: every aircraft material shares one clipping plane. Faces seen from behind are
+// drawn darker, so a cut shell reads as the inside of a shell.
+const clipPlane = new THREE.Plane(V(0, -1, 0), 0);
+const clipMats = new Set();
+let sectionOn = false;
+const tintBack = s => {
+  s.fragmentShader = s.fragmentShader.replace('#include <color_fragment>',
+    '#include <color_fragment>\n\tif ( ! gl_FrontFacing ) diffuseColor.rgb *= 0.55;');
 };
-document.getElementById('legend').innerHTML =
-  `<span class="sw" style="background:#eae6da"></span>LW-PLA skins<span class="sw" style="background:#2f6db5"></span>PETG` +
-  `<span class="sw" style="background:#1b1b1b"></span>carbon`;
+function prep(m) {
+  m.side = THREE.DoubleSide;
+  m.onBeforeCompile = tintBack;
+  clipMats.add(m);
+  m.clippingPlanes = sectionOn ? [clipPlane] : null;
+  return m;
+}
+const std = o => prep(new THREE.MeshStandardMaterial(o));
+const mats = {
+  lwpla: std({ color: COL.lwpla, roughness: 0.85, metalness: 0 }),
+  petg: std({ color: COL.petg, roughness: 0.45, metalness: 0 }),
+  carbon: std({ color: COL.carbon, roughness: 0.35, metalness: 0.2 }),
+  motor: std({ color: COL.motor, roughness: 0.4, metalness: 0.6 }),
+  bell: std({ color: COL.bell, roughness: 0.4, metalness: 0.5 }),
+  prop: std({ color: COL.prop, roughness: 0.6, transparent: true, opacity: 0.28, depthWrite: false }),
+};
 
 // Reflection stripes (the "zebra" surface check): a striped light box reflected in a glossy
 // finish. Stripes that run on unbroken across a joint mean the surfaces meet without a kink.
 const zebraMat = new THREE.ShaderMaterial({
   uniforms: { freq: { value: 9.0 } },
+  clipping: true,
   vertexShader: `
+    #include <clipping_planes_pars_vertex>
     varying vec3 vN; varying vec3 vW;
     void main() {
       vec4 w = modelMatrix * vec4(position, 1.0);
       vW = w.xyz;
       vN = mat3(modelMatrix) * normal;
-      gl_Position = projectionMatrix * viewMatrix * w;
+      vec4 mvPosition = viewMatrix * w;
+      #include <clipping_planes_vertex>
+      gl_Position = projectionMatrix * mvPosition;
     }`,
   fragmentShader: `
+    #include <clipping_planes_pars_fragment>
     uniform float freq;
     varying vec3 vN; varying vec3 vW;
     void main() {
+      #include <clipping_planes_fragment>
       vec3 n = normalize(vN);
       vec3 v = normalize(vW - cameraPosition);
       vec3 r = reflect(v, n);
@@ -126,12 +194,22 @@ const zebraMat = new THREE.ShaderMaterial({
       gl_FragColor = vec4(vec3(mix(0.10, 0.97, s) * shade), 1.0);
     }`,
 });
+clipMats.add(zebraMat);
 
 const man = await (await fetch('manifest.json')).json();
 const loader = new STLLoader();
-const parts = [], extras = [], pivots = {};
+const parts = [], extras = [], movers = [], equip = [], cables = [], pivots = {};
 const root = new THREE.Group(); scene.add(root);
 
+// Everything that moves in the burst view or when the nose opens: base position, burst offset,
+// and (optionally) a nose-open offset that plays within a stage of that animation.
+function mover(o, ex, nose) {
+  o.userData.base = o.position.clone();
+  o.userData.ex = ex ? V3(ex) : V(0, 0, 0);
+  if (nose) o.userData.nose = { v: V3(nose.v), stage: nose.stage };
+  movers.push(o);
+  return o;
+}
 function pivotFor(side, at) {
   if (!pivots[side]) {
     const p = new THREE.Group(); p.position.set(...at); root.add(p); pivots[side] = p;
@@ -215,26 +293,32 @@ status.textContent = 'smoothing…';
 creasedNormals(raw, THREE.MathUtils.degToRad(35)).forEach((g, i) => {
   const p = man.parts[i];
   const m = new THREE.Mesh(g, mats[p.material]);
-  m.userData = { ...p, hue: (i * 0.618) % 1 };
+  m.userData = { ...p, kind: 'part', hue: (i * 0.618) % 1 };
   if (p.tilt) {
     const mot = man.motors.find(o => o.name === 'motor_' + p.side);
     const piv = pivotFor(p.side, mot.pivot);
     m.position.set(-mot.pivot[0], -mot.pivot[1], -mot.pivot[2]);
     piv.add(m);
-  } else root.add(m);
+  } else {
+    root.add(m);
+    mover(m, p.burst, man.nose[p.name]);
+  }
   parts.push(m);
 });
 
 function tubeMesh(t) {
-  const a = new THREE.Vector3(...t.a), b = new THREE.Vector3(...t.b);
-  const len = a.distanceTo(b);
-  const geo = new THREE.CylinderGeometry(t.od / 2, t.od / 2, len, 32, 1, false);
+  const a = V3(t.a), b = V3(t.b);
+  const geo = new THREE.CylinderGeometry(t.od / 2, t.od / 2, a.distanceTo(b), 32, 1, false);
   const m = new THREE.Mesh(geo, mats.carbon);
   m.position.copy(a.clone().add(b).multiplyScalar(0.5));
-  m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
+  m.quaternion.setFromUnitVectors(V(0, 1, 0), b.clone().sub(a).normalize());
   return m;
 }
-for (const t of man.tubes) { const m = tubeMesh(t); m.userData.carbon = true; root.add(m); extras.push(m); }
+for (const t of man.tubes) {
+  const m = tubeMesh(t);
+  m.userData = { name: t.name, kind: 'tube' };
+  root.add(m); extras.push(m); mover(m, t.burst);
+}
 for (const mo of man.motors) {
   const grp = new THREE.Group();
   const stator = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 6, 40), mats.motor);
@@ -248,12 +332,44 @@ for (const mo of man.motors) {
   const hub = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 7, 24), mats.motor);
   hub.rotation.x = Math.PI / 2; hub.position.z = mo.prop_z;
   grp.add(stator, bell, shaft, prop, hub);
+  grp.userData = { name: mo.name, kind: 'motor' };
   if (mo.tilt) {
     const piv = pivotFor(mo.name.slice(-1), mo.pivot);
     grp.position.set(mo.base[0] - mo.pivot[0], mo.base[1] - mo.pivot[1], mo.base[2] - mo.pivot[2]);
     piv.add(grp);
-  } else { grp.position.set(...mo.base); root.add(grp); }
+    mover(grp, mo.burst_local);                       // along the thrust axis, whatever the tilt
+    if (!piv.userData.base) mover(piv, mo.burst_pivot);
+  } else {
+    grp.position.set(...mo.base); root.add(grp); mover(grp, mo.burst);
+  }
   extras.push(grp);
+}
+
+// Purchased equipment (scripts/payload.py) as simple envelopes, and a sketch of the cable runs.
+const eqGroup = new THREE.Group(); root.add(eqGroup);
+const edgeMat = new THREE.LineBasicMaterial({ color: 0x1b1f24, transparent: true, opacity: 0.45 });
+clipMats.add(edgeMat);
+for (const e of man.equipment) {
+  // Drawn 0.2 mm inside their envelopes, so faces resting on a part don't flicker against it.
+  const geo = e.kind === 'box' ? new THREE.BoxGeometry(e.size[0] - 0.4, e.size[1] - 0.4, e.size[2] - 0.4)
+                               : new THREE.CylinderGeometry(e.r - 0.2, e.r - 0.2, e.h - 0.4, 48);
+  const m = new THREE.Mesh(geo, std({ color: new THREE.Color(e.color), roughness: 0.55, metalness: 0.05 }));
+  if (e.kind === 'cyl') m.quaternion.setFromUnitVectors(V(0, 1, 0), V3(e.axis).normalize());
+  if (e.basis) m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(V3(e.basis[0]), V3(e.basis[1]), V3(e.basis[2])));
+  m.position.set(e.pos[0], e.pos[1], e.pos[2]);
+  m.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), edgeMat));
+  m.userData = { ...e, kind: 'equip' };
+  eqGroup.add(m); equip.push(m);
+  mover(m, e.burst, man.nose[e.name]);
+}
+const cabGroup = new THREE.Group(); root.add(cabGroup);
+let cablesOn = true;
+for (const r of man.routes) {
+  const curve = new THREE.CatmullRomCurve3(r.pts.map(V3), false, 'centripetal');
+  const geo = new THREE.TubeGeometry(curve, Math.max(40, r.pts.length * 24), r.d / 2, 10, false);
+  const m = new THREE.Mesh(geo, std({ color: new THREE.Color(r.color), roughness: 0.6 }));
+  m.userData = { name: r.name, kind: 'cable' };
+  cabGroup.add(m); cables.push(m);
 }
 
 // ---- appearance ---------------------------------------------------------
@@ -263,17 +379,21 @@ function applyLook() {
   for (const m of parts) {
     const p = m.userData;
     let mat;
-    if (mode === 'paint') mat = (partMats.get('paint') || partMats.set('paint',
-      new THREE.MeshStandardMaterial({ color: COL.paint, roughness: 0.55 })).get('paint'));
-    else if (mode === 'zebra') mat = zebraMat;
+    if (mode === 'paint') {
+      if (!partMats.has('paint')) partMats.set('paint', std({ color: COL.paint, roughness: 0.55 }));
+      mat = partMats.get('paint');
+    } else if (mode === 'zebra') mat = zebraMat;
     else if (mode === 'parts') {
-      if (!partMats.has(p.name)) partMats.set(p.name, new THREE.MeshStandardMaterial({
-        color: new THREE.Color().setHSL(p.hue, 0.55, 0.62), roughness: 0.6 }));
+      if (!partMats.has(p.name)) partMats.set(p.name, std({ color: new THREE.Color().setHSL(p.hue, 0.55, 0.62), roughness: 0.6 }));
       mat = partMats.get(p.name);
     } else mat = mats[p.material];
     if (xray && p.group === 'skin' && mode !== 'zebra') {
       const k = 'x_' + mat.uuid;
-      if (!partMats.has(k)) { const c = mat.clone(); c.transparent = true; c.opacity = 0.18; c.depthWrite = false; partMats.set(k, c); }
+      if (!partMats.has(k)) {
+        const c = prep(mat.clone());
+        c.transparent = true; c.opacity = 0.14; c.depthWrite = false;
+        partMats.set(k, c);
+      }
       mat = partMats.get(k);
     }
     m.material = mat;
@@ -281,11 +401,55 @@ function applyLook() {
 }
 function setTilt(deg) {
   for (const p of Object.values(pivots)) p.rotation.y = -THREE.MathUtils.degToRad(deg);
-  document.getElementById('tiltv').textContent = `${deg}°`;
+  $('tiltv').textContent = `${deg}°`;
+  $('tilt').value = deg;
+}
+
+// ---- burst view and nose animation -----------------------------------------
+const anim = { b: 0, bTo: 0, n: 0, nTo: 0 };
+const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const stage = (t, s) => ease(Math.min(1, Math.max(0, (t - s[0]) / (s[1] - s[0]))));
+const approach = (a, b, d) => a < b ? Math.min(b, a + d) : Math.max(b, a - d);
+function pose() {
+  const eb = ease(anim.b);
+  for (const o of movers) {
+    const u = o.userData;
+    o.position.copy(u.base).addScaledVector(u.ex, eb);
+    if (u.nose) o.position.addScaledVector(u.nose.v, stage(anim.n, u.nose.stage));
+  }
+  // The cable sketch belongs to the assembled aircraft.
+  cabGroup.visible = cablesOn && anim.b < 0.01 && anim.n < 0.01;
+  grid.position.z = -75 - 200 * eb;
+}
+function syncUI() {
+  $('explode').value = Math.round(anim.b * 100);
+  $('explodev').textContent = `${Math.round(anim.b * 100)} %`;
+  $('burst').textContent = anim.bTo > 0.5 ? 'Assemble ◂' : 'Burst ▸';
+  $('nose').textContent = anim.nTo > 0.5 ? 'Close the nose' : 'Open the nose, slide the battery out';
+}
+function animate(dt) {
+  let moved = false;
+  if (anim.b !== anim.bTo) { anim.b = approach(anim.b, anim.bTo, dt / 1.6); moved = true; }
+  if (anim.n !== anim.nTo) { anim.n = approach(anim.n, anim.nTo, dt / 2.4); moved = true; }
+  if (moved) { pose(); syncUI(); }
+}
+
+// ---- section cuts -------------------------------------------------------------
+const SECTIONS = {
+  y0: { n: [0, -1, 0], c: 0, view: { dir: V(0.15, -1, -0.3), box: new THREE.Box3(V(150, -75, -90), V(650, 2, 100)), fov: 22 } },
+  x305: { n: [1, 0, 0], c: -305, view: { dir: V(1, -0.35, -0.3), box: new THREE.Box3(V(304, -80, -80), V(360, 80, 95)), fov: 22 } },
+  x385: { n: [1, 0, 0], c: -385, view: { dir: V(1, -0.35, -0.3), box: new THREE.Box3(V(384, -80, -80), V(440, 80, 95)), fov: 22 } },
+  wing: { n: [0, -1, 0], c: 170, view: { dir: V(-0.35, -1, -0.55), box: new THREE.Box3(V(370, 60, -25), V(610, 171, 35)), fov: 22 } },
+};
+function setSection(k) {
+  const s = SECTIONS[k];
+  sectionOn = !!s;
+  if (s) clipPlane.set(V3(s.n), s.c);
+  for (const m of clipMats) { m.clippingPlanes = sectionOn ? [clipPlane] : null; m.needsUpdate = true; }
+  $('section').value = s ? k : 'none';
 }
 
 // ---- views ----------------------------------------------------------------
-const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const wingBox = new THREE.Box3(V(370, 40, -20), V(610, 720, 30));
 // Axis views use a narrow field of view so they read almost like orthographic drawings.
 const VIEWS = {
@@ -297,9 +461,15 @@ const VIEWS = {
   wing_le: { dir: V(1, -0.25, -0.35), box: wingBox },
   wing_span: { dir: V(0.30, -1, -0.32), box: wingBox, fov: 20 },
   wing_under: { dir: V(0.3, -0.3, 1), up: V(-1, 0, 0), box: wingBox },
+  burst_iso: { dir: V(1, 0.85, -0.55), fov: 24 },
+  burst_top: { dir: V(0, 0, -1), up: V(-1, 0, 0), fov: 14 },
+  nose_open: { dir: V(0.75, 0.85, -0.45), box: new THREE.Box3(V(-320, -130, -130), V(470, 130, 130)), fov: 24 },
+  xray_fuse: { dir: V(0.55, 0.9, -0.5), box: new THREE.Box3(V(-5, -75, -80), V(640, 75, 90)), fov: 24 },
+  gallery: { dir: V(0, 0.42, -0.9), fov: 30 },
 };
 const J = (y0, y1) => ({ dir: V(0.75, -0.55, -0.55), box: new THREE.Box3(V(372, y0, -12), V(610, y1, 26)) });
 Object.assign(VIEWS, { joint_root: J(30, 110), joint_boom: J(235, 330), joint_midtip: J(445, 535), joint_tip: J(660, 740) });
+for (const [k, s] of Object.entries(SECTIONS)) VIEWS['sec_' + k] = s.view;
 
 function shown(o) { for (; o; o = o.parent) if (!o.visible) return false; return true; }
 
@@ -307,27 +477,33 @@ function shown(o) { for (; o; o = o.parent) if (!o.visible) return false; return
 function framePoints(clip) {
   const pts = [], q = new THREE.Vector3();
   scene.updateMatrixWorld(true);
-  root.traverse(o => {
+  (galleryOn ? gallery : root).traverse(o => {
     if (!o.isMesh || !shown(o)) return;
     const pos = o.geometry.attributes.position;
     const step = Math.max(1, Math.floor(pos.count / 1500));
     for (let i = 0; i < pos.count; i += step) {
       q.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld);
-      if (!clip || clip.containsPoint(q)) pts.push(q.clone());
+      if (clip && !clip.containsPoint(q)) continue;
+      if (sectionOn && !galleryOn && clipPlane.distanceToPoint(q) < 0) continue;
+      pts.push(q.clone());
     }
   });
+  // The gallery's group titles sit above their first row: keep them in the frame too.
+  if (galleryOn && !clip) for (const sub of gallery.children)
+    if (sub.visible) pts.push(V(-PITCH_X / 2, PITCH_Y / 2 + 90, 0).applyMatrix4(sub.matrixWorld));
   return pts;
 }
 
-function frameView(name, aspect) {
-  const v = VIEWS[name];
+// Camera position, target and up that fit the view's points in the frame.
+function viewSpec(v, aspect) {
   const f = v.dir.clone().normalize();
   const up = (v.up || V(0, 0, 1)).clone();
   const r = new THREE.Vector3().crossVectors(f, up).normalize();
   const u = new THREE.Vector3().crossVectors(r, f).normalize();
-  camera.fov = v.fov || 30;
-  const tv = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), th = tv * aspect;
+  const fov = v.fov || 30;
+  const tv = Math.tan(THREE.MathUtils.degToRad(fov / 2)), th = tv * aspect;
   const pts = framePoints(v.box);
+  if (!pts.length) return null;
   const t = new THREE.Box3().setFromPoints(pts).getCenter(new THREE.Vector3());
   const q = new THREE.Vector3();
   let d = 0;
@@ -347,33 +523,309 @@ function frameView(name, aspect) {
     t.addScaledVector(r, (x0 + x1) / 2 * th * d).addScaledVector(u, (y0 + y1) / 2 * tv * d);
   }
   d *= 1.05;
-  camera.up.copy(u);
-  camera.position.copy(t).addScaledVector(f, -d);
-  camera.lookAt(t);
-  camera.updateProjectionMatrix();
+  return { pos: t.clone().addScaledVector(f, -d), target: t, up: u, fov };
+}
+function resetControls(target) {
   controls.dispose();
   controls = new OrbitControls(camera, renderer.domElement);
-  controls.target.copy(t);
+  controls.target.copy(target);
   controls.update();
 }
+function applySpec(s) {
+  camera.fov = s.fov; camera.up.copy(s.up);
+  camera.position.copy(s.pos); camera.lookAt(s.target);
+  camera.updateProjectionMatrix();
+  resetControls(s.target);
+}
+let tween = null;
+function frameView(v, aspect) {
+  tween = null;
+  const s = viewSpec(typeof v === 'string' ? VIEWS[v] : v, aspect);
+  if (s) applySpec(s);
+}
+function tweenTo(s, dur) {
+  if (!s) return;
+  tween = { from: { pos: camera.position.clone(), target: controls.target.clone(), up: camera.up.clone(), fov: camera.fov },
+            to: s, t: 0, dur };
+}
+function stepTween(dt) {
+  if (!tween) return;
+  tween.t = Math.min(1, tween.t + dt / tween.dur);
+  const k = ease(tween.t), a = tween.from, b = tween.to;
+  camera.position.lerpVectors(a.pos, b.pos, k);
+  controls.target.lerpVectors(a.target, b.target, k);
+  camera.up.lerpVectors(a.up, b.up, k).normalize();
+  camera.fov = a.fov + (b.fov - a.fov) * k;
+  camera.lookAt(controls.target);
+  camera.updateProjectionMatrix();
+  if (tween.t >= 1) { tween = null; resetControls(b.target); }
+}
+// Fit the end state of an animation from the current viewing direction, then fly there with it.
+function animateTo(key, value) {
+  const saved = anim[key];
+  anim[key] = value; pose();
+  const s = viewSpec({ dir: camera.getWorldDirection(new THREE.Vector3()), up: camera.up.clone(), fov: camera.fov },
+                     camera.aspect);
+  anim[key] = saved; pose();
+  anim[key + 'To'] = value;
+  tweenTo(s, key === 'b' ? 1.6 : 2.4);
+  syncUI();
+}
 
+// ---- labels: drawn on the overlay canvas, and into captured images ------------------
+let labelsOn = true;
+const fmtMin = m => m == null ? '?' : m < 60 ? `${Math.round(m)} min`
+  : `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')} min`;
+function topOf(o) {
+  const b = new THREE.Box3().setFromObject(o);
+  return V((b.min.x + b.max.x) / 2, (b.min.y + b.max.y) / 2, b.max.z + 2);
+}
+function labelList(w, h) {
+  const out = [];
+  const add = (p, text, kind, half = 0) => {
+    if (sectionOn && !galleryOn && clipPlane.distanceToPoint(p) < -3) return;
+    const q = p.clone().project(camera);
+    if (q.z > 1 || q.z < -1 || Math.abs(q.x) > 1.05 || Math.abs(q.y) > 1.05) return;
+    // Room a gallery label may use: the bed's width on screen.
+    let maxw = Infinity;
+    if (half) {
+      const a = p.clone().add(V(-half, 0, 0)).project(camera), b = p.clone().add(V(half, 0, 0)).project(camera);
+      maxw = Math.abs(b.x - a.x) / 2 * w;
+    }
+    out.push({ x: (q.x + 1) / 2 * w, y: (1 - q.y) / 2 * h, text, kind, maxw });
+  };
+  if (galleryOn) {
+    for (const sub of gallery.children) {
+      if (!sub.visible) continue;
+      add(V(-PITCH_X / 2, PITCH_Y / 2 + 40, 0).applyMatrix4(sub.matrixWorld), sub.userData.title, 'title');
+      for (const m of sub.children)
+        if (m.userData.kind === 'print')
+          add(m.userData.anchor.clone().applyMatrix4(sub.matrixWorld), m.userData.label, 'print', m.userData.bed / 2);
+    }
+  } else if (eqGroup.visible && shown(eqGroup) && (anim.b > 0.3 || anim.n > 0.3 || sectionOn || xray)) {
+    // Inside the closed fuselage the equipment is hidden, so its labels only show once it can be
+    // seen; with just the nose open, only what came out of it.
+    const noseOnly = anim.n > 0.3 && !(anim.b > 0.3 || sectionOn || xray);
+    for (const o of equip) if (o.userData.tag && (!noseOnly || o.userData.nose)) add(topOf(o), o.userData.tag, 'equip');
+  }
+  return out;
+}
+function drawLabels(g, w, h, s = 1) {
+  const pad = 4 * s, lh = 14 * s;
+  const list = [];
+  for (const L of labelList(w, h)) {
+    g.font = L.kind === 'title' ? `600 ${15 * s}px system-ui, sans-serif` : `${11.5 * s}px system-ui, sans-serif`;
+    L.lines = L.text.split('\n');
+    const width = () => Math.max(...L.lines.map(t => g.measureText(t).width)) + 2 * pad;
+    // A gallery label that does not fit under its bed keeps just the name, shortened if need be.
+    if (width() > L.maxw) L.lines = [L.lines[0]];
+    while (width() > L.maxw && L.lines[0].length > 4) L.lines[0] = L.lines[0].slice(0, -2).replace(/…?$/, '…');
+    if (width() > L.maxw) continue;
+    L.w = width();
+    L.h = L.lines.length * lh + 1.5 * pad;
+    if (L.kind === 'title') { L.bx = L.x; L.by = L.y - L.h; }
+    else if (L.kind === 'print') { L.bx = L.x - L.w / 2; L.by = L.y + 3 * s; }
+    else { L.bx = L.x - L.w / 2; L.by = L.y - L.h - 12 * s; }
+    list.push(L);
+  }
+  // Equipment labels that would overlap are pushed up, with a leader line to their item.
+  const placed = [];
+  for (const L of list.filter(l => l.kind === 'equip').sort((a, b) => b.by - a.by)) {
+    for (let k = 0; k < 40; k++) {
+      const hit = placed.find(P => L.bx < P.bx + P.w + 3 && P.bx < L.bx + L.w + 3 && L.by < P.by + P.h + 3 && P.by < L.by + L.h + 3);
+      if (!hit) break;
+      L.by = hit.by - L.h - 3;
+    }
+    placed.push(L);
+  }
+  g.textBaseline = 'top';
+  for (const L of list) {
+    if (L.kind === 'equip') {
+      g.strokeStyle = '#2b333c'; g.fillStyle = '#2b333c'; g.lineWidth = s;
+      g.beginPath(); g.moveTo(L.x, L.y); g.lineTo(L.bx + L.w / 2, L.by + L.h); g.stroke();
+      g.beginPath(); g.arc(L.x, L.y, 2.2 * s, 0, 2 * Math.PI); g.fill();
+    }
+    g.fillStyle = L.kind === 'title' ? '#ffffffee' : '#ffffffe6';
+    g.strokeStyle = '#a7b0ba'; g.lineWidth = s;
+    g.beginPath();
+    if (g.roundRect) g.roundRect(L.bx, L.by, L.w, L.h, 4 * s); else g.rect(L.bx, L.by, L.w, L.h);
+    g.fill(); g.stroke();
+    g.fillStyle = '#1d2329';
+    g.font = L.kind === 'title' ? `600 ${15 * s}px system-ui, sans-serif` : `${11.5 * s}px system-ui, sans-serif`;
+    L.lines.forEach((t, i) => g.fillText(t, L.bx + pad, L.by + 0.75 * pad + i * lh));
+  }
+}
+
+// ---- hover tooltip and double-click zoom ----------------------------------------
+const MAT = { lwpla: 'LW-PLA vase', petg: 'PETG' };
+const TUBE = { main_spar: 'main spar, carbon tube 10×8 mm', rear_spar: 'rear spar, carbon tube 6×4 mm',
+               main_joiner: 'main joiner, carbon tube 8×6 mm', rear_joiner: 'rear joiner, 4 mm carbon rod',
+               tail_boom: 'tail boom, carbon tube 16×14 mm' };
+function describe(u) {
+  if (u.kind === 'part')
+    return `${u.name}${u.role ? ' — ' + u.role : ''}\n${MAT[u.material]}${u.printer ? ', Kobra ' + u.printer.toUpperCase() : ''}` +
+           `${u.qty > 1 ? ', printed ×' + u.qty + ' from one file' : ''}`;
+  if (u.kind === 'equip')
+    return `${u.label}\n${u.kind === 'equip' && u.size ? u.size.map(v => +v.toFixed(1)).join(' × ') : 'Ø' + 2 * u.r + ' × ' + u.h} mm (envelope)`;
+  if (u.kind === 'print')
+    return `${u.name}${u.qty > 1 ? ' ×' + u.qty : ''} — ${MAT[u.material]} on the Kobra ${u.printer.toUpperCase()}` +
+           `${u.supports ? ', tree supports' : ''}\n${u.size.join(' × ')} mm as printed · ` +
+           `${u.grams != null ? u.grams.toFixed(1) + ' g' : '? g'} · ${fmtMin(u.minutes)} each${u.role ? '\n' + u.role : ''}`;
+  if (u.kind === 'tube') return TUBE[u.name.replace(/_[rl]$/, '')] || u.name;
+  if (u.kind === 'motor') return u.name === 'motor_rear' ? 'rear lift motor, Emax ECOII 2807, 7 in prop'
+    : `front ${u.name.endsWith('r') ? 'right' : 'left'} tilting motor, Emax ECOII 2807, 7 in prop`;
+  return u.name;
+}
+const ray = new THREE.Raycaster();
+const tip = $('tip');
+let pointer = null, lastHover = 0;
+renderer.domElement.addEventListener('pointermove', e => { pointer = e; });
+renderer.domElement.addEventListener('pointerleave', () => { pointer = null; tip.style.display = 'none'; });
+function pickAt(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1), camera);
+  const pool = galleryOn ? galleryItems
+    : [...parts.filter(m => !(xray && m.userData.group === 'skin')), ...equip, ...cables, ...extras];
+  for (const h of ray.intersectObjects(pool, true)) {
+    const mt = h.object.material;
+    if (!h.object.isMesh || !shown(h.object) || (mt.transparent && mt.opacity < 0.5)) continue;
+    if (sectionOn && !galleryOn && clipPlane.distanceToPoint(h.point) < 0) continue;
+    let o = h.object;
+    while (o && !o.userData.kind) o = o.parent;
+    if (o) return o;
+  }
+  return null;
+}
+function hover(now) {
+  if (!pointer || now - lastHover < 80 || tween) return;
+  lastHover = now;
+  const e = pointer;
+  const o = pickAt(e);
+  if (!o) { tip.style.display = 'none'; return; }
+  tip.textContent = describe(o.userData);
+  tip.style.left = `${Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8)}px`;
+  tip.style.top = `${e.clientY + 16}px`;
+  tip.style.display = 'block';
+}
+renderer.domElement.addEventListener('dblclick', e => {
+  const o = pickAt(e);
+  if (!o) return;
+  const box = new THREE.Box3().setFromObject(o).expandByScalar(6);
+  tweenTo(viewSpec({ dir: camera.getWorldDirection(new THREE.Vector3()), up: camera.up.clone(), fov: camera.fov, box },
+                   camera.aspect), 0.8);
+});
+
+// ---- the print files, as they sit on the printers' beds -----------------------------
+let gallery = null, galleryOn = false, galleryFilter = 'all';
+const galleryItems = [];
+const PITCH_X = 300, PITCH_Y = 360, COLS = 8;
+const GROUPS = [['s1', 'petg', 'Kobra S1 · PETG'], ['s1', 'lwpla', 'Kobra S1 · LW-PLA, right-hand set'],
+                ['x', 'lwpla', 'Kobra X · LW-PLA, left-hand set']];
+async function buildGallery() {
+  const gm = { petg: new THREE.MeshStandardMaterial({ color: COL.petg, roughness: 0.45 }),
+               lwpla: new THREE.MeshStandardMaterial({ color: COL.lwpla, roughness: 0.8 }) };
+  const bedMat = new THREE.MeshStandardMaterial({ color: 0xdde2e7, roughness: 0.95 });
+  const bedEdge = new THREE.LineBasicMaterial({ color: 0x8e98a3 });
+  let k = 0;
+  const geos = await Promise.all(man.prints.map(async p => {
+    const g = await loader.loadAsync(p.url);
+    status.textContent = `loading print files ${++k}/${man.prints.length}`;
+    return BGU.toCreasedNormals(g, THREE.MathUtils.degToRad(30));
+  }));
+  const grp = new THREE.Group(); grp.visible = false; scene.add(grp);
+  for (const [pr, mt, title] of GROUPS) {
+    const sub = new THREE.Group();
+    const items = man.prints.map((p, i) => [p, geos[i]]).filter(([p]) => p.printer === pr && p.material === mt);
+    let grams = 0, minutes = 0, copies = 0;
+    items.forEach(([p, g], i) => {
+      const cx = (i % COLS) * PITCH_X, cy = -Math.floor(i / COLS) * PITCH_Y;
+      const plate = new THREE.PlaneGeometry(p.bed, p.bed);
+      const bed = new THREE.Mesh(plate, bedMat); bed.position.set(cx, cy, -0.5);
+      const edge = new THREE.LineSegments(new THREE.EdgesGeometry(plate), bedEdge); edge.position.copy(bed.position);
+      const m = new THREE.Mesh(g, gm[p.material]); m.position.set(cx, cy, 0);
+      m.userData = { ...p, kind: 'print', anchor: V(cx, cy - p.bed / 2 - 2, 0),
+                     label: `${p.name}${p.qty > 1 ? ' ×' + p.qty : ''}\n${p.grams != null ? p.grams.toFixed(1) + ' g · ' : ''}${fmtMin(p.minutes)}` };
+      sub.add(bed, edge, m); galleryItems.push(m);
+      grams += (p.grams || 0) * p.qty; minutes += (p.minutes || 0) * p.qty; copies += p.qty;
+    });
+    sub.userData = { key: `${pr}_${mt}`, rows: Math.ceil(items.length / COLS),
+                     title: `${title}: ${items.length} files, ${copies} prints, ${Math.round(grams)} g, ${fmtMin(minutes)}` };
+    grp.add(sub);
+  }
+  gallery = grp;
+  layoutGallery();
+  status.textContent = `${man.prints.length} print files on their beds — hover one for its mass and print time, double-click to zoom`;
+  if (!capture) setTimeout(() => { status.textContent = ''; }, 9000);
+}
+function layoutGallery() {
+  let y = 0;
+  for (const sub of gallery.children) {
+    sub.visible = galleryFilter === 'all' || galleryFilter === sub.userData.key;
+    if (!sub.visible) continue;
+    sub.position.set(0, y, 0);
+    y -= sub.userData.rows * PITCH_Y + 220;
+  }
+}
+async function showGallery(on) {
+  if (on && !gallery) await buildGallery();
+  galleryOn = on;
+  if (gallery) gallery.visible = on;
+  root.visible = !on;
+  $('back').style.display = on ? '' : 'none';
+  $('gallery').style.display = on ? 'none' : '';
+  document.querySelectorAll('#ui .aircraft').forEach(el => el.style.display = on ? 'none' : '');
+  tip.style.display = 'none';
+  if (!on) status.textContent = '';
+  updateLegend();
+  frameView(on ? 'gallery' : 'iso_front', camera.aspect);
+}
+function updateLegend() {
+  const sw = (c, t) => `<span class="sw" style="background:${c}"></span>${t}`;
+  $('legend').innerHTML = galleryOn
+    ? sw('#eae6da', 'LW-PLA (vase)') + sw('#2f6db5', 'PETG') + sw('#dde2e7', 'bed: S1 250 mm, X 260 mm')
+    : sw('#eae6da', 'LW-PLA skins') + sw('#2f6db5', 'PETG') + sw('#1b1b1b', 'carbon') +
+      (eqGroup.visible ? sw('#e8b923', 'battery') + sw('#7a3fb0', 'ESCs') + sw('#3a7d44', 'avionics') : '');
+}
+
+// ---- page wiring and render loop ------------------------------------------------
 function resize() {
   const w = capture ? 1600 : innerWidth, h = capture ? 1000 : innerHeight;
   renderer.setSize(w, h, !capture);
   camera.aspect = w / h; camera.updateProjectionMatrix();
+  const dpr = capture ? 1 : devicePixelRatio;
+  overlay.width = Math.round(w * dpr); overlay.height = Math.round(h * dpr);
+  overlay.style.width = `${w}px`; overlay.style.height = `${h}px`;
 }
 addEventListener('resize', resize);
 resize();
 applyLook();
+pose();
+syncUI();
+updateLegend();
 frameView('iso_front', camera.aspect);
+$('gfilter').options[0].text = `all ${man.prints.length} print files`;
 
 document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => frameView(b.dataset.view, camera.aspect));
 document.querySelectorAll('input[name=mode]').forEach(r => r.onchange = () => { mode = r.value; applyLook(); });
-document.getElementById('xray').onchange = e => { xray = e.target.checked; applyLook(); };
-document.getElementById('extras').onchange = e => extras.forEach(o => o.visible = e.target.checked);
-document.getElementById('graze').onchange = e => setLights(e.target.checked);
-document.getElementById('tilt').oninput = e => setTilt(+e.target.value);
-const ui = document.getElementById('ui');
+$('xray').onchange = e => { xray = e.target.checked; applyLook(); };
+$('extras').onchange = e => extras.forEach(o => o.visible = e.target.checked);
+$('graze').onchange = e => setLights(e.target.checked);
+$('tilt').oninput = e => setTilt(+e.target.value);
+$('burst').onclick = () => animateTo('b', anim.bTo > 0.5 ? 0 : 1);
+$('explode').oninput = e => { tween = null; anim.b = anim.bTo = +e.target.value / 100; pose(); syncUI(); };
+$('nose').onclick = () => animateTo('n', anim.nTo > 0.5 ? 0 : 1);
+$('equip').onchange = e => { eqGroup.visible = e.target.checked; updateLegend(); };
+$('cables').onchange = e => { cablesOn = e.target.checked; pose(); };
+$('labels').onchange = e => { labelsOn = e.target.checked; };
+$('section').onchange = e => { setSection(e.target.value); if (sectionOn) frameView('sec_' + e.target.value, camera.aspect); };
+$('gallery').onclick = () => showGallery(true);
+$('back').onclick = () => showGallery(false);
+$('gfilter').onchange = async e => {
+  galleryFilter = e.target.value;
+  if (!galleryOn) await showGallery(true);
+  else { layoutGallery(); frameView('gallery', camera.aspect); }
+};
+const ui = $('ui');
 ui.querySelector('h1').onclick = () => ui.classList.toggle('min');
 if (innerWidth < 700) ui.classList.add('min');
 status.textContent = `${parts.length} parts loaded — drag to orbit, wheel to zoom, right-drag to pan`;
@@ -385,41 +837,62 @@ function draw() {
   camera.near = Math.max(1, dist * 0.02);
   camera.far = dist * 6 + 4000;
   camera.updateProjectionMatrix();
-  grid.visible = camera.position.z > grid.position.z;
+  grid.visible = !galleryOn && camera.position.z > grid.position.z;
   renderer.render(scene, camera);
+  if (capture) return;
+  const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight, s = overlay.width / Math.max(1, w);
+  octx.setTransform(1, 0, 0, 1, 0, 0);
+  octx.clearRect(0, 0, overlay.width, overlay.height);
+  if (labelsOn) { octx.setTransform(s, 0, 0, s, 0, 0); drawLabels(octx, w, h); }
 }
-(function loop() { requestAnimationFrame(loop); draw(); })();
+let last = performance.now();
+function loop(now) {
+  requestAnimationFrame(loop);
+  const dt = Math.min(0.1, Math.max(0, (now - last) / 1000)); last = now;
+  animate(dt); stepTween(dt); hover(now); draw();
+}
+requestAnimationFrame(loop);
 
 // ---- capture mode: /viewer/?capture=1 posts PNGs to scripts/serve_viewer.py -------
 if (capture) {
-  document.getElementById('ui').style.display = 'none';
+  ui.style.display = 'none';
+  const S = (name, view, o = {}) => ({ name, view, mode: 'printed', tilt: 0, xray: false, extras: true, graze: false,
+                                       burst: 0, nose: 0, section: 'none', cables: false, labels: false, gallery: null,
+                                       ...o, equip: o.equip ?? (o.extras ?? true) });
+  const paint = { mode: 'paint', extras: false, graze: true };
   const shots = [
-    ['01_iso_front', 'iso_front', 'printed', 0, false, true],
-    ['02_iso_rear', 'iso_rear', 'printed', 0, false, true],
-    ['03_front', 'front', 'printed', 0, false, true],
-    ['04_rear', 'rear', 'printed', 0, false, true],
-    ['05_left', 'left', 'printed', 0, false, true],
-    ['06_right', 'right', 'printed', 0, false, true],
-    ['07_top', 'top', 'printed', 0, false, true],
-    ['08_bottom', 'bottom', 'printed', 0, false, true],
-    ['09_forward_flight', 'iso_front', 'printed', 90, false, true],
-    ['10_xray_structure', 'iso_front', 'printed', 0, true, true],
-    ['11_wing_top_printed', 'wing_top', 'printed', 0, false, false],
-    ['12_wing_top_one_colour', 'wing_top', 'paint', 0, false, false, true],
-    ['13_wing_leading_edge_one_colour', 'wing_le', 'paint', 0, false, false, true],
-    ['14_wing_sight_down_span_one_colour', 'wing_span', 'paint', 0, false, false, true],
-    ['15_wing_underside_one_colour', 'wing_under', 'paint', 0, false, false, true],
-    ['16_wing_by_part', 'wing_le', 'parts', 0, false, false],
-    ['17_joint_root', 'joint_root', 'paint', 0, false, false, true],
-    ['18_joint_boom_rib', 'joint_boom', 'paint', 0, false, false, true],
-    ['19_joint_mid_tip', 'joint_midtip', 'paint', 0, false, false, true],
-    ['20_joint_tip', 'joint_tip', 'paint', 0, false, false, true],
-    ['21_joint_boom_rib_printed', 'joint_boom', 'printed', 0, false, false],
-    ['22_wing_top_reflection_stripes', 'wing_top', 'zebra', 0, false, false],
-    ['23_wing_sight_down_span_reflection_stripes', 'wing_span', 'zebra', 0, false, false],
-    ['24_joint_mid_tip_reflection_stripes', 'joint_midtip', 'zebra', 0, false, false],
-    ['25_joint_boom_rib_reflection_stripes', 'joint_boom', 'zebra', 0, false, false],
-    ['26_finished_one_colour', 'iso_front', 'paint', 0, false, true],
+    S('01_iso_front', 'iso_front'), S('02_iso_rear', 'iso_rear'), S('03_front', 'front'), S('04_rear', 'rear'),
+    S('05_left', 'left'), S('06_right', 'right'), S('07_top', 'top'), S('08_bottom', 'bottom'),
+    S('09_forward_flight', 'iso_front', { tilt: 90 }),
+    S('10_xray_structure', 'iso_front', { xray: true, equip: false }),
+    S('11_wing_top_printed', 'wing_top', { extras: false }),
+    S('12_wing_top_one_colour', 'wing_top', paint),
+    S('13_wing_leading_edge_one_colour', 'wing_le', paint),
+    S('14_wing_sight_down_span_one_colour', 'wing_span', paint),
+    S('15_wing_underside_one_colour', 'wing_under', paint),
+    S('16_wing_by_part', 'wing_le', { mode: 'parts', extras: false }),
+    S('17_joint_root', 'joint_root', paint),
+    S('18_joint_boom_rib', 'joint_boom', paint),
+    S('19_joint_mid_tip', 'joint_midtip', paint),
+    S('20_joint_tip', 'joint_tip', paint),
+    S('21_joint_boom_rib_printed', 'joint_boom', { extras: false }),
+    S('22_wing_top_reflection_stripes', 'wing_top', { mode: 'zebra', extras: false }),
+    S('23_wing_sight_down_span_reflection_stripes', 'wing_span', { mode: 'zebra', extras: false }),
+    S('24_joint_mid_tip_reflection_stripes', 'joint_midtip', { mode: 'zebra', extras: false }),
+    S('25_joint_boom_rib_reflection_stripes', 'joint_boom', { mode: 'zebra', extras: false }),
+    S('26_finished_one_colour', 'iso_front', { mode: 'paint' }),
+    S('27_burst_view', 'burst_iso', { burst: 1, labels: true }),
+    S('28_burst_view_top', 'burst_top', { burst: 1 }),
+    S('29_cut_centreline', 'sec_y0', { section: 'y0', cables: true, labels: true }),
+    S('30_cut_at_pixhawk', 'sec_x305', { section: 'x305', cables: true, labels: true }),
+    S('31_cut_at_esc_block', 'sec_x385', { section: 'x385', cables: true, labels: true }),
+    S('32_nose_open_battery_out', 'nose_open', { nose: 1, labels: true }),
+    S('33_xray_equipment_and_cables', 'xray_fuse', { xray: true, cables: true, labels: true }),
+    S('34_cut_wing_root_webs_and_spars', 'sec_wing', { section: 'wing', equip: false }),
+    S('35_print_files_all', 'gallery', { gallery: 'all', labels: true }),
+    S('36_print_files_s1_petg', 'gallery', { gallery: 's1_petg', labels: true }),
+    S('37_print_files_s1_lwpla_right_set', 'gallery', { gallery: 's1_lwpla', labels: true }),
+    S('38_print_files_x_lwpla_left_set', 'gallery', { gallery: 'x_lwpla', labels: true }),
   ];
   const shot = new Map();
   async function post(name, blob) {
@@ -428,16 +901,34 @@ if (capture) {
     if (!res.ok) { document.title = `capture-error ${name}`; status.textContent = `capture failed: ${name}`; throw new Error(name); }
     status.textContent = `captured ${name}`;
   }
-  for (const [name, view, m, tilt, xr, ext, graze] of shots) {
-    mode = m; xray = xr; applyLook(); setTilt(tilt); setLights(!!graze);
-    extras.forEach(o => o.visible = ext);
-    frameView(view, camera.aspect);
+  async function snap(withLabels) {
     draw();
     const blob = await new Promise(r => renderer.domElement.toBlob(r, 'image/png'));
-    shot.set(name, await createImageBitmap(blob));
-    await post(name, blob);
+    if (!withLabels) return blob;
+    const img = await createImageBitmap(blob);
+    const c = document.createElement('canvas');
+    c.width = img.width; c.height = img.height;
+    const g = c.getContext('2d');
+    g.drawImage(img, 0, 0);
+    drawLabels(g, img.width, img.height, 1.3);
+    return new Promise(r => c.toBlob(r, 'image/png'));
   }
-  // Contact sheets: every side on one page, and the wing-smoothness views on another.
+  for (const s of shots) {
+    if (s.gallery) {
+      galleryFilter = s.gallery;
+      if (!galleryOn) await showGallery(true); else layoutGallery();
+    } else if (galleryOn) await showGallery(false);
+    mode = s.mode; xray = s.xray; applyLook(); setTilt(s.tilt); setLights(s.graze);
+    extras.forEach(o => o.visible = s.extras);
+    eqGroup.visible = s.equip; cablesOn = s.cables; labelsOn = s.labels;
+    anim.b = anim.bTo = s.burst; anim.n = anim.nTo = s.nose; pose();
+    setSection(s.section);
+    frameView(s.view, camera.aspect);
+    const blob = await snap(s.labels);
+    shot.set(s.name, await createImageBitmap(blob));
+    await post(s.name, blob);
+  }
+  // Contact sheets: every side on one page, the wing-smoothness views, and inside the airframe.
   const SHEETS = {
     '00_all_sides': [['01_iso_front', '3/4 front'], ['02_iso_rear', '3/4 rear'], ['09_forward_flight', 'forward flight, 90° tilt'],
                      ['03_front', 'front'], ['04_rear', 'rear'], ['07_top', 'top'],
@@ -447,6 +938,12 @@ if (capture) {
                            ['17_joint_root', 'root rib joint'], ['18_joint_boom_rib', 'boom rib joint'], ['19_joint_mid_tip', 'mid/tip rib joint'],
                            ['20_joint_tip', 'tip rib joint'], ['24_joint_mid_tip_reflection_stripes', 'mid/tip joint, stripes'],
                            ['25_joint_boom_rib_reflection_stripes', 'boom rib joint, stripes']],
+    '00_inside_and_burst': [['27_burst_view', 'burst view'], ['28_burst_view_top', 'burst view from above'],
+                            ['32_nose_open_battery_out', 'nose off, battery out'],
+                            ['29_cut_centreline', 'cut on the centreline'], ['30_cut_at_pixhawk', 'cut at the Pixhawk (x = 305)'],
+                            ['31_cut_at_esc_block', 'cut at the ESC block (x = 385)'],
+                            ['33_xray_equipment_and_cables', 'x-ray: equipment and cables'],
+                            ['34_cut_wing_root_webs_and_spars', 'wing root bay: webs and spars'], ['10_xray_structure', 'x-ray: PETG structure']],
   };
   for (const [sheet, tiles] of Object.entries(SHEETS)) {
     const W = 640, H = 400, cols = 3;

@@ -22,10 +22,10 @@ disagree, the scripts win.
 | Wing | Clark Y, flat bottom level with the fuselage datum, 0° dihedral, straight LE; chord 220 mm root → 150 mm tip; area 0.267 m²; MAC 187 mm |
 | Ailerons | 2 per side, hinge at 75 % chord, top-surface tape hinge, ±25° |
 | V-tail | 2 fixed panels, NACA 0012, 240 mm span, chord 180 → 110 mm, 35° from horizontal (110° included); ruddervators hinged at 70 % chord |
-| All-up weight | ~1.91 kg: printed parts ~677 g, 4S battery 520 g, everything else ~712 g |
+| All-up weight | ~1.97 kg: printed parts ~726 g, 4S battery 520 g, everything else ~728 g |
 | CG | **431 mm aft of the nose tip** (27 % MAC); 25–30 % band = 427–436 mm |
-| Hover | front motors 730 g each (38 % of AUW), rear 448 g (23 %); front motor at 47–58 % of its maximum; ~7.7 min pure hover (estimate) |
-| Stall | 9.8–11.2 m/s (CL 1.2 at sea level to CL 1.0 at 35 °C) |
+| Hover | front motors 743 g each (38 % of AUW), rear 488 g (25 %); front motor at 48–59 % of its maximum; ~7.4 min pure hover (estimate) |
+| Stall | 9.9–11.4 m/s (CL 1.2 at sea level to CL 1.0 at 35 °C) |
 | Static margin | ~20 % MAC |
 | Motors / props | 3× Emax ECOII 2807 **1700KV** (the 4S winding), 7×4.5: front right CW, front left CCW, rear CCW |
 | ESCs / battery | 3× 50 A DShot; 4S 5000 mAh LiPo |
@@ -41,7 +41,8 @@ right; every left-hand part has its own file.
 
 - **Skins (LW-PLA, vase mode):** wing sections, ailerons, fuselage sections, V-tail panels and
   ruddervators are single-wall shells, open at both ends. Vase mode cannot print holes, so
-  every hole in a skin is drilled by hand (table below).
+  every hole in a skin is drilled by hand (table below). The root and mid wing sections also
+  carry internal spanwise webs, printed as part of the same single wall ("Inside the wing").
 - **Structure (PETG):** every skin end slides 10 mm over a PETG spigot ring (wing ribs, boom
   cup, couplers, V-tail ribs). The rings are 0.85 mm inside the skin surface: 0.6 mm for the
   foamed wall plus 0.25 mm slip.
@@ -58,7 +59,7 @@ right; every left-hand part has its own file.
 - **Fuselage:** four sections joined by PETG couplers at x = 240, 370 and 610. The nose
   (`fuse_1`) comes off for battery access. A 16×14 mm carbon tail boom runs from x = 420 to
   1050 at z = −20. It passes through both frames, the boom web in `coupler_610` and the
-  `pod_collar`. The rear motor mount clamps the boom at x = 820. The tail block on the end of
+  `pod_collar`. The rear motor mount clamps the boom at x = 790. The tail block on the end of
   the boom carries the V-tail.
 
 ## Parts map
@@ -68,15 +69,16 @@ right; every left-hand part has its own file.
 | `fuse_1` (nose) | x 0–240 | slides over `coupler_240`; one M3 nylon screw, removable |
 | `coupler_240` | x 220–260 | epoxied into `fuse_2` only; heat-set insert for the nose screw |
 | `fuse_2` | x 240–370 | — |
-| `fc_shelf` | x 255–355, top 32 mm above the centreline | epoxied into `fuse_2` |
-| `battery_tray` | x 243–367, on the floor | epoxied into `fuse_2`; 3 mm stop-pin holes every 10 mm (x = 250–360) |
+| `fc_shelf` | x 255–415, top 32 mm above the centreline | epoxied into `fuse_2` and `fuse_3` (it crosses `coupler_370`); Pixhawk on top, ESC block and small boards underneath |
+| `battery_tray` | x 243–395, on the floor | epoxied into `fuse_2` and `fuse_3`; 3 mm stop-pin holes every 10 mm (x = 250–390) |
 | `coupler_370` | x 350–390 | epoxied into `fuse_2` and `fuse_3` |
 | `fuse_3` | x 370–610 | — |
 | `frame_main`, `frame_rear` | x 426–438, 476–484 | epoxied into `fuse_3`; joiner sleeves, boom hole |
+| `gps_mount` | on top of `fuse_3`, x 534–586 | epoxied onto the outside of the skin over a Ø16 cable hole |
 | `coupler_610` | x 590–630 | epoxied into `fuse_3` and `fuse_4`; boom web at its front end |
 | `fuse_4` | x 610–760 | — |
 | `pod_collar` | x 745–760 | epoxied into the tail of `fuse_4`; boom passes through |
-| `rear_motor_mount` | x 802–838 on the boom | 2× M3×16 clamp bolts |
+| `rear_motor_mount` | x 772–808 on the boom | 2× M3×16 clamp bolts |
 | `tail_block` | x 950–1030, end of the boom | epoxy |
 | `vtail_root_rib` ×2, `vtail_l/r`, `vtail_tip_cap` ×2 | V-tail | rib: 4 mm carbon pin + epoxy to the tail block; panel slides over the rib spigot |
 | `ruddervator_l/r` | behind the 70 % hinge line | tape hinge on top |
@@ -94,6 +96,63 @@ right; every left-hand part has its own file.
 | `servo_cage` ×6 | inside the wing bottom skins (4) and the V-tail panels (2) | epoxied to the skin |
 | `control_horn` ×6 | under the ailerons (4) and ruddervators (2) | epoxy |
 
+## Inside the wing: ribs, spars and webs
+
+Each wing has four PETG ribs (root, boom, mid/tip, tip) threaded on two carbon spars. The
+skins between them are 204–217 mm long and need support from inside:
+
+- **The spars carry the bending.** At 3 g the main spars see about 62 MPa, well within carbon's
+  range.
+- **The skin is the weak point.** At the root its top surface is strained to about 0.44, 0.87
+  and 1.31 × 10⁻³ at 1, 2 and 3 g. A wide, gently curved 0.5 mm panel wrinkles at about
+  0.5–0.9 × 10⁻³. In hover the root bends the other way and puts the flat bottom in
+  compression. So the root and mid sections carry **spanwise webs** from the bottom skin to
+  the top skin, which cut every panel to 37 mm or less:
+  - root: x = 405, 438.7 (behind the main spar), 475.4 and 484.7 (either side of the rear
+    spar), 515 and 545. The wire bundle runs in the bay between 438.7 and 475.4;
+  - mid: x = 402, 438.7, 484.7 and 505. The aileron servo lies in the bay between 438.7 and the
+    rear spar;
+  - tip: none. Its top skin sees about 0.25 × 10⁻³ at 3 g, a fifth of what wrinkles it.
+- **How the webs print.** Each web is a 0.06 mm slot cut up from the bottom surface to 0.6 mm
+  under the top surface. In vase mode the single wall runs up one side of the slot and back
+  down the other, so the web prints as a fused double wall joined to the top skin, with no
+  extra start or travel move. Webs ramp in at under 45° and stop 12 mm from each section end,
+  where the spigots slide in. Both vase profiles need `slice_closing_radius` 0.01 and
+  `detect_thin_wall` 0 for this (`SLICING.md`). `check_parts.py` checks in the G-code that
+  every web is fused to the skin.
+- **Clearances.** The webs stay 1.2 mm off the spars along the whole span and leave the
+  wire/pitot line (x = 457) clear in every section. The motor leads from the boom cup cross the
+  main spar in the last 12 mm of the root section, where the webs have run out. Around the
+  pitot (y = 392–408) the webs ahead of the wire line are left open.
+- **Cost.** The webs add about 30 g: a root skin goes from 23.8 to 33.5 g and a mid skin from
+  15.8 to 20.7 g.
+- **V-tail and fuselage need nothing more.** The V-tail skin is about 12 times stiffer in
+  bending than a 4 mm spar would be, and its strain at CL 0.5 and 25 m/s (about 0.56 × 10⁻³) is
+  fine for normal flight. The fuselage shell has a 4–15× margin against buckling. Never lift the
+  plane by the V-tail.
+
+## Access and openings
+
+The fuselage is closed except at the nose:
+
+- **The nose (`fuse_1`) is the only hatch.** One M3 nylon screw holds it. With it off there is a
+  115 × 135 mm opening at x = 220–240, and everything that needs service is within reach:
+  - the battery slides out forward on its tray;
+  - the Pixhawk (x 263–347) and the boards under the shelf are 25–110 mm in;
+  - the wing plugs (x ≈ 330) are about 90 mm in;
+  - the ESC block (x 360–410) and the boom's front end (x 420) are 120–180 mm in, above the
+    battery's aft end. Take the battery out first.
+- **Sealed for good:** everything aft of x ≈ 450 once `fuse_4` is on (step 3.7). Nothing lives
+  there, and the GPS cable is laid in during step 3.
+- **Outside:** the GPS sits on its saddle on top of `fuse_3` (x = 560), so it never has to be
+  reached from inside. The pitot sticks out of the right wing's LE.
+- **Taking a wing off:** remove the nose. Unplug that wing's three motor bullets and three
+  servo plugs at x ≈ 330, and the pitot tubing on the right wing. Pull the M2.5 lock pin, then
+  slide the wing off the joiners, feeding its leads out through the Ø12 hole.
+- **Cooling air:** the 12 mm hole that vase mode leaves at the nose tip is the inlet; leave it
+  open. Two Ø10 outlets in the belly behind the ESC block (x = 445, y = ±28) let the air out
+  past the battery and the ESCs.
+
 ## Before printing the full set
 
 1. **Measure the tilt servos.** The pod bay fits a 24 × 13 mm body, 21 mm deep. The tab holes
@@ -105,7 +164,9 @@ right; every left-hand part has its own file.
    prints at 17–30 mm/s, so one calibration covers them all.
 3. **Fit test:** print `rib_tip_r` and slide its spigot into that tip skin. It should go in with
    light hand force. If it is tight, sand the ring; never force a skin.
-4. Then print the rest (`tracker.md`). Nothing needs supports.
+4. **Web check:** print `wing_mid_r` and look into its open ends. Every web must run from the
+   bottom skin to the top skin and be joined to it ("Inside the wing").
+5. Then print the rest (`tracker.md`). Nothing needs supports.
 
 ## Assembly
 
@@ -120,9 +181,11 @@ and every structural PETG joint. Thin epoxy or medium CA is fine for skin-to-spi
    tape, so they do not get glued) through the cup and the rib to align them. The cup's plate
    closes the rib's wire groove.
 3. Aileron servos: fit each servo into a `servo_cage`. Cut a hatch in the bottom skin of
-   `wing_mid` (around y ≈ 320) and `wing_tip` (around y ≈ 530), between the spars
-   (x ≈ 437–475). Glue the cage to the inside of the bottom skin with the servo arm coming out
-   through a slot. Run each lead to the wire hole at x = 457.
+   `wing_mid` (around y ≈ 320) and `wing_tip` (around y ≈ 530), between the main spar's aft
+   web and the rear spar (x ≈ 440–476). The mid skin's webs are at x = 438.7 and 484.7, so the
+   hatch fits between them; never cut into a web. The tip skin has none. Glue the cage to the
+   inside of the bottom skin with the servo arm coming out through a slot. Run each lead to the
+   wire hole at x = 457, over the servo.
 4. Thread the panel onto the spars from the root: `rib_root`, `wing_root`, boom rib with
    cup, `wing_mid`, `rib_midtip`, `wing_tip`, `rib_tip`. Feed the aileron leads (and, on the
    right wing, the pitot tubing) through the Ø10–12 holes at x = 457 in every rib. Epoxy
@@ -165,15 +228,21 @@ and every structural PETG joint. Thin epoxy or medium CA is fine for skin-to-spi
    the web of `coupler_610`, `pod_collar`, `rear_motor_mount` and `tail_block`. The boom must
    slide through each one by hand.
 2. Mark and drill both sides of `fuse_3`: main joiner Ø8.5 at x = 432, z = +3.5; rear joiner
-   Ø4.5 at x = 480, z = +1; wing wiring Ø12 at x = 457, z = +7.
+   Ø4.5 at x = 480, z = +1; wing wiring Ø12 at x = 457, z = +7. On the top centreline drill
+   Ø16 at x = 560 for the GPS cable (it passes the 10-pin JST-GH plug). In the belly drill two
+   Ø10 cooling-air outlets at x = 445, y = ±28.
 3. Slide `frame_main` and `frame_rear` into `fuse_3`. Push the joiners through the skin holes
-   and the frame sleeves to align them, then epoxy the frames to the skin.
+   and the frame sleeves to align them, then epoxy the frames to the skin. Epoxy the
+   `gps_mount` onto the top of `fuse_3`, centred over the Ø16 hole and square to the
+   centreline. Then lay the GPS cable, or a pull cord for it, from that hole forward along the
+   top of `fuse_3`, through the frames' upper openings and out of its front end. After step 7
+   nothing aft of x ≈ 450 can be reached.
 4. Epoxy `coupler_370` between `fuse_2` and `fuse_3`. Epoxy `coupler_610` into the aft end of
    `fuse_3` with its boom web forward, inside `fuse_3`. As with the wing skins, the couplers
    leave 0.25 mm of slip per side: line `fuse_2` and `fuse_3` up all the way round before the
    glue sets.
-5. Prepare the boom. Drill Ø6 at x ≈ 795 for the rear motor leads, on the side that will face
-   up. Dry-fit the `tail_block` on the aft end, square to that hole, and mark the boom through
+5. Prepare the boom. Drill Ø6 at x ≈ 765 for the rear motor leads, on the side that will face
+   up (just ahead of the motor mount, 5 mm behind the end of the fuselage). Dry-fit the `tail_block` on the aft end, square to that hole, and mark the boom through
    the block's two wire holes (x ≈ 1001 right, 1024 left). Take the block off and drill Ø6 there.
 6. Slide the boom into `fuse_3` through its open aft end, front end first. It passes the
    `coupler_610` web, `frame_rear` and `frame_main`; stop when its front end is at x = 420,
@@ -184,10 +253,12 @@ and every structural PETG joint. Thin epoxy or medium CA is fine for skin-to-spi
    Nothing aft of x ≈ 450 can be reached afterwards, and nothing lives in
    `fuse_4`. The boom's aft end stays free for the motor mount and tail block.
 8. Melt the M3 insert into `coupler_240` and epoxy the coupler 20 mm into the front of
-   `fuse_2`. Epoxy in the `fc_shelf` and the `battery_tray`.
+   `fuse_2`. Slide the `fc_shelf` and the `battery_tray` in through the front and epoxy them in;
+   both reach past the joint at x = 370 into `fuse_3`.
 9. Slide on the nose. Drill Ø3.4 through its bottom centreline at x = 228 (12 mm ahead of its
-   aft edge) into the insert, and fit the M3×12 nylon screw with a 12 mm nylon washer. The
-   nose tip has a 12 mm opening from vase mode; tape over it.
+   aft edge) into the insert, and fit the M3×12 nylon screw with a 12 mm nylon washer. Leave
+   the 12 mm opening that vase mode leaves at the nose tip open: it is the cooling-air inlet.
+   A scrap of nylon mesh glued inside keeps grass out.
 10. Belly: the aircraft lands on the LW-PLA belly. Glue a strip of 5–10 mm EVA foam along
     it (x ≈ 250–500) and land on grass.
 
@@ -204,7 +275,7 @@ anything sticking out of a hole would be pinched under their bores.
    wing: line each panel up with its rib and cap all the way round before the glue sets.
 3. Rear motor: screw the motor onto `rear_motor_mount` first. The plate stands 25 mm above the
    clamp, so a 2.5 mm L-key fits under the screw heads. Slide the mount onto the boom from the
-   aft end, with the motor shaft at x = 820 and the plate level. Tighten the 2× M3×16 clamp
+   aft end, with the motor shaft at x = 790 and the plate level. Tighten the 2× M3×16 clamp
    bolts.
 4. Epoxy the `tail_block` onto the aft end with its wire holes over the boom holes. Epoxy each
    root rib to its angled face with the pin in the 8 mm hole. Sight from behind that the V is
@@ -213,36 +284,51 @@ anything sticking out of a hole would be pinched under their bores.
    forward along the boom, until it comes out of the boom's front end inside `fuse_3`. Reach it
    through the nose opening. Tie on the lead's bare end and pull it through, then fit the
    connector at the front.
-   - The rear motor's three phase leads (extended ~450 mm) go in at x ≈ 795. Keep them twisted
+   - The rear motor's three phase leads (extended ~450 mm) go in at x ≈ 765. Keep them twisted
      together.
    - The two ruddervator leads go in through the tail block.
-   - The rear ESC sits on the floor beside the end of the boom (x ≈ 400).
+   - All of them come out of the boom's front end at x = 420, right behind the ESC block.
 6. Ruddervators: tape hinge on top, horns underneath, 1.2 mm pushrods.
 
 ### 5. Electronics
 
-- Pixhawk on the `fc_shelf` on foam tape, arrow forward. Power module and receiver in
-  `fuse_2`; airspeed sensor near x = 400 with the pitot in the right wing LE at y ≈ 400
-  (outside the prop disc).
-- GPS/compass on top inside `fuse_3` near x = 560, aft of the ESCs and battery leads. The rear
-  motor's phase leads run in the boom about 70 mm below it; keep the three twisted together so
-  their fields cancel. Twist every power lead and run it along the floor. Check the compass for
-  motor interference in the first hover log.
-- Front ESCs in the root sections between the spars (x ≈ 440–475), connectors at the wing
-  root. The rear ESC sits at the front of `fuse_3` (x ≈ 400) by the end of the boom. **No ESC
-  may touch the LW-PLA skin**, which softens at 55–60 °C. Heat-shrink them and tie them to the
-  spars or the boom with an air gap all round.
-- A 5–6 V, ≥5 A BEC powers the servo rail (the Pixhawk does not). Heat-shrink or braid
-  every wire where it crosses carbon.
+Where each item sits comes from `scripts/payload.py`; the gate checks that it all fits and
+clears the printed parts. `renders/29–33` show it inside the fuselage.
+
+- **Pixhawk** on the front of the `fc_shelf` (x 263–347) on 3 mm foam, arrow forward.
+- **Under the shelf**, above the battery, on Velcro: power module and servo BEC on the left,
+  receiver and airspeed sensor on the right. The pitot sits in the right wing LE at y ≈ 400
+  (outside the prop disc); its tubing follows the wire hole into the fuselage.
+- **ESC block:** heat-shrink the three ESCs, stand them on edge side by side with 3 mm foam
+  between them, and tape them into one 42 × 50 × 28 mm block. Hang it under the shelf's aft
+  part (x 360–410) on Velcro, with two 20 mm straps that pass down through the shelf's side
+  openings, under the block and back over the shelf. It sits 16 mm above the battery and more
+  than 10 mm from the skin. **No ESC may touch the LW-PLA skin**, which softens at 55–60 °C.
+  The rear motor's leads come out of the boom's front end right behind the block.
+- **Wing plugs:** each wing's three motor leads and three servo leads (two ailerons, tilt servo)
+  come into the fuselage through the Ø12 hole at x = 457 and end in plugs at x ≈ 330: 3.5 mm
+  bullets for the motor, servo plugs for the rest. They are reachable through the nose, so a
+  wing comes off without opening anything else. Short pigtails run on from the plugs to the
+  ESC block and the Pixhawk.
+- **GPS/compass** on its saddle on top of `fuse_3` at x = 560, arrow forward, on foam tape. Its
+  cable runs down through the Ø16 hole and forward along the top, laid in during step 3.3. Use
+  its compass and check it for motor interference in the first hover log (`PX4_GUIDE.md`).
+  Twist every power lead and keep the three phase leads of each motor together, so their
+  fields cancel.
+- A 5–6 V, ≥5 A BEC powers the servo rail (the Pixhawk does not). Heat-shrink or braid every
+  wire where it crosses carbon.
+- **Cooling:** air comes in at the nose tip and leaves through the two belly outlets behind the
+  ESC block. Keep the path clear: do not stuff foam around the battery.
 
 ### 6. Final assembly and balance
 
 1. Slide the joiners through the fuselage. Plug both wings on and pin each rear spar to the rear
    joiner with the M2.5 nylon pin.
 2. Tilt both motors fully forward and balance on your fingertips **431 mm aft of the nose tip**.
-   The estimate puts the battery centre at x = 284 mm; anywhere in 270–305 mm keeps the CG in
-   the 25–30 % band. The 3 mm stop pin in the tray's last hole (x = 360) holds the battery at
-   281 mm (CG 430 mm). Use a hole further forward if the real CG comes out aft.
+   The estimate puts the battery centre at x = 295 mm; anywhere in 281–317 mm keeps the CG in
+   the 25–30 % band. The 3 mm stop pin in the tray hole at x = 370 holds the battery at 291 mm
+   (CG 429 mm). The holes run from x = 250 to 390: move the pin aft if the real CG comes out
+   forward, forward if it comes out aft.
 3. If it will not balance in that range, move equipment. Do not add dead weight at the tail.
 4. Then set up PX4: `PX4_GUIDE.md`.
 
@@ -253,11 +339,13 @@ anything sticking out of a hole would be pinched under their bores.
 | `fuse_3`, both sides | main joiner | x = 432, z = +3.5 | Ø8.5 |
 | `fuse_3`, both sides | rear joiner | x = 480, z = +1 | Ø4.5 |
 | `fuse_3`, both sides | wing wiring | x = 457, z = +7 | Ø12 |
+| `fuse_3`, top centreline (under the `gps_mount`) | GPS cable | x = 560 | Ø16 |
+| `fuse_3`, belly | cooling-air outlets | x = 445, y = ±28 | 2× Ø10 |
 | `fuse_1`, bottom centreline | nose screw | x = 228 | Ø3.4 |
-| `wing_mid`, `wing_tip` bottom skins | aileron servo hatch + arm slot | x ≈ 437–475, y ≈ 320 / 530 | to fit the cage (36 × 18 mm) |
+| `wing_mid`, `wing_tip` bottom skins | aileron servo hatch + arm slot | x ≈ 440–476 (between the webs), y ≈ 320 / 530 | to fit the cage (36 × 18 mm) |
 | V-tail panels, lower surface | ruddervator servo hatch + arm slot | ~55 mm aft of the LE, 30–60 mm from the root | to fit the cage |
 | right `wing_mid` LE | pitot tube | y ≈ 400 | pitot OD |
-| tail boom | rear motor leads; ruddervator leads | x ≈ 795 (facing up); x ≈ 1001 and 1024 (marked through the tail block) | Ø6 |
+| tail boom | rear motor leads; ruddervator leads | x ≈ 765 (facing up); x ≈ 1001 and 1024 (marked through the tail block) | Ø6 |
 | rear spar, rear joiner | M2.5 lock pin | x = 480, y = ±68, through the root rib's guide hole | Ø2.5 |
 | yoke inboard arm | servo horn screws | to match the horn | horn screws |
 
@@ -301,8 +389,12 @@ coat and balance again afterwards.
 ## Renders and the 3-D viewer
 
 `renders/` holds views from every side, close-ups of every wing joint, the forward-flight
-tilt, an x-ray of the structure and the finished one-colour look. `00_all_sides.png` and
-`00_wing_smoothness.png` put the main views on one page each. To orbit the model yourself:
+tilt, an x-ray of the structure and the finished one-colour look. 27–34 show the inside: the
+burst view, the nose off with the battery sliding out, cuts along the centreline, at the
+Pixhawk and at the ESC block, an x-ray with the equipment and cables, and a cut through the
+wing root bay showing the webs and spars. 35–38 show every print file on its printer's bed,
+with its mass and print time. `00_all_sides.png`, `00_wing_smoothness.png` and
+`00_inside_and_burst.png` put the main views on one page each. To orbit the model yourself:
 
 ```
 python scripts/make_viewer.py     # writes viewer/manifest.json (build_all.py runs it too)
@@ -310,8 +402,20 @@ python scripts/serve_viewer.py    # then open http://127.0.0.1:28765/viewer/
 ```
 
 The viewer has the preset views, colours as printed, one colour, reflection stripes or by part,
-x-ray skins, a grazing light and the tilt slider. Opening `http://127.0.0.1:28765/viewer/?capture=1`
-re-renders every image in `renders/`.
+x-ray skins, a grazing light and the tilt slider. Also:
+
+- **Burst ▸** separates every part along the way it goes together and flies the camera out;
+  press it again to reassemble, or drag the slider beside it.
+- **Open the nose** slides the nose off and the battery out of it.
+- **Equipment, cables, labels** show the electronics envelopes from `scripts/payload.py`, a
+  sketch of the main cable runs and their names.
+- **Cut** slices the airframe along the centreline, across the Pixhawk or the ESC block, or
+  through the right wing root bay. Faces seen from inside are drawn darker.
+- **Show the print files** lays out all 47 files as they sit on the S1 and X beds, filtered by
+  printer and material, each with its sliced mass and time.
+- Hover any part for its name and role; double-click it to zoom in.
+
+Opening `http://127.0.0.1:28765/viewer/?capture=1` re-renders every image in `renders/`.
 
 ## Open questions, to confirm in flight test
 
@@ -320,3 +424,5 @@ re-renders every image in `renders/`.
 - Transition schedule and airspeeds: start from `PX4_GUIDE.md`, tune in the field.
 - Vibration on the printed yokes and boom: check the logs after the first hover.
 - Belly durability and compass interference: check after the first flights.
+- Temperature inside the fuselage: after the first long hover, feel the ESC block and the
+  battery. If either is hot, enlarge the belly outlets.

@@ -17,6 +17,10 @@ means the flow is wrong; recalibrate before printing more. Where each part goes:
   full set is printed. All vase parts print at 17–30 mm/s, so one calibration covers them all.
 - [ ] **Spigot fit.** Print `rib_tip_r` and slide it into that `wing_tip_r` before printing the
   other ribs and couplers. It should go in with light hand force; sand the ring if it is tight.
+- [ ] **Wing webs.** The root and mid skins carry internal webs (`DESIGN.md`, "Inside the wing").
+  When the first `wing_mid_r` comes off, look into its open ends: every web must run from the
+  bottom skin up to the top skin and be joined to it, with no gap and no blob. If a web stops
+  short, raise the flow slightly before printing the root skins.
 - [ ] **Tilt servo size.** Measure the tilt servos against the pod bay (24 × 13 mm body, 21 mm
   deep, tab holes 28 mm apart, spline 6 mm from the front) before printing the pods and yokes.
   If they differ, change `SERVO_*` in `scripts/params.py` and rebuild.
@@ -28,18 +32,21 @@ means the flow is wrong; recalibrate before printing more. Where each part goes:
 
 Tick a box once the user confirms it is done.
 
-Suggested order: `wing_tip_r` (flow test), then `rib_tip_r` (fit test), then the rest.
+Suggested order: `wing_tip_r` (flow test), then `rib_tip_r` (fit test), then `wing_mid_r` (web
+check), then the rest. To see every print file on its bed with its mass and time, open the 3D
+viewer (`python scripts/serve_viewer.py`) and press "Show the print files", or look at
+`renders/35_print_files_all.png`.
 
 | Part | Material | Printer | Qty | Mass each (g) | Time each | Status |
 |---|---|---|---|---|---|---|
-| `aileron_mid_r` | LW-PLA vase | S1 | 1 | 5.1 | 1h 12m | sliced |
+| `aileron_mid_r` | LW-PLA vase | S1 | 1 | 5.1 | 1h 11m | sliced |
 | `aileron_tip_r` | LW-PLA vase | S1 | 1 | 4.8 | 1h 16m | sliced |
 | `fuse_1` (removable nose) | LW-PLA vase | S1 | 1 | 18.2 | 3h 22m | sliced |
 | `fuse_3` | LW-PLA vase | S1 | 1 | 22.5 | 4h 04m | sliced |
-| `ruddervator_r` | LW-PLA vase | S1 | 1 | 5.4 | 1h 23m | sliced |
+| `ruddervator_r` | LW-PLA vase | S1 | 1 | 5.4 | 1h 22m | sliced |
 | `vtail_r` | LW-PLA vase | S1 | 1 | 13.7 | 2h 31m | sliced |
-| `wing_mid_r` | LW-PLA vase | S1 | 1 | 15.8 | 2h 53m | sliced |
-| `wing_root_r` | LW-PLA vase | S1 | 1 | 23.8 | 4h 21m | sliced |
+| `wing_mid_r` | LW-PLA vase | S1 | 1 | 20.7 | 3h 46m | sliced |
+| `wing_root_r` | LW-PLA vase | S1 | 1 | 33.5 | 6h 05m | sliced |
 | `wing_tip_r` | LW-PLA vase | S1 | 1 | 14.7 | 2h 41m | sliced |
 | `aileron_mid_l` | LW-PLA vase | X | 1 | 5.1 | 1h 11m | sliced |
 | `aileron_tip_l` | LW-PLA vase | X | 1 | 4.8 | 1h 15m | sliced |
@@ -47,23 +54,24 @@ Suggested order: `wing_tip_r` (flow test), then `rib_tip_r` (fit test), then the
 | `fuse_4` | LW-PLA vase | X | 1 | 8.0 | 1h 30m | sliced |
 | `ruddervator_l` | LW-PLA vase | X | 1 | 5.4 | 1h 22m | sliced |
 | `vtail_l` | LW-PLA vase | X | 1 | 13.7 | 2h 31m | sliced |
-| `wing_mid_l` | LW-PLA vase | X | 1 | 15.8 | 2h 53m | sliced |
-| `wing_root_l` | LW-PLA vase | X | 1 | 23.8 | 4h 19m | sliced |
-| `wing_tip_l` | LW-PLA vase | X | 1 | 14.7 | 2h 41m | sliced |
-| `battery_tray` | PETG | S1 | 1 | 19.3 | 0h 47m | sliced |
+| `wing_mid_l` | LW-PLA vase | X | 1 | 20.7 | 3h 48m | sliced |
+| `wing_root_l` | LW-PLA vase | X | 1 | 33.5 | 6h 06m | sliced |
+| `wing_tip_l` | LW-PLA vase | X | 1 | 14.7 | 2h 42m | sliced |
+| `battery_tray` | PETG | S1 | 1 | 22.6 | 0h 56m | sliced |
 | `boom_cup_l` | PETG | S1 | 1 | 9.2 | 0h 23m | sliced |
 | `boom_cup_r` | PETG | S1 | 1 | 9.2 | 0h 23m | sliced |
 | `boom_pod_l` | PETG | S1 | 1 | 28.5 | 1h 03m | sliced |
 | `boom_pod_r` | PETG | S1 | 1 | 28.5 | 1h 04m | sliced |
-| `boom_rib_l` | PETG | S1 | 1 | 22.7 | 0h 52m | sliced |
-| `boom_rib_r` | PETG | S1 | 1 | 22.5 | 0h 51m | sliced |
+| `boom_rib_l` | PETG | S1 | 1 | 22.6 | 0h 52m | sliced |
+| `boom_rib_r` | PETG | S1 | 1 | 22.4 | 0h 51m | sliced |
 | `control_horn` | PETG | S1 | 6 | 0.6 | 0h 12m | sliced |
 | `coupler_240` | PETG | S1 | 1 | 20.5 | 0h 40m | sliced |
 | `coupler_370` | PETG | S1 | 1 | 19.2 | 0h 37m | sliced |
 | `coupler_610` | PETG | S1 | 1 | 22.4 | 0h 53m | sliced |
-| `fc_shelf` | PETG | S1 | 1 | 15.3 | 0h 35m | sliced |
+| `fc_shelf` | PETG | S1 | 1 | 24.3 | 0h 53m | sliced |
 | `frame_main` | PETG | S1 | 1 | 20.3 | 0h 49m | sliced |
 | `frame_rear` | PETG | S1 | 1 | 14.9 | 0h 38m | sliced |
+| `gps_mount` (new: GPS saddle) | PETG | S1 | 1 | 7.0 | 0h 20m | sliced |
 | `pod_collar` | PETG | S1 | 1 | 4.7 | 0h 16m | sliced |
 | `rear_motor_mount` | PETG | S1 | 1 | 18.1 | 0h 43m | sliced |
 | `rib_midtip_l` | PETG | S1 | 1 | 15.0 | 0h 35m | sliced |
@@ -71,7 +79,7 @@ Suggested order: `wing_tip_r` (flow test), then `rib_tip_r` (fit test), then the
 | `rib_root_l` | PETG | S1 | 1 | 16.1 | 0h 37m | sliced |
 | `rib_root_r` | PETG | S1 | 1 | 16.1 | 0h 37m | sliced |
 | `rib_tip_l` | PETG | S1 | 1 | 8.1 | 0h 21m | sliced |
-| `rib_tip_r` | PETG | S1 | 1 | 8.1 | 0h 21m | sliced |
+| `rib_tip_r` | PETG | S1 | 1 | 8.1 | 0h 22m | sliced |
 | `servo_cage` | PETG | S1 | 6 | 2.1 | 0h 15m | sliced |
 | `tail_block` | PETG | S1 | 1 | 28.2 | 1h 10m | sliced |
 | `vtail_root_rib` (one file, both sides) | PETG | S1 | 2 | 9.3 | 0h 23m | sliced |
@@ -83,9 +91,9 @@ Totals, quantities included:
 
 | Printer | Material | Mass | Time |
 |---|---|---|---|
-| S1 | LW-PLA | 124 g | 23.7 h |
-| X | LW-PLA | 105 g | 20.2 h |
-| S1 | PETG | 448 g | 20.2 h |
+| S1 | LW-PLA | 139 g | 26.3 h |
+| X | LW-PLA | 120 g | 22.9 h |
+| S1 | PETG | 467 g | 21.0 h |
 
 Notes:
 

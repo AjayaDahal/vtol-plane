@@ -12,7 +12,7 @@ from `scripts/mass_balance.py`. Re-check both if you change the airframe or PX4 
 
 ## Geometry (Actuators tab)
 
-Positions are relative to the hover CG (434 mm aft of the nose tip), x forward, y right.
+Positions are relative to the hover CG (432 mm aft of the nose tip), x forward, y right.
 Set **`CA_ROTOR_COUNT` = 3**. The 13100 airframe defaults to 4 rotors, with a fourth one 1 m
 out that would take part of every command.
 
@@ -20,7 +20,7 @@ out that would take part of every command.
 |---|---|---|---|---|---|
 | 0 | front right, CW | 0.12 | 0.28 | −0.05 | Tilt 1 |
 | 1 | front left, CCW | 0.12 | −0.28 | 0.05 | Tilt 2 |
-| 2 | rear, CCW | −0.39 | 0 | 0.05 | None |
+| 2 | rear, CCW (x = 790) | −0.36 | 0 | 0.05 | None |
 
 `KM` is positive for a CCW rotor and negative for CW (viewed from above in hover).
 
@@ -49,6 +49,19 @@ DShot only works on the Pixhawk 6C's FMU outputs (the AUX/"FMU PWM OUT" bank). T
 
 QGC shows which AUX outputs share a timer. Leave any output that shares a timer with the
 motors unused. The servo rail is powered by the BEC, not by the Pixhawk.
+
+## Compass and safety button
+
+- **Compass:** use the one in the GPS, which sits outside on its saddle on top of the
+  fuselage. The ESC block hangs under the shelf just behind the Pixhawk, so the Pixhawk's
+  internal compass sees the motor currents. In QGC, Vehicle Setup → Sensors → Compass, set the
+  internal compass to Disabled (its `CAL_MAGn_PRIO` becomes 0) and calibrate the GPS one.
+  Check the magnetometer log for interference after the first hover anyway.
+- **Safety button (optional):** a Holybro M10 GPS carries one. PX4 v1.15 and earlier leave
+  safety off by default (`CBRK_IO_SAFETY` = 22027); set `CBRK_IO_SAFETY` = 0 to use the
+  button. Newer releases replace that parameter with `COM_SAFETY_MODE` (0 = off, 1 = button or
+  ground station). With safety on, the MAIN bank (tilt servos, surfaces) stays still and arming
+  is refused until the button is pressed.
 
 ## Tilt servo calibration (props off, before anything else)
 
@@ -112,9 +125,8 @@ multicopter mode and confirm the motors point straight up. If they don't, correc
 ## Preflight checklist (props off first, then on — every flying day)
 
 1. Balance: motors tilted forward, fingertips 431 mm aft of the nose tip. The battery centre
-   should be at 270–305 mm (the stop pin in the tray's last hole, x = 360, holds it at 281). If
-   it will not balance
-   there, do not fly. Move equipment; do not add tail weight.
+   should be at 281–317 mm (the stop pin in the tray hole at x = 370 holds it at 291). If it
+   will not balance there, do not fly. Move equipment; do not add tail weight.
 2. Motor order and direction match the table above (props off, then a brief spin-up). A
    wrong-direction front motor flips the aircraft on the first hover.
 3. Tilt: both yokes swing −20…90° freely with the axle screws tight, and match at the ends.
@@ -124,7 +136,7 @@ multicopter mode and confirm the motors point straight up. If they don't, correc
 5. Nose: M3 nylon screw in, nose seated on its coupler. If the nose departs, the CG jumps aft.
 6. Motor screws: M3×8 in 4 mm plates, checked by hand that none touches the windings.
 7. Wires: nothing chafes on carbon (it conducts) and no ESC touches an LW-PLA skin. The
-   battery lead cannot reach a prop.
+   battery lead cannot reach a prop. The nose-tip air inlet and the two belly outlets are open.
 8. Wings: both lock pins in, joiners fully home.
 
 ## Failsafes (set before the first transition)

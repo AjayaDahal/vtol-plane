@@ -52,6 +52,41 @@ AIL_BEVEL_DEG = 25.0        # underside bevel lets a top hinge deflect both ways
 AIL_GAP = 0.6
 AILERONS = {"mid": (286.0, 485.0), "tip": (492.0, 705.0)}
 
+# --- internal webs in the vase-mode wing skins (skins.py) --------------------
+# The skins span ~210 mm between ribs; without support the flattish top skin would wrinkle at
+# 1-2 g near the root. Spanwise webs (top skin to bottom skin) cut every panel of the root and
+# mid sections to <= 37 mm.
+# Each web is a slot cut up from the bottom surface: the vase path runs up one side and back
+# down the other, so the slicer prints it as part of the single wall.
+LINE_W = 0.42               # LW-PLA vase line width (process_lwpla_vase.json)
+WEB_SLOT = 0.06             # slot width (the profile's slice_closing_radius must stay below half)
+# Slot end to outer surface. The slicer's outer wall (classic generator, thin walls off) splits a
+# section at any neck under one line width (0.42), and the web stops touching the skin above
+# ~0.84; 0.6 sits mid-window. Verified in the slicer on both printers (REPORT 6.1).
+WEB_NECK = 0.6
+WEB_RAMP = 0.8              # web depth grows 0.8 mm per mm of span at each end (< 45 deg lean)
+WEB_END_CLEAR = 12.0        # webs stop this far from a section end (spigot rings go 10 mm in)
+WEB_SPAR_CLEAR = 1.2        # spar surface to the web's printed face: room to slide the skin on
+_HALF_WEB = WEB_SLOT / 2 + LINE_W
+
+
+def _flank(spar):
+    off = spar["od"] / 2 + WEB_SPAR_CLEAR + _HALF_WEB
+    return spar["x"] - off, spar["x"] + off
+
+
+MAIN_FLANK, REAR_FLANK = _flank(MAIN_SPAR), _flank(REAR_SPAR)
+# Root: the wire bundle runs between the spar webs. Mid: the aileron servo (36 mm cage) lies
+# between the main spar's aft web and the rear spar, so the rear spar's front web is left out.
+# The main spar's front web is not needed: 402/405 to its aft web is <= 37 mm. The tip section
+# has none: its top skin sees ~0.25e-3 strain at 3 g, a fifth of what buckles it (REPORT 6.2).
+WING_WEBS = {
+    "root": (405.0, MAIN_FLANK[1], *REAR_FLANK, 515.0, 545.0),
+    "mid": (402.0, MAIN_FLANK[1], REAR_FLANK[1], 505.0),
+}
+PITOT_Y = 400.0             # right wing mid section; webs ahead of the wire hole open around it
+PITOT_GAP = (392.0, 408.0)
+
 # --- tilt mechanism (Stallion-style boom, direct-drive servo, one bearing) --
 X_PIVOT = 315.0             # tilt axis, 65 mm ahead of the LE
 Z_PIVOT = Z_WING + 20.0
@@ -104,16 +139,25 @@ BOOM_Z = -20.0
 BOOM_X = (420.0, 1050.0)
 POD_COLLAR_X = (745.0, 760.0)
 
-FC_SHELF_X = (255.0, 355.0)
+FC_SHELF_X = (255.0, 415.0)  # Pixhawk on the front part; the ESC block hangs under the aft part
 FC_SHELF_Z = 32.0           # top surface
-TRAY_X = (243.0, 367.0)
+ESC_BLOCK_X = (360.0, 410.0)  # three ESCs on edge, strapped as one block under the FC shelf
+# Battery tray: the pack slides on it from the nose opening to a 3 mm stop pin.
+TRAY_X = (243.0, 395.0)
 TRAY_Z = -52.0              # top surface
 TRAY_W = 60.0
-TRAY_PIN_X = (250.0, 361.0, 10.0)   # battery stop-pin holes: start, stop (exclusive), pitch
+TRAY_PIN_X = (250.0, 391.0, 10.0)   # battery stop-pin holes: start, stop (exclusive), pitch
 TRAY_PIN_R = 1.6
+GPS_X = 560.0               # external GPS saddle on top of fuse_3
+GPS_PAD = 52.0              # square pad for a 50 mm puck
+GPS_PAD_T = 2.0
+GPS_SKIRT_T = 2.4
+GPS_PAD_HOLE = 30.0         # lightens the pad; the GPS cable goes down through it
 
 # --- rear lift motor (vertical, on the boom) --------------------------------
-X_REAR_MOTOR = 820.0
+# As far forward as the clamp allows (its front face 12 mm behind the fuselage's end): it takes
+# more of the hover load off the front motors, and the prop disc clears the V-tail by more.
+X_REAR_MOTOR = 790.0
 REAR_PLATE_Z = 15.0         # plate underside; leaves ~25 mm under the screw heads for a hex key
 REAR_MOUNT_LEN = 36.0       # clamp, web and plate share this length along the boom
 

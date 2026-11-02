@@ -11,6 +11,7 @@ import numpy as np
 
 import geom as G
 import params as P
+import payload as PL
 from make_print_ready import PARTS
 
 G0 = 9.81
@@ -34,22 +35,28 @@ def tube_g_per_mm(od, idd=0.0, density=1.55e-3):
 
 _z_motor = P.YOKE_PLATE_Z0 + P.YOKE_PLATE_T + 16.0
 _z_prop = P.YOKE_PLATE_Z0 + P.YOKE_PLATE_T + P.MOTOR_BASE_TO_PROP
+_X = {e["name"]: e["pos"][0] for e in PL.equipment()}   # equipment positions (payload.py)
+_ESC = sum(P.ESC_BLOCK_X) / 2
 ITEMS = [  # name, mass each [g], qty, x in fixed-wing config, x in hover config
     ("front motor Emax ECOII 2807 1700KV", 50.0, 2, P.X_PIVOT - _z_motor, P.X_PIVOT),
     ("front prop 7x4.5", 8.0, 2, P.X_PIVOT - _z_prop, P.X_PIVOT),
-    ("front ESC 50 A (in root section)", 11.0, 2, 450.0, 450.0),
+    ("front ESC 50 A (ESC block under the FC shelf)", 11.0, 2, _ESC, _ESC),
     ("tilt servo KM1203MD (20 g)", 20.0, 2, P.X_PIVOT + 6.0, P.X_PIVOT + 6.0),
     ("rear motor Emax ECOII 2807 1700KV", 50.0, 1, P.X_REAR_MOTOR, P.X_REAR_MOTOR),
     ("rear prop 7x4.5", 8.0, 1, P.X_REAR_MOTOR, P.X_REAR_MOTOR),
-    ("rear ESC 50 A (fuse_3 front, by the boom's open end)", 11.0, 1, 400.0, 400.0),
-    ("aileron servo 9 g", 9.0, 4, 455.0, 455.0),
+    ("rear ESC 50 A (ESC block under the FC shelf)", 11.0, 1, _ESC, _ESC),
+    ("aileron servo 9 g", 9.0, 4, PL.AIL_SERVO_X, PL.AIL_SERVO_X),
     ("V-tail servo 9 g", 9.0, 2, P.VT_X_LE + 55.0, P.VT_X_LE + 55.0),
-    ("Pixhawk 6C", 59.3, 1, 305.0, 305.0),
-    ("GPS + compass (M10)", 32.0, 1, 560.0, 560.0),
-    ("ELRS receiver", 3.0, 1, 330.0, 330.0),
-    ("airspeed sensor, pitot, tubing", 15.0, 1, 400.0, 400.0),
-    ("power module PM02", 20.0, 1, 255.0, 255.0),
-    ("wiring, connectors, extensions", 70.0, 1, 450.0, 450.0),
+    ("Pixhawk 6C", 59.3, 1, _X["fc"], _X["fc"]),
+    ("GPS + compass (M10), on the saddle", 32.0, 1, P.GPS_X, P.GPS_X),
+    ("ELRS receiver", 3.0, 1, _X["receiver"], _X["receiver"]),
+    ("airspeed sensor (under the FC shelf)", 5.0, 1, _X["airspeed"], _X["airspeed"]),
+    ("pitot tube and tubing", 10.0, 1, 420.0, 420.0),
+    ("power module PM02", 20.0, 1, _X["power_module"], _X["power_module"]),
+    ("servo BEC 5-6 V", 12.0, 1, _X["bec"], _X["bec"]),
+    # Phase leads now run wing -> plugs at x~330 -> ESC block, instead of short phase leads plus
+    # long ESC power leads into the wing roots: about the same copper, plus 6 bullet pairs.
+    ("wiring, connectors, extensions", 75.0, 1, 420.0, 420.0),
     ("main spars 10x8 carbon, 2 x 650 mm", 650 * tube_g_per_mm(10, 8), 2, P.MAIN_SPAR["x"], P.MAIN_SPAR["x"]),
     ("rear spars 6x4 carbon, 2 x 650 mm", 650 * tube_g_per_mm(6, 4), 2, P.REAR_SPAR["x"], P.REAR_SPAR["x"]),
     ("main joiner 8x6 carbon, 420 mm", 420 * tube_g_per_mm(8, 6), 1, P.MAIN_SPAR["x"], P.MAIN_SPAR["x"]),
@@ -60,7 +67,7 @@ ITEMS = [  # name, mass each [g], qty, x in fixed-wing config, x in hover config
     ("bearings, bolts, inserts, pins", 20.0, 1, 450.0, 450.0),
     ("glue (epoxy + CA) and hinge tape", 35.0, 1, 470.0, 470.0),
 ]
-LOOSE_X = {"servo_cage": [455.0] * 4 + [P.VT_X_LE + 55.0] * 2,
+LOOSE_X = {"servo_cage": [PL.AIL_SERVO_X] * 4 + [P.VT_X_LE + 55.0] * 2,
            "control_horn": [535.0] * 4 + [P.VT_X_LE + 135.0] * 2}
 
 
@@ -115,7 +122,15 @@ def compute(verbose=True):
     mb = BATTERY["mass"]
     auw = m0 + mb
     x_b = (x_cg_target * auw - mx_fw) / mb
-    x_cg_h = (mx_h + mb * x_b) / auw
+    rear_end = x_b + BATTERY["length"] / 2
+    # The battery's rear end rests on a 3 mm stop pin in one of the tray's holes: use the last
+    # hole the battery reaches. The hover numbers use the CG that this actually gives.
+    holes = np.arange(*P.TRAY_PIN_X)
+    reach = holes[holes - P.TRAY_PIN_R <= rear_end + 1e-6]
+    pin = float(reach.max()) if len(reach) else float(holes.min())
+    x_b_pin = pin - P.TRAY_PIN_R - BATTERY["length"] / 2
+    x_cg_pin = (mx_fw + mb * x_b_pin) / auw
+    x_cg_h = (mx_h + mb * x_b_pin) / auw
     x_f, x_r = P.X_PIVOT, P.X_REAR_MOTOR
     t_rear = auw * (x_cg_h - x_f) / (x_r - x_f)
     t_front = (auw - t_rear) / 2
@@ -137,14 +152,6 @@ def compute(verbose=True):
     vh = s_vt * math.cos(d) ** 2 * arm / (s_gross * mac)
     vv = s_vt * math.sin(d) ** 2 * arm / (s_gross * 2 * P.Y_TIP)
     x_np = P.X_LE + 0.25 * mac + mac * vh * 0.75 * 0.6
-    rear_end = x_b + BATTERY["length"] / 2
-    # The battery's rear end rests on a 3 mm stop pin in one of the tray's holes: use the last
-    # hole the battery reaches, and check the CG that actually gives.
-    holes = np.arange(*P.TRAY_PIN_X)
-    reach = holes[holes - P.TRAY_PIN_R <= rear_end + 1e-6]
-    pin = float(reach.max()) if len(reach) else float(holes.min())
-    x_b_pin = pin - P.TRAY_PIN_R - BATTERY["length"] / 2
-    x_cg_pin = (mx_fw + mb * x_b_pin) / auw
     band = (P.X_LE + CG_BAND[0] * mac, P.X_LE + CG_BAND[1] * mac)
     span = (x_b + (band[0] - x_cg_target) * auw / mb, x_b + (band[1] - x_cg_target) * auw / mb)
     battery_ok = rear_end <= P.BOOM_X[0] - 5 and band[0] <= x_cg_pin <= band[1]

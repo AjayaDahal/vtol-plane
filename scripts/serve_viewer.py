@@ -4,9 +4,10 @@ http://127.0.0.1:<port>/viewer/ (default port 28765).
 Also accepts POST /__capture__/<name>.png from the viewer's capture mode
 (http://127.0.0.1:<port>/viewer/?capture=1) and writes the images to renders/.
 
-Only the viewer page, its manifest and the assembly STLs are served; anything else in the
-repo (.git included) is 404. It binds to 127.0.0.1, answers only to a 127.0.0.1/localhost
-Host header (no DNS rebinding), and accepts captures only from its own page (Origin).
+Only the viewer page, its manifest, the assembly STLs and the print-ready STLs are served;
+anything else in the repo (.git included) is 404. It binds to 127.0.0.1, answers only to a
+127.0.0.1/localhost Host header (no DNS rebinding), and accepts captures only from its own page
+(Origin).
 """
 import http.server
 import os
@@ -16,7 +17,7 @@ import urllib.parse
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 OUT = os.path.join(ROOT, "renders")
-GET_OK = re.compile(r"/viewer(/(index\.html|manifest\.json)?)?|/parts/assembly/[A-Za-z0-9_\-]+\.stl")
+GET_OK = re.compile(r"/viewer(/(index\.html|manifest\.json)?)?|/parts/(assembly|print_ready)/[A-Za-z0-9_\-]+\.stl")
 POST_OK = re.compile(r"/__capture__/([a-z0-9_\-]{1,60})\.png")
 MAX_UPLOAD = 32 * 1024 * 1024
 

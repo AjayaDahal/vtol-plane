@@ -10,14 +10,15 @@ top; older rounds follow, newest first. "Fixed" means the CAD, slicing
 and paperwork no longer contain that defect. It is not a promise that
 the plane flies. That needs the physical checks listed under "Open".
 
-## Current status (v0.2, Oct 31, 2026)
+## Current status (v0.2, Nov 2, 2026)
 
 **Ready to print, starting with the test prints.** Print `wing_tip_r`
 (flow) and `rib_tip_r` (fit) first, then the rest (`tracker.md`).
 
-- Verification gate: `python scripts/check_parts.py` passes **78/78**.
+- Verification gate: `python scripts/check_parts.py` passes **80/80**.
   It covers mesh integrity, mirrored L/R parts, bed fit, every spigot,
-  coupler and frame fit, spar, joiner, boom and wire paths, motor holes
+  coupler and frame fit, flush glued skin joints (wing, V-tail and
+  fuselage) with crease-free rib flanges, spar, joiner, boom and wire paths, motor holes
   and hex-key room, the tilt sweep, prop clearances, thrust split, CG and
   static margin, overhangs judged on the geometry (no part needs
   supports), and mirror symmetry of every part printed from one file for
@@ -29,6 +30,8 @@ the plane flies. That needs the physical checks listed under "Open".
   38/38/23 %, static margin ~20 %.
 - Docs match the files: `DESIGN.md` (design and assembly), `BOM.md`,
   `PX4_GUIDE.md`, `SLICING.md`, `tracker.md`.
+- Renders of the whole aircraft and every wing joint are in `renders/`
+  (3-D viewer: `DESIGN.md`, "Renders and the 3-D viewer").
 
 **Open, can only be closed by building and flying** (in order):
 
@@ -96,6 +99,29 @@ gate check so the fact stays verified.
 | 5.23 | The left V-tail root rib and tip cap have no print file. "Same file L and R" is wrong, so printing two gives two right parts. | Not a defect. Both parts are mirror-symmetric about their own chord plane: mirroring deviates 0.00 mm and the volumes are equal. The mirrored left part is therefore the right part turned over, and either copy fits either side. The same holds for `servo_cage` and `control_horn`. New check: every part printed from one shared file must be mirror-symmetric (it fails the pod and boom rib, ~12 mm). Tracker and BOM wording clarified. | verified, gated |
 | 5.24 | `fuse_1`, `fuse_3` and `vtail_r` print to Z 242, but the S1 lid clearance is 240. | Not a defect. The top layer is 240.0 mm. 242 is the end-of-print lift (last layer + 2 mm, capped at the printable height). The S1's printable height is 250 mm. The 240 mm `extruder_clearance_height_to_lid` is OrcaSlicer's by-object collision setting ("Used for collision avoidance in by-object printing"), which this project does not use. New check: every G-code move is inside the printer's height. | verified, gated |
 | 5.25 | `DESIGN.md` and `PX4_GUIDE.md` are still v0.1: 13 m/s, nose tape, M3×6, MAIN plus DShot. | Already fixed in `6d1b24a` (5.5–5.8). Both docs are v0.2 on `origin/main`: 17 m/s, nylon nose screw, M3×8, motors on AUX1–3 with DShot. The claim was based on the earlier files. | fixed earlier |
+
+### Appearance review: renders and joint flushness (Nov 2, 2026)
+
+Question: once glued, do the wing sections look like one piece? Method:
+- **Renders:** the full assembly was rendered from every side (`renders/`, `viewer/`).
+- **Profile comparison:** the skin and rib outlines were measured on either side of every glued
+  rib face.
+- **Reflection stripes:** a stripe render checks surface continuity.
+
+An independent code review then ran two passes over the changes. It found 5.29, 5.30, 5.33
+and 5.34, and all four are fixed or documented.
+
+| # | Finding | Result | Status |
+|---|---|---|---|
+| 5.26 | Are the glued skin joints flush? | Yes. At every rib face the two outlines match within 0.02 mm on top and bottom, after 5.31 (0.08 mm before). That covers the wing (root, boom, mid/tip and tip ribs) and the V-tail (root rib, tip cap). The fuselage rings meet within 0.02 mm at x = 240, 370 and 610. The aileron top surface continues the wing exactly at the hinge line, and the reflection stripes run unbroken from root to tip. New check "glued skin joints are flush" (≤ 0.15 mm). It fails a skin offset by 0.3 mm (0.30–0.38 mm), a fuselage section offset by 0.2 mm, and a tip rib 1 % oversize (0.79 mm). The 0.25 mm-per-side spigot and coupler slip can still make a step in the build. `DESIGN.md` steps 1.4, 3.4, 3.7 and 4.2 now say to line the skins up before the glue sets. | verified, gated |
+| 5.27 | What still breaks the one-piece look | Four things, all by design: PETG rib bands if their colour differs; the pod fairing (the boom-rib tongue, up to 18 mm above the wing ahead of x ≈ 422); the control-surface end gaps (y 283–286, 485–492, 705–710); and the open spar ends in the tip ribs. `DESIGN.md` "Finish" covers each one: same-colour PETG or paint, light sanding, filler for the tips, re-balance after painting. | documented |
+| 5.28 | `slice_points` in `check_parts.py` threw an IndexError when the plane missed the mesh. A `fit` check would then have crashed instead of failing. | It now returns an empty section, and the flush check reports that as a failure. | fixed |
+| 5.29 | Found by the independent review. The flush check compared only the common chord and the LE, so a rib that stops short of (or runs past) the skin's trailing edge or hinge face would pass. One such step existed: the mid/tip rib flange was a prism of the y = 490 section across 487–490, so its inboard face stopped 0.25 mm short of the mid skin's hinge face. | The mid/tip rib flange is now ruled between its two faces, as the boom rib already was. The check now also compares where both outlines end aft. The one exception is the boom rib's outboard face, where the full-chord rib is meant to run past the mid skin's hinge face (the aileron bay end). `rib_midtip_l/r` were re-sliced: 15.0 g and 35 min, as before. | fixed, gated |
+| 5.30 | Found by the independent review. The viewer's local server served the whole repo (`.git` included) to any Host header, and accepted captures from any web page. | It now serves only the viewer page, its manifest and the assembly STLs, and answers only to 127.0.0.1/localhost. Captures need the page's own Origin and are capped at 32 MB. 17 request probes behave as intended. | fixed |
+| 5.31 | The rib flange profiles used 40 points (36 on the V-tail), while the skins use 48. Between points, the flanges therefore missed their skins by up to 0.08 mm. | Flange profiles now use the skins' exact point distribution (`airfoil_xz` and `vt_section_local` in `structure.py`), so every seam measures 0.00–0.02 mm. The 10 affected PETG files were re-sliced; each changed by ≤ 0.05 g and ≤ 30 s, and the totals are unchanged. | fixed, gated |
+| 5.32 | The viewer smoothed shading one part at a time. That drew small jogs in the reflection stripes at every rib band, even where the surfaces match. | Normals are now smoothed across all parts at once, weighted by face area, so a glued seam renders as one surface. Smoothing like this would also hide a real crease, so the gate now checks the flange taper as well (5.33). | fixed |
+| 5.33 | Found by the second review pass. Four flanges were prisms of one section against tapered skins: the root rib, tip rib, V-tail root rib and tip cap. They met their skins at small creases: 0.5–1.7° on the surfaces and 4.6–11.5° at the trailing edge or hinge face. | Each flange is now ruled between the sections at its two faces (`ruled_y` in `structure.py`), so it continues the taper. The root rib now spans exactly the 220 mm root chord at y = 60. New check "rib flanges keep the skin taper": each free flange face must match the skin's section continued to that station. The prisms failed it at 0.24–0.60 mm; the ruled flanges measure 0.00 mm. Six PETG files were re-sliced; each changed by ≤ 0.03 g and ≤ 15 s, and the totals are unchanged. | fixed, gated |
+| 5.34 | Found by the second review pass. "Point for point" was not true at the boom rib's outboard face: the full-chord rib meets the hinge-cut mid skin, so the two outlines use different points. | Documented as the one exception in `DESIGN.md` and in `airfoil_xz`. The shapes still agree within 0.02 mm. | documented |
 
 ## Round 4 — independent audit of v0.1 (statuses as of v0.2)
 

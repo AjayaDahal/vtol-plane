@@ -1,4 +1,5 @@
-"""Regenerate everything in order: skins, PETG parts, print orientation, slicing, checks.
+"""Regenerate everything in order: skins, PETG parts, print orientation, viewer manifest,
+slicing, checks.
 
 Usage: python build_all.py [--no-slice]
 """
@@ -9,6 +10,7 @@ import sys
 
 import geom as G
 import make_print_ready
+import make_viewer
 import skins
 import structure
 
@@ -18,6 +20,7 @@ def main():
     skins.build()
     structure.build()
     make_print_ready.build()
+    make_viewer.main()
     args = []
     if "--no-slice" in sys.argv:
         print("--no-slice: G-code checks skipped; run slice_all.py before printing")

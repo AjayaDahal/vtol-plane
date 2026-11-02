@@ -55,7 +55,7 @@ Suggested order: `wing_tip_r` (flow test), then `rib_tip_r` (fit test), then the
 | `boom_cup_r` | PETG | S1 | 1 | 9.2 | 0h 23m | sliced |
 | `boom_pod_l` | PETG | S1 | 1 | 28.5 | 1h 03m | sliced |
 | `boom_pod_r` | PETG | S1 | 1 | 28.5 | 1h 04m | sliced |
-| `boom_rib_l` | PETG | S1 | 1 | 22.6 | 0h 52m | sliced |
+| `boom_rib_l` | PETG | S1 | 1 | 22.7 | 0h 52m | sliced |
 | `boom_rib_r` | PETG | S1 | 1 | 22.5 | 0h 51m | sliced |
 | `control_horn` | PETG | S1 | 6 | 0.6 | 0h 12m | sliced |
 | `coupler_240` | PETG | S1 | 1 | 20.5 | 0h 40m | sliced |
@@ -70,8 +70,8 @@ Suggested order: `wing_tip_r` (flow test), then `rib_tip_r` (fit test), then the
 | `rib_midtip_r` | PETG | S1 | 1 | 15.0 | 0h 36m | sliced |
 | `rib_root_l` | PETG | S1 | 1 | 16.1 | 0h 37m | sliced |
 | `rib_root_r` | PETG | S1 | 1 | 16.1 | 0h 37m | sliced |
-| `rib_tip_l` | PETG | S1 | 1 | 8.1 | 0h 22m | sliced |
-| `rib_tip_r` | PETG | S1 | 1 | 8.1 | 0h 22m | sliced |
+| `rib_tip_l` | PETG | S1 | 1 | 8.1 | 0h 21m | sliced |
+| `rib_tip_r` | PETG | S1 | 1 | 8.1 | 0h 21m | sliced |
 | `servo_cage` | PETG | S1 | 6 | 2.1 | 0h 15m | sliced |
 | `tail_block` | PETG | S1 | 1 | 28.2 | 1h 10m | sliced |
 | `vtail_root_rib` (one file, both sides) | PETG | S1 | 2 | 9.3 | 0h 23m | sliced |

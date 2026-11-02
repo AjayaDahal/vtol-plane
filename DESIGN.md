@@ -128,6 +128,9 @@ and every structural PETG joint. Thin epoxy or medium CA is fine for skin-to-spi
    right wing, the pitot tubing) through the Ø10–12 holes at x = 457 in every rib. Epoxy
    the spars into the rib bosses and the skins onto the spigots. Keep the panel flat on the
    table and sight along the LE for twist before the glue sets.
+   Each spigot leaves 0.25 mm of slip per side. A skin pushed to one side therefore shows a
+   step of up to 0.25 mm at its rib. Before the glue sets, run a fingertip over every seam
+   and centre the skin until it is flush with the rib all the way round.
 5. Ailerons: tape hinge along the top surface. They deflect ±25°: the bevel under the
    aileron's front face clears the wing. Glue a `control_horn` under each aileron in line
    with its servo arm. Fit a 1.2 mm pushrod with a Z-bend.
@@ -166,7 +169,9 @@ and every structural PETG joint. Thin epoxy or medium CA is fine for skin-to-spi
 3. Slide `frame_main` and `frame_rear` into `fuse_3`. Push the joiners through the skin holes
    and the frame sleeves to align them, then epoxy the frames to the skin.
 4. Epoxy `coupler_370` between `fuse_2` and `fuse_3`. Epoxy `coupler_610` into the aft end of
-   `fuse_3` with its boom web forward, inside `fuse_3`.
+   `fuse_3` with its boom web forward, inside `fuse_3`. As with the wing skins, the couplers
+   leave 0.25 mm of slip per side: line `fuse_2` and `fuse_3` up all the way round before the
+   glue sets.
 5. Prepare the boom. Drill Ø6 at x ≈ 795 for the rear motor leads, on the side that will face
    up. Dry-fit the `tail_block` on the aft end, square to that hole, and mark the boom through
    the block's two wire holes (x ≈ 1001 right, 1024 left). Take the block off and drill Ø6 there.
@@ -175,7 +180,8 @@ and every structural PETG joint. Thin epoxy or medium CA is fine for skin-to-spi
    with the lead hole facing up. Epoxy it at all three, reaching in from the open aft end.
 7. Epoxy the `pod_collar` into the tail end of `fuse_4`. Slide `fuse_4` over the boom's aft end,
    through the collar and onto the aft half of `coupler_610`. Epoxy it to the coupler and the
-   collar to the boom. Nothing aft of x ≈ 450 can be reached afterwards, and nothing lives in
+   collar to the boom, lining `fuse_4` up with `fuse_3` all the way round before the glue sets.
+   Nothing aft of x ≈ 450 can be reached afterwards, and nothing lives in
    `fuse_4`. The boom's aft end stays free for the motor mount and tail block.
 8. Melt the M3 insert into `coupler_240` and epoxy the coupler 20 mm into the front of
    `fuse_2`. Epoxy in the `fc_shelf` and the `battery_tray`.
@@ -194,7 +200,8 @@ anything sticking out of a hole would be pinched under their bores.
 1. Cut a hatch in the lower surface of each V-tail panel about 55 mm aft of the LE and 30–60 mm
    from the root. Glue a `servo_cage` inside with the arm through a slot.
 2. Epoxy a 4 mm carbon pin 12 mm into each `vtail_root_rib`. Slide the panels over the rib
-   spigots and fit the `vtail_tip_cap`s.
+   spigots and fit the `vtail_tip_cap`s. The spigots have the same 0.25 mm slip per side as the
+   wing: line each panel up with its rib and cap all the way round before the glue sets.
 3. Rear motor: screw the motor onto `rear_motor_mount` first. The plate stands 25 mm above the
    clamp, so a 2.5 mm L-key fits under the screw heads. Slide the mount onto the boom from the
    aft end, with the motor shaft at x = 820 and the plate level. Tighten the 2× M3×16 clamp
@@ -264,6 +271,47 @@ anything sticking out of a hole would be pinched under their bores.
 - Light-coloured LW-PLA only. Never leave the plane in the sun or a hot car.
 - Weigh every part as it comes off the bed (`tracker.md`), and re-run `mass_balance.py` with
   the real masses before balancing.
+
+## Finish: making the glued wing read as one piece
+
+Every rib flange is ruled between the skin sections at its two faces, so it continues the
+skin's taper with no crease. At every seam but one it also uses the skin's own points. The
+exception is the boom rib's outboard face, where the full-chord rib meets the hinge-cut mid
+skin; the shapes there still agree within 0.02 mm. The fuselage sections meet ring to ring.
+Two gate checks hold this. "Glued skin joints are flush" keeps each seam within 0.15 mm, and
+the model measures 0.02 mm or less. "Rib flanges keep the skin taper" catches a flange that
+would leave a crease. In `renders/`, 12–15 and 17–20 show the wing and every joint in one
+colour, and 22–25 show them with reflection stripes. The stripes run straight across every
+seam. What still shows once glued:
+
+- **PETG rib bands**, 3 mm wide (6 mm at the boom rib), if the PETG is a different colour
+  from the LW-PLA. Print the PETG in the same colour, or paint.
+- **Glue lines.** Wipe off squeeze-out before it cures.
+- **The pod fairing.** Ahead of x ≈ 422 the boom rib's tongue rises up to 18 mm above the
+  wing (and 5 mm below the LE) into the pod. It is part of the pod mount, not a step.
+- **Control-surface gaps,** including where nothing sits behind the hinge line: y 283–286,
+  485–492 and 705–710 on the wing.
+- **The spar ends** in the tip ribs. Fill them with lightweight filler if you want a closed
+  tip.
+
+For a painted finish, sand the seams lightly (400 grit; the LW-PLA wall is only ~0.5 mm), then
+apply a thin filler primer and a light-coloured paint. Paint adds weight: keep it to a light
+coat and balance again afterwards.
+
+## Renders and the 3-D viewer
+
+`renders/` holds views from every side, close-ups of every wing joint, the forward-flight
+tilt, an x-ray of the structure and the finished one-colour look. `00_all_sides.png` and
+`00_wing_smoothness.png` put the main views on one page each. To orbit the model yourself:
+
+```
+python scripts/make_viewer.py     # writes viewer/manifest.json (build_all.py runs it too)
+python scripts/serve_viewer.py    # then open http://127.0.0.1:28765/viewer/
+```
+
+The viewer has the preset views, colours as printed, one colour, reflection stripes or by part,
+x-ray skins, a grazing light and the tilt slider. Opening `http://127.0.0.1:28765/viewer/?capture=1`
+re-renders every image in `renders/`.
 
 ## Open questions, to confirm in flight test
 

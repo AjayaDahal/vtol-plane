@@ -28,6 +28,13 @@ def prism_y(loop_xz, y0, y1):
     return extrude(face, amount=hi - lo, dir=(0, 1, 0))
 
 
+def ruled_y(loop0, y0, loop1, y1):
+    """Ruled solid between an (x, z) loop at y0 and one at y1. Rib flanges are built this way
+    from the sections at their two faces, so they keep the skin's taper with no crease."""
+    return loft([poly_face([(x, y0, z) for x, z in loop0]),
+                 poly_face([(x, y1, z) for x, z in loop1])], ruled=True)
+
+
 def prism_x(loop_yz, x0, x1):
     face = poly_face([(x0, y, z) for y, z in loop_yz])
     return extrude(face, amount=x1 - x0, dir=(1, 0, 0))
@@ -56,9 +63,12 @@ def ellipse_yz(a, b, zc, n=72):
 
 
 # --- wing ---------------------------------------------------------------------
-def airfoil_xz(y, hinge=None, n=40):
+def airfoil_xz(y, hinge=None):
+    """Wing section at span y with the same points as the skin there (skins.wing_loop), so a
+    flange meets its skin point for point. The exception is the boom rib's outboard face: there
+    the full-chord rib meets the hinge-cut mid skin, and the shapes agree but the points do not."""
     c = P.chord(y)
-    lp = G.airfoil_loop("clarky", n=n, hinge=hinge)
+    lp = G.airfoil_loop("clarky", hinge=hinge)
     return np.stack([P.X_LE + c * lp[:, 0], P.Z_WING + c * lp[:, 1]], axis=1)
 
 
@@ -91,7 +101,7 @@ def spar_features(y0, y1, envelopes):
 
 def root_rib():
     y0, y1 = P.Y_ROOT_RIB
-    part = prism_y(airfoil_xz(y1), y0, y1)
+    part = ruled_y(airfoil_xz(y0), y0, airfoil_xz(y1), y1)
     ring, env = spigot(y1, +1)
     bosses, holes = spar_features(y0, y1 + L, [env])
     part = part + ring + bosses - holes
@@ -104,7 +114,7 @@ def root_rib():
 def midtip_rib():
     y0, y1 = P.Y_MIDTIP_RIB
     h = P.AIL_HINGE
-    part = prism_y(airfoil_xz(y1, hinge=h), y0, y1)
+    part = ruled_y(airfoil_xz(y0, hinge=h), y0, airfoil_xz(y1, hinge=h), y1)
     r_in, e_in = spigot(y0, -1, hinge=h)
     r_out, e_out = spigot(y1, +1, hinge=h)
     bosses, holes = spar_features(y0 - L, y1 + L, [e_in, e_out])
@@ -114,8 +124,9 @@ def midtip_rib():
 
 def tip_rib():
     y0, y1 = P.Y_TIP_RIB
-    part = prism_y(airfoil_xz(y0, hinge=P.AIL_HINGE), y0, y1)
-    ring, env = spigot(y0, -1, hinge=P.AIL_HINGE)
+    h = P.AIL_HINGE
+    part = ruled_y(airfoil_xz(y0, hinge=h), y0, airfoil_xz(y1, hinge=h), y1)
+    ring, env = spigot(y0, -1, hinge=h)
     bosses, holes = spar_features(y0 - L, y1, [env])
     return part + ring + bosses - holes
 
@@ -146,8 +157,7 @@ def boom_rib():
     closes it once glued on.
     """
     y0, y1 = P.Y_BOOM_RIB
-    band = loft([poly_face([(x, y0, z) for x, z in airfoil_xz(y0)]),
-                 poly_face([(x, y1, z) for x, z in airfoil_xz(y1)])], ruled=True)
+    band = ruled_y(airfoil_xz(y0), y0, airfoil_xz(y1), y1)
     f0, f1 = P.TONGUE_FAIR_X
     tongue = [(P.TONGUE_X0, P.Z_WING), (f1, P.Z_WING), (f1, 14.0), (f0, P.TONGUE_TOP),
               (P.TONGUE_X0, P.TONGUE_TOP)]
@@ -380,10 +390,11 @@ def vt_plane():
     return Plane(origin=tuple(origin), x_dir=(1, 0, 0), z_dir=tuple(e_t))
 
 
-def vt_section_local(s, n=36):
-    """Truncated NACA 0012 loop (u, t) at span s of the panel."""
+def vt_section_local(s):
+    """Truncated NACA 0012 loop (u, t) at span s of the panel, with the same points as the
+    panel skin (skins.vt_loop)."""
     c = vt_chord(s)
-    lp = G.airfoil_loop("naca0012", n=n, hinge=P.VT_HINGE)
+    lp = G.airfoil_loop("naca0012", hinge=P.VT_HINGE)
     return np.stack([c * lp[:, 0], c * lp[:, 1]], axis=1), c
 
 
@@ -397,7 +408,8 @@ def vt_rib_local(s_face, sgn, flange_t):
     """Flange outside the skin plus a spigot ring 10 mm (or 6 mm) into it, local (u, s, t)."""
     loop, c = vt_section_local(s_face)
     depth = L if flange_t >= P.RIB_T else 6.0
-    flange = prism_s(loop, s_face, s_face - sgn * flange_t)
+    s_far = s_face - sgn * flange_t
+    flange = ruled_y(loop, s_face, vt_section_local(s_far)[0], s_far)
     c_far = vt_chord(s_face + sgn * depth)
     full = G.airfoil_loop("naca0012", n=36)
     sec = np.stack([min(c, c_far) * full[:, 0], min(c, c_far) * full[:, 1]], axis=1)
@@ -412,7 +424,7 @@ def vtail_root_rib_local():
     part, env = vt_rib_local(0.0, +1, P.RIB_T)
     u_pin = 0.30 * P.VT_ROOT_CHORD
     boss = Pos(u_pin, L / 2 - P.RIB_T / 2, 0) * Rot(90, 0, 0) * Cylinder(P.VT_PIN_D / 2 + 2.0, L + P.RIB_T)
-    part += boss & (env + prism_s(vt_section_local(0.0)[0], 0.0, -P.RIB_T))
+    part += boss & (env + ruled_y(vt_section_local(0.0)[0], 0.0, vt_section_local(-P.RIB_T)[0], -P.RIB_T))
     part -= Pos(u_pin, 0, 0) * Rot(90, 0, 0) * Cylinder(P.VT_PIN_D / 2, 40)
     # One slot serves both sides: the tail block's wire holes sit at 45 % (right) and 58 % (left).
     return part - box(0.43 * P.VT_ROOT_CHORD, 0.60 * P.VT_ROOT_CHORD, -6, 2, -P.WIRE_D / 2, P.WIRE_D / 2)

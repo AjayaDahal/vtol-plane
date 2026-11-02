@@ -12,9 +12,10 @@ python scripts/build_all.py        # everything below in order (--no-slice to sk
 python scripts/skins.py            # LW-PLA skins     -> parts/assembly/*.stl
 python scripts/structure.py        # PETG structure   -> parts/assembly/*.stl
 python scripts/make_print_ready.py # rotates into print orientation -> parts/print_ready/*.stl
+python scripts/make_viewer.py      # 3-D viewer manifest -> viewer/manifest.json (serve_viewer.py, DESIGN.md)
 python scripts/slice_all.py        # -> gcode/<s1|x>_<lwpla|petg>/<part>.gcode  (one part: slice_all.py fuse_1)
 python scripts/mass_balance.py     # mass, CG, battery position (reads masses from the G-code)
-python scripts/check_parts.py      # the gate: geometry, fits, mechanism, balance, overhangs, G-code (78 checks)
+python scripts/check_parts.py      # the gate: geometry, fits, flush joints, mechanism, balance, overhangs, G-code (80 checks)
 ```
 
 `scripts/make_print_ready.py` holds the print table: printer, material, slicer process,

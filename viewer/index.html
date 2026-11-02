@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>VTOL plane — 3D viewer</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #eef1f4; font: 13px system-ui, sans-serif; }
+  #ui { position: absolute; top: 8px; left: 8px; background: #ffffffe6; border-radius: 8px; padding: 8px 10px;
+        box-shadow: 0 1px 4px #0003; max-width: 330px; }
+  #ui h1 { font-size: 14px; margin: 0 0 6px; cursor: pointer; user-select: none; }
+  #ui h1::after { content: " \25BE"; color: #888; }
+  #ui.min h1 { margin: 0; }
+  #ui.min h1::after { content: " \25B8  (show controls)"; font-weight: normal; font-size: 12px; }
+  #ui.min .row { display: none; }
+  #ui button { margin: 2px 2px 2px 0; padding: 3px 7px; font-size: 12px; cursor: pointer; }
+  #ui label { display: inline-block; margin: 3px 8px 3px 0; }
+  #ui .row { margin: 4px 0; }
+  #status { position: absolute; bottom: 8px; left: 8px; color: #555; }
+  #legend { position: absolute; bottom: 8px; right: 8px; background: #ffffffe6; border-radius: 8px; padding: 6px 10px; }
+  .sw { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -2px; margin: 0 4px 0 10px; }
+</style>
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+</script>
+</head>
+<body>
+<div id="ui">
+  <h1>VTOL plane v0.2</h1>
+  <div class="row">
+    <button data-view="iso_front">3/4 front</button><button data-view="iso_rear">3/4 rear</button>
+    <button data-view="front">Front</button><button data-view="rear">Rear</button>
+    <button data-view="left">Left</button><button data-view="right">Right</button>
+    <button data-view="top">Top</button><button data-view="bottom">Bottom</button>
+  </div>
+  <div class="row">
+    Wing: <button data-view="wing_top">top</button><button data-view="wing_le">leading edge</button>
+    <button data-view="wing_span">sight down span</button><button data-view="wing_under">underside</button><br>
+    Joints: <button data-view="joint_root">root</button><button data-view="joint_boom">boom rib</button>
+    <button data-view="joint_midtip">mid/tip</button><button data-view="joint_tip">tip</button>
+  </div>
+  <div class="row">
+    Colours:
+    <label><input type="radio" name="mode" value="printed" checked> as printed</label>
+    <label><input type="radio" name="mode" value="paint"> one colour</label>
+    <label><input type="radio" name="mode" value="zebra"> reflection stripes</label>
+    <label><input type="radio" name="mode" value="parts"> by part</label>
+  </div>
+  <div class="row">
+    <label><input type="checkbox" id="xray"> x-ray skins</label>
+    <label><input type="checkbox" id="extras" checked> motors, props, carbon</label>
+    <label><input type="checkbox" id="graze"> grazing light</label>
+  </div>
+  <div class="row">Tilt <input type="range" id="tilt" min="-20" max="90" value="0"> <span id="tiltv">0°</span>
+    (0 = hover, 90 = forward flight)</div>
+</div>
+<div id="legend"></div>
+<div id="status">loading…</div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import * as BGU from 'three/addons/utils/BufferGeometryUtils.js';
+
+const params = new URLSearchParams(location.search);
+const capture = params.has('capture');
+const status = document.getElementById('status');
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(capture ? 1 : window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xeef1f4);
+const camera = new THREE.PerspectiveCamera(30, 1, 5, 20000);
+camera.up.set(0, 0, 1);
+let controls = new OrbitControls(camera, renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f99, 1.1));
+const key = new THREE.DirectionalLight(0xffffff, 2.0);
+const fill = new THREE.DirectionalLight(0xffffff, 0.6);
+scene.add(key, key.target, fill, fill.target);
+function setLights(graze) {
+  key.position.set(...(graze ? [-300, 900, 120] : [-500, -700, 900]));
+  fill.position.set(700, 500, 300);
+}
+setLights(false);
+const grid = new THREE.GridHelper(2400, 48, 0xb9c0c8, 0xd5dae0);
+grid.rotation.x = Math.PI / 2; grid.position.set(550, 0, -75); scene.add(grid);
+
+const COL = { lwpla: 0xeae6da, petg: 0x2f6db5, carbon: 0x1b1b1b, motor: 0x3b3b3b, bell: 0xb03030, prop: 0x9aa3ad, paint: 0xd8dbdf };
+const mats = {
+  lwpla: new THREE.MeshStandardMaterial({ color: COL.lwpla, roughness: 0.85, metalness: 0 }),
+  petg: new THREE.MeshStandardMaterial({ color: COL.petg, roughness: 0.45, metalness: 0 }),
+  carbon: new THREE.MeshStandardMaterial({ color: COL.carbon, roughness: 0.35, metalness: 0.2 }),
+  motor: new THREE.MeshStandardMaterial({ color: COL.motor, roughness: 0.4, metalness: 0.6 }),
+  bell: new THREE.MeshStandardMaterial({ color: COL.bell, roughness: 0.4, metalness: 0.5 }),
+  prop: new THREE.MeshStandardMaterial({ color: COL.prop, roughness: 0.6, transparent: true, opacity: 0.28,
+                                         side: THREE.DoubleSide, depthWrite: false }),
+};
+document.getElementById('legend').innerHTML =
+  `<span class="sw" style="background:#eae6da"></span>LW-PLA skins<span class="sw" style="background:#2f6db5"></span>PETG` +
+  `<span class="sw" style="background:#1b1b1b"></span>carbon`;
+
+// Reflection stripes (the "zebra" surface check): a striped light box reflected in a glossy
+// finish. Stripes that run on unbroken across a joint mean the surfaces meet without a kink.
+const zebraMat = new THREE.ShaderMaterial({
+  uniforms: { freq: { value: 9.0 } },
+  vertexShader: `
+    varying vec3 vN; varying vec3 vW;
+    void main() {
+      vec4 w = modelMatrix * vec4(position, 1.0);
+      vW = w.xyz;
+      vN = mat3(modelMatrix) * normal;
+      gl_Position = projectionMatrix * viewMatrix * w;
+    }`,
+  fragmentShader: `
+    uniform float freq;
+    varying vec3 vN; varying vec3 vW;
+    void main() {
+      vec3 n = normalize(vN);
+      vec3 v = normalize(vW - cameraPosition);
+      vec3 r = reflect(v, n);
+      float a = atan(r.x, r.z) / 6.2831853;
+      float s = smoothstep(0.42, 0.58, abs(fract(freq * a) - 0.5) * 2.0);
+      float shade = 0.75 + 0.25 * abs(dot(n, v));
+      gl_FragColor = vec4(vec3(mix(0.10, 0.97, s) * shade), 1.0);
+    }`,
+});
+
+const man = await (await fetch('manifest.json')).json();
+const loader = new STLLoader();
+const parts = [], extras = [], pivots = {};
+const root = new THREE.Group(); scene.add(root);
+
+function pivotFor(side, at) {
+  if (!pivots[side]) {
+    const p = new THREE.Group(); p.position.set(...at); root.add(p); pivots[side] = p;
+  }
+  return pivots[side];
+}
+
+// Smooth normals that do not cross edges sharper than `angle`, weighted by face area and
+// computed over all parts at once. Where a skin meets its rib flange the two meshes share the
+// seam's vertices, so the glued surface shades as one piece rather than part by part.
+function creasedNormals(geos, angle) {
+  const cosA = Math.cos(angle), ids = new Map(), vid = [];
+  const key = (p, v) => `${Math.round(p.getX(v) * 100)},${Math.round(p.getY(v) * 100)},${Math.round(p.getZ(v) * 100)}`;
+  let nf = 0;
+  for (const g of geos) {
+    const pos = g.attributes.position, a = new Uint32Array(pos.count);
+    for (let v = 0; v < pos.count; v++) {
+      const k = key(pos, v);
+      let id = ids.get(k);
+      if (id === undefined) ids.set(k, id = ids.size);
+      a[v] = id;
+    }
+    vid.push(a);
+    nf += g.index.count / 3;
+  }
+  const w = new Float32Array(nf * 3), u = new Float32Array(nf * 3), start = new Uint32Array(ids.size + 1);
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  let F = 0;
+  geos.forEach((g, gi) => {
+    const pos = g.attributes.position, idx = g.index.array;
+    for (let f = 0; f < idx.length / 3; f++, F++) {
+      a.fromBufferAttribute(pos, idx[3 * f]); b.fromBufferAttribute(pos, idx[3 * f + 1]);
+      c.fromBufferAttribute(pos, idx[3 * f + 2]);
+      c.sub(b).cross(a.sub(b));                      // length = twice the face area
+      const l = c.length() || 1;
+      w.set([c.x, c.y, c.z], 3 * F);
+      u.set([c.x / l, c.y / l, c.z / l], 3 * F);
+      for (let k = 0; k < 3; k++) start[vid[gi][idx[3 * f + k]] + 1]++;
+    }
+  });
+  for (let v = 0; v < ids.size; v++) start[v + 1] += start[v];
+  const fill = start.slice(0, ids.size), faces = new Uint32Array(start[ids.size]);
+  F = 0;
+  geos.forEach((g, gi) => {
+    const idx = g.index.array;
+    for (let f = 0; f < idx.length / 3; f++, F++)
+      for (let k = 0; k < 3; k++) faces[fill[vid[gi][idx[3 * f + k]]]++] = F;
+  });
+  F = 0;
+  return geos.map((g, gi) => {
+    const pos = g.attributes.position, idx = g.index.array, n = idx.length / 3;
+    const outP = new Float32Array(n * 9), outN = new Float32Array(n * 9);
+    for (let f = 0; f < n; f++, F++) for (let k = 0; k < 3; k++) {
+      const v = idx[3 * f + k], gv = vid[gi][v], o = 9 * f + 3 * k;
+      let x = 0, y = 0, z = 0;
+      for (let j = start[gv]; j < start[gv + 1]; j++) {
+        const h = faces[j];
+        if (u[3 * F] * u[3 * h] + u[3 * F + 1] * u[3 * h + 1] + u[3 * F + 2] * u[3 * h + 2] > cosA) {
+          x += w[3 * h]; y += w[3 * h + 1]; z += w[3 * h + 2];
+        }
+      }
+      const l = Math.hypot(x, y, z) || 1;
+      outN[o] = x / l; outN[o + 1] = y / l; outN[o + 2] = z / l;
+      outP[o] = pos.getX(v); outP[o + 1] = pos.getY(v); outP[o + 2] = pos.getZ(v);
+    }
+    const out = new THREE.BufferGeometry();
+    out.setAttribute('position', new THREE.BufferAttribute(outP, 3));
+    out.setAttribute('normal', new THREE.BufferAttribute(outN, 3));
+    return out;
+  });
+}
+
+let n = 0;
+const raw = await Promise.all(man.parts.map(async p => {
+  const g = await loader.loadAsync(p.url);
+  g.deleteAttribute('normal');
+  status.textContent = `loading ${++n}/${man.parts.length}`;
+  return BGU.mergeVertices(g, 1e-3);
+}));
+status.textContent = 'smoothing…';
+creasedNormals(raw, THREE.MathUtils.degToRad(35)).forEach((g, i) => {
+  const p = man.parts[i];
+  const m = new THREE.Mesh(g, mats[p.material]);
+  m.userData = { ...p, hue: (i * 0.618) % 1 };
+  if (p.tilt) {
+    const mot = man.motors.find(o => o.name === 'motor_' + p.side);
+    const piv = pivotFor(p.side, mot.pivot);
+    m.position.set(-mot.pivot[0], -mot.pivot[1], -mot.pivot[2]);
+    piv.add(m);
+  } else root.add(m);
+  parts.push(m);
+});
+
+function tubeMesh(t) {
+  const a = new THREE.Vector3(...t.a), b = new THREE.Vector3(...t.b);
+  const len = a.distanceTo(b);
+  const geo = new THREE.CylinderGeometry(t.od / 2, t.od / 2, len, 32, 1, false);
+  const m = new THREE.Mesh(geo, mats.carbon);
+  m.position.copy(a.clone().add(b).multiplyScalar(0.5));
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
+  return m;
+}
+for (const t of man.tubes) { const m = tubeMesh(t); m.userData.carbon = true; root.add(m); extras.push(m); }
+for (const mo of man.motors) {
+  const grp = new THREE.Group();
+  const stator = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 6, 40), mats.motor);
+  stator.rotation.x = Math.PI / 2; stator.position.z = 3;
+  const bell = new THREE.Mesh(new THREE.CylinderGeometry(17, 17, 24, 40), mats.bell);
+  bell.rotation.x = Math.PI / 2; bell.position.z = 6 + 12;
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.5, mo.prop_z - 30 + 4, 16), mats.motor);
+  shaft.rotation.x = Math.PI / 2; shaft.position.z = 30 + (mo.prop_z - 30) / 2;
+  const prop = new THREE.Mesh(new THREE.CircleGeometry(man.prop_d / 2, 64), mats.prop);
+  prop.position.z = mo.prop_z;
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 7, 24), mats.motor);
+  hub.rotation.x = Math.PI / 2; hub.position.z = mo.prop_z;
+  grp.add(stator, bell, shaft, prop, hub);
+  if (mo.tilt) {
+    const piv = pivotFor(mo.name.slice(-1), mo.pivot);
+    grp.position.set(mo.base[0] - mo.pivot[0], mo.base[1] - mo.pivot[1], mo.base[2] - mo.pivot[2]);
+    piv.add(grp);
+  } else { grp.position.set(...mo.base); root.add(grp); }
+  extras.push(grp);
+}
+
+// ---- appearance ---------------------------------------------------------
+let mode = 'printed', xray = false;
+const partMats = new Map();
+function applyLook() {
+  for (const m of parts) {
+    const p = m.userData;
+    let mat;
+    if (mode === 'paint') mat = (partMats.get('paint') || partMats.set('paint',
+      new THREE.MeshStandardMaterial({ color: COL.paint, roughness: 0.55 })).get('paint'));
+    else if (mode === 'zebra') mat = zebraMat;
+    else if (mode === 'parts') {
+      if (!partMats.has(p.name)) partMats.set(p.name, new THREE.MeshStandardMaterial({
+        color: new THREE.Color().setHSL(p.hue, 0.55, 0.62), roughness: 0.6 }));
+      mat = partMats.get(p.name);
+    } else mat = mats[p.material];
+    if (xray && p.group === 'skin' && mode !== 'zebra') {
+      const k = 'x_' + mat.uuid;
+      if (!partMats.has(k)) { const c = mat.clone(); c.transparent = true; c.opacity = 0.18; c.depthWrite = false; partMats.set(k, c); }
+      mat = partMats.get(k);
+    }
+    m.material = mat;
+  }
+}
+function setTilt(deg) {
+  for (const p of Object.values(pivots)) p.rotation.y = -THREE.MathUtils.degToRad(deg);
+  document.getElementById('tiltv').textContent = `${deg}°`;
+}
+
+// ---- views ----------------------------------------------------------------
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const wingBox = new THREE.Box3(V(370, 40, -20), V(610, 720, 30));
+// Axis views use a narrow field of view so they read almost like orthographic drawings.
+const VIEWS = {
+  iso_front: { dir: V(1, 0.85, -0.55), fov: 24 }, iso_rear: { dir: V(-1, -0.8, -0.6), fov: 24 },
+  front: { dir: V(1, 0, -0.08), fov: 8 }, rear: { dir: V(-1, 0, -0.08), fov: 8 },
+  left: { dir: V(0, 1, -0.05), fov: 8 }, right: { dir: V(0, -1, -0.05), fov: 8 },
+  top: { dir: V(0, 0, -1), up: V(-1, 0, 0), fov: 8 }, bottom: { dir: V(0, 0, 1), up: V(-1, 0, 0), fov: 8 },
+  wing_top: { dir: V(0.25, -0.15, -1), up: V(-1, 0, 0), box: wingBox },
+  wing_le: { dir: V(1, -0.25, -0.35), box: wingBox },
+  wing_span: { dir: V(0.30, -1, -0.32), box: wingBox, fov: 20 },
+  wing_under: { dir: V(0.3, -0.3, 1), up: V(-1, 0, 0), box: wingBox },
+};
+const J = (y0, y1) => ({ dir: V(0.75, -0.55, -0.55), box: new THREE.Box3(V(372, y0, -12), V(610, y1, 26)) });
+Object.assign(VIEWS, { joint_root: J(30, 110), joint_boom: J(235, 330), joint_midtip: J(445, 535), joint_tip: J(660, 740) });
+
+function shown(o) { for (; o; o = o.parent) if (!o.visible) return false; return true; }
+
+// Frame on sampled vertices (not the bounding box, whose empty corners shrink the model).
+function framePoints(clip) {
+  const pts = [], q = new THREE.Vector3();
+  scene.updateMatrixWorld(true);
+  root.traverse(o => {
+    if (!o.isMesh || !shown(o)) return;
+    const pos = o.geometry.attributes.position;
+    const step = Math.max(1, Math.floor(pos.count / 1500));
+    for (let i = 0; i < pos.count; i += step) {
+      q.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld);
+      if (!clip || clip.containsPoint(q)) pts.push(q.clone());
+    }
+  });
+  return pts;
+}
+
+function frameView(name, aspect) {
+  const v = VIEWS[name];
+  const f = v.dir.clone().normalize();
+  const up = (v.up || V(0, 0, 1)).clone();
+  const r = new THREE.Vector3().crossVectors(f, up).normalize();
+  const u = new THREE.Vector3().crossVectors(r, f).normalize();
+  camera.fov = v.fov || 30;
+  const tv = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), th = tv * aspect;
+  const pts = framePoints(v.box);
+  const t = new THREE.Box3().setFromPoints(pts).getCenter(new THREE.Vector3());
+  const q = new THREE.Vector3();
+  let d = 0;
+  for (let it = 0; it < 4; it++) {
+    d = 0;
+    for (const p of pts) {
+      q.subVectors(p, t);
+      d = Math.max(d, Math.abs(q.dot(r)) / th - q.dot(f), Math.abs(q.dot(u)) / tv - q.dot(f));
+    }
+    const c = t.clone().addScaledVector(f, -d);
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const p of pts) {
+      q.subVectors(p, c);
+      const z = q.dot(f), x = q.dot(r) / (z * th), y = q.dot(u) / (z * tv);
+      x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+    }
+    t.addScaledVector(r, (x0 + x1) / 2 * th * d).addScaledVector(u, (y0 + y1) / 2 * tv * d);
+  }
+  d *= 1.05;
+  camera.up.copy(u);
+  camera.position.copy(t).addScaledVector(f, -d);
+  camera.lookAt(t);
+  camera.updateProjectionMatrix();
+  controls.dispose();
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.target.copy(t);
+  controls.update();
+}
+
+function resize() {
+  const w = capture ? 1600 : innerWidth, h = capture ? 1000 : innerHeight;
+  renderer.setSize(w, h, !capture);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+resize();
+applyLook();
+frameView('iso_front', camera.aspect);
+
+document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => frameView(b.dataset.view, camera.aspect));
+document.querySelectorAll('input[name=mode]').forEach(r => r.onchange = () => { mode = r.value; applyLook(); });
+document.getElementById('xray').onchange = e => { xray = e.target.checked; applyLook(); };
+document.getElementById('extras').onchange = e => extras.forEach(o => o.visible = e.target.checked);
+document.getElementById('graze').onchange = e => setLights(e.target.checked);
+document.getElementById('tilt').oninput = e => setTilt(+e.target.value);
+const ui = document.getElementById('ui');
+ui.querySelector('h1').onclick = () => ui.classList.toggle('min');
+if (innerWidth < 700) ui.classList.add('min');
+status.textContent = `${parts.length} parts loaded — drag to orbit, wheel to zoom, right-drag to pan`;
+if (!capture) setTimeout(() => { status.textContent = ''; }, 8000);
+
+function draw() {
+  // Near/far follow the orbit distance so the far, narrow-angle views keep their depth precision.
+  const dist = camera.position.distanceTo(controls.target);
+  camera.near = Math.max(1, dist * 0.02);
+  camera.far = dist * 6 + 4000;
+  camera.updateProjectionMatrix();
+  grid.visible = camera.position.z > grid.position.z;
+  renderer.render(scene, camera);
+}
+(function loop() { requestAnimationFrame(loop); draw(); })();
+
+// ---- capture mode: /viewer/?capture=1 posts PNGs to scripts/serve_viewer.py -------
+if (capture) {
+  document.getElementById('ui').style.display = 'none';
+  const shots = [
+    ['01_iso_front', 'iso_front', 'printed', 0, false, true],
+    ['02_iso_rear', 'iso_rear', 'printed', 0, false, true],
+    ['03_front', 'front', 'printed', 0, false, true],
+    ['04_rear', 'rear', 'printed', 0, false, true],
+    ['05_left', 'left', 'printed', 0, false, true],
+    ['06_right', 'right', 'printed', 0, false, true],
+    ['07_top', 'top', 'printed', 0, false, true],
+    ['08_bottom', 'bottom', 'printed', 0, false, true],
+    ['09_forward_flight', 'iso_front', 'printed', 90, false, true],
+    ['10_xray_structure', 'iso_front', 'printed', 0, true, true],
+    ['11_wing_top_printed', 'wing_top', 'printed', 0, false, false],
+    ['12_wing_top_one_colour', 'wing_top', 'paint', 0, false, false, true],
+    ['13_wing_leading_edge_one_colour', 'wing_le', 'paint', 0, false, false, true],
+    ['14_wing_sight_down_span_one_colour', 'wing_span', 'paint', 0, false, false, true],
+    ['15_wing_underside_one_colour', 'wing_under', 'paint', 0, false, false, true],
+    ['16_wing_by_part', 'wing_le', 'parts', 0, false, false],
+    ['17_joint_root', 'joint_root', 'paint', 0, false, false, true],
+    ['18_joint_boom_rib', 'joint_boom', 'paint', 0, false, false, true],
+    ['19_joint_mid_tip', 'joint_midtip', 'paint', 0, false, false, true],
+    ['20_joint_tip', 'joint_tip', 'paint', 0, false, false, true],
+    ['21_joint_boom_rib_printed', 'joint_boom', 'printed', 0, false, false],
+    ['22_wing_top_reflection_stripes', 'wing_top', 'zebra', 0, false, false],
+    ['23_wing_sight_down_span_reflection_stripes', 'wing_span', 'zebra', 0, false, false],
+    ['24_joint_mid_tip_reflection_stripes', 'joint_midtip', 'zebra', 0, false, false],
+    ['25_joint_boom_rib_reflection_stripes', 'joint_boom', 'zebra', 0, false, false],
+    ['26_finished_one_colour', 'iso_front', 'paint', 0, false, true],
+  ];
+  const shot = new Map();
+  async function post(name, blob) {
+    const res = await fetch(`/__capture__/${name}.png`, { method: 'POST', body: blob });
+    await res.text();
+    if (!res.ok) { document.title = `capture-error ${name}`; status.textContent = `capture failed: ${name}`; throw new Error(name); }
+    status.textContent = `captured ${name}`;
+  }
+  for (const [name, view, m, tilt, xr, ext, graze] of shots) {
+    mode = m; xray = xr; applyLook(); setTilt(tilt); setLights(!!graze);
+    extras.forEach(o => o.visible = ext);
+    frameView(view, camera.aspect);
+    draw();
+    const blob = await new Promise(r => renderer.domElement.toBlob(r, 'image/png'));
+    shot.set(name, await createImageBitmap(blob));
+    await post(name, blob);
+  }
+  // Contact sheets: every side on one page, and the wing-smoothness views on another.
+  const SHEETS = {
+    '00_all_sides': [['01_iso_front', '3/4 front'], ['02_iso_rear', '3/4 rear'], ['09_forward_flight', 'forward flight, 90° tilt'],
+                     ['03_front', 'front'], ['04_rear', 'rear'], ['07_top', 'top'],
+                     ['05_left', 'left'], ['06_right', 'right'], ['08_bottom', 'bottom']],
+    '00_wing_smoothness': [['12_wing_top_one_colour', 'wing top, one colour'], ['22_wing_top_reflection_stripes', 'wing top, reflection stripes'],
+                           ['23_wing_sight_down_span_reflection_stripes', 'sighting down the span'],
+                           ['17_joint_root', 'root rib joint'], ['18_joint_boom_rib', 'boom rib joint'], ['19_joint_mid_tip', 'mid/tip rib joint'],
+                           ['20_joint_tip', 'tip rib joint'], ['24_joint_mid_tip_reflection_stripes', 'mid/tip joint, stripes'],
+                           ['25_joint_boom_rib_reflection_stripes', 'boom rib joint, stripes']],
+  };
+  for (const [sheet, tiles] of Object.entries(SHEETS)) {
+    const W = 640, H = 400, cols = 3;
+    const c = document.createElement('canvas');
+    c.width = W * cols; c.height = H * Math.ceil(tiles.length / cols);
+    const g = c.getContext('2d');
+    g.fillStyle = '#eef1f4'; g.fillRect(0, 0, c.width, c.height);
+    g.font = '18px system-ui, sans-serif';
+    tiles.forEach(([n, label], i) => {
+      const x = (i % cols) * W, y = Math.floor(i / cols) * H;
+      g.drawImage(shot.get(n), x, y, W, H);
+      g.fillStyle = '#ffffffd9'; g.fillRect(x + 8, y + 8, g.measureText(label).width + 18, 30);
+      g.fillStyle = '#222'; g.fillText(label, x + 17, y + 29);
+      g.strokeStyle = '#c3c9d0'; g.strokeRect(x + 0.5, y + 0.5, W - 1, H - 1);
+    });
+    await post(sheet, await new Promise(r => c.toBlob(r, 'image/png')));
+  }
+  document.title = 'capture-done';
+  status.textContent = 'capture done';
+}
+</script>
+</body>
+</html>

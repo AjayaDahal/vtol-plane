@@ -49,6 +49,8 @@ def slice_points(tris, axis, value):
         segs.append((np.nonzero(m)[0], tris[m, i] + t * (tris[m, j] - tris[m, i])))
     idx = np.concatenate([s[0] for s in segs])
     pts = np.concatenate([s[1] for s in segs])
+    if len(idx) == 0:
+        return np.empty((0, 2, 3))
     order = np.argsort(idx, kind="stable")
     idx, pts = idx[order], pts[order]
     keep = np.r_[idx[1:] == idx[:-1], False]
@@ -235,6 +237,95 @@ def check_fits():
     fit("V-tail root rib spigot in panel", to_local(load("vtail_root_rib_r")), vt, 1, 5.0, lo, hi, plane=(0, 2))
     fit("V-tail tip cap spigot in panel", to_local(load("vtail_tip_cap_r")), vt, 1, P.VT_SPAN - 3, lo, hi,
         plane=(0, 2))
+
+
+def outline_z(segs, xs):
+    """Highest and lowest z where each vertical x = xs crosses a 2-D section outline."""
+    a, b = segs[:, 0][None], segs[:, 1][None]
+    x = np.asarray(xs, float)[:, None]
+    dx = b[..., 0] - a[..., 0]
+    m = ((a[..., 0] - x) * (b[..., 0] - x) <= 0) & (np.abs(dx) > 1e-9)
+    t = np.where(m, (x - a[..., 0]) / np.where(m, dx, 1.0), 0.0)
+    z = a[..., 1] + t * (b[..., 1] - a[..., 1])
+    return np.where(m, z, -np.inf).max(1), np.where(m, z, np.inf).min(1)
+
+
+FLUSH_TOL = 0.15
+
+
+def check_flush():
+    """Each glued skin joint is flush: either side of a rib face, the two outlines match on
+    top and bottom over their common chord, and the fuselage rings match where the sections
+    butt, so the glued airframe reads as one surface."""
+    from skins import vt_frame
+    origin, e_s, e_t = vt_frame()
+    R = np.stack([[1, 0, 0], e_s, e_t])
+    cache = {}
+
+    def mesh(name, local=False):
+        if (name, local) not in cache:
+            cache[name, local] = (load(name) - origin) @ R.T if local else load(name)
+        return cache[name, local]
+
+    def sec(name, y, local=False):
+        return slice_points(mesh(name, local), 1, y)[:, :, [0, 2]]
+
+    def step(a, b, x_from=None, te=True):
+        if len(a) == 0 or len(b) == 0:
+            return np.inf
+        lo = max(a[..., 0].min(), b[..., 0].min(), x_from or -np.inf)
+        hi = min(a[..., 0].max(), b[..., 0].max())
+        xs = np.arange(lo + 0.5, hi - 0.5, 0.25)
+        (ta, ba), (tb, bb) = outline_z(a, xs), outline_z(b, xs)
+        le = 0.0 if x_from else abs(a[..., 0].min() - b[..., 0].min())
+        # Trailing edge or hinge face: where both outlines end aft.
+        end = abs(a[..., 0].max() - b[..., 0].max()) if te else 0.0
+        return max(np.abs(tb - ta).max(), np.abs(bb - ba).max(), le, end)
+
+    e = 0.05
+    tongue_end = P.TONGUE_FAIR_X[1] + 1.0   # ahead of this the boom-rib tongue is the pod fairing
+    # (label, inboard part, outboard part, joint y, compare from x, compare aft ends)
+    joints = (("root rib", "rib_root_r", "wing_root_r", P.Y_ROOT_RIB[1], None, True),
+              ("boom rib in", "wing_root_r", "boom_rib_r", P.Y_BOOM_RIB[0], tongue_end, True),
+              # The full-chord boom rib runs on past the mid skin's hinge face: aileron bay end.
+              ("boom rib out", "boom_rib_r", "wing_mid_r", P.Y_BOOM_RIB[1], tongue_end, False),
+              ("mid/tip rib in", "wing_mid_r", "rib_midtip_r", P.Y_MIDTIP_RIB[0], None, True),
+              ("mid/tip rib out", "rib_midtip_r", "wing_tip_r", P.Y_MIDTIP_RIB[1], None, True),
+              ("tip rib", "wing_tip_r", "rib_tip_r", P.Y_TIP_RIB[0], None, True))
+    res = [(lbl, step(sec(a, y - e), sec(b, y + e), xf, te)) for lbl, a, b, y, xf, te in joints]
+    res.append(("V-tail root rib", step(sec("vtail_root_rib_r", -e, True), sec("vtail_r", e, True))))
+    res.append(("V-tail tip cap", step(sec("vtail_r", P.VT_SPAN - e, True),
+                                       sec("vtail_tip_cap_r", P.VT_SPAN + e, True))))
+    # Fuselage sections butt skin to skin: compare the two rings point to outline both ways.
+    for xj, (a, b) in zip(P.FUSE_SPLITS[1:-1], ((1, 2), (2, 3), (3, 4))):
+        sa = slice_points(load(f"fuse_{a}"), 0, xj - e)[:, :, [1, 2]]
+        sb = slice_points(load(f"fuse_{b}"), 0, xj + e)[:, :, [1, 2]]
+        d = np.inf if len(sa) == 0 or len(sb) == 0 else \
+            max(dist_2d(sa.reshape(-1, 2), sb).max(), dist_2d(sb.reshape(-1, 2), sa).max())
+        res.append((f"fuse x={xj:.0f}", d))
+    worst = max(s for _, s in res)
+    check("glued skin joints are flush (wing, V-tail, fuselage)", worst <= FLUSH_TOL,
+          ", ".join(f"{lbl} {s:.2f}" for lbl, s in res) + f" mm (want <= {FLUSH_TOL})")
+
+    # A rib flange that is a prism of one section meets its tapered skin at a crease (up to 6 deg
+    # at the trailing edge). Ruled flanges continue the taper: their free face is the skin's own
+    # section continued to that station.
+    from skins import vt_loop, wing_loop
+    ring = lambda pts: np.stack([pts, np.roll(pts, -1, axis=0)], axis=1)
+    to_ut = lambda pts: ((pts - origin) @ R.T)[:, [0, 2]]
+    yr, yt = mesh("rib_root_r")[..., 1].min(), mesh("rib_tip_r")[..., 1].max()
+    sr = mesh("vtail_root_rib_r", True)[..., 1].min()
+    sc = mesh("vtail_tip_cap_r", True)[..., 1].max()
+    free = (("root rib, y=60 face", sec("rib_root_r", yr + e), ring(wing_loop(yr + e)[:, [0, 2]])),
+            ("tip rib, y=710 face", sec("rib_tip_r", yt - e), ring(wing_loop(yt - e, P.AIL_HINGE)[:, [0, 2]])),
+            ("V-tail rib, inner face", sec("vtail_root_rib_r", sr + e, True),
+             ring(to_ut(vt_loop(sr + e, P.VT_HINGE, "main")))),
+            ("V-tail cap, outer face", sec("vtail_tip_cap_r", sc - e, True),
+             ring(to_ut(vt_loop(sc - e, P.VT_HINGE, "main")))))
+    res = [(lbl, step(a, b)) for lbl, a, b in free]
+    worst = max(s for _, s in res)
+    check("rib flanges keep the skin taper (no crease at the seams)", worst <= FLUSH_TOL,
+          ", ".join(f"{lbl} {s:.2f}" for lbl, s in res) + f" mm off the continued skin (want <= {FLUSH_TOL})")
 
 
 def check_paths():
@@ -552,6 +643,7 @@ if __name__ == "__main__":
     check_handedness()
     check_bed()
     check_fits()
+    check_flush()
     check_paths()
     check_mechanism()
     check_balance()

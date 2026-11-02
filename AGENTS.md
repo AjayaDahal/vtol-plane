@@ -9,3 +9,6 @@
 - When a finding is fixed or a new one is found, update its status in `REPORT.md` (the
   "Current status" section and the round tables) in the same commit. Never leave a fixed
   finding marked open, or an open one marked fixed.
+- Renders: after a geometry change, run `python scripts/make_viewer.py` and
+  `python scripts/serve_viewer.py`, then open `http://127.0.0.1:28765/viewer/?capture=1` to
+  re-render `renders/*.png`, so the pictures match the files.

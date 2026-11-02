@@ -1,0 +1,536 @@
+{
+ "parts": [
+  {
+   "name": "aileron_mid_l",
+   "url": "../parts/assembly/aileron_mid_l.stl",
+   "material": "lwpla",
+   "side": "l",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "aileron_mid_r",
+   "url": "../parts/assembly/aileron_mid_r.stl",
+   "material": "lwpla",
+   "side": "r",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "aileron_tip_l",
+   "url": "../parts/assembly/aileron_tip_l.stl",
+   "material": "lwpla",
+   "side": "l",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "aileron_tip_r",
+   "url": "../parts/assembly/aileron_tip_r.stl",
+   "material": "lwpla",
+   "side": "r",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "battery_tray",
+   "url": "../parts/assembly/battery_tray.stl",
+   "material": "petg",
+   "side": "c",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "boom_cup_l",
+   "url": "../parts/assembly/boom_cup_l.stl",
+   "material": "petg",
+   "side": "l",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "boom_cup_r",
+   "url": "../parts/assembly/boom_cup_r.stl",
+   "material": "petg",
+   "side": "r",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "boom_pod_l",
+   "url": "../parts/assembly/boom_pod_l.stl",
+   "material": "petg",
+   "side": "l",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "boom_pod_r",
+   "url": "../parts/assembly/boom_pod_r.stl",
+   "material": "petg",
+   "side": "r",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "boom_rib_l",
+   "url": "../parts/assembly/boom_rib_l.stl",
+   "material": "petg",
+   "side": "l",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "boom_rib_r",
+   "url": "../parts/assembly/boom_rib_r.stl",
+   "material": "petg",
+   "side": "r",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "coupler_240",
+   "url": "../parts/assembly/coupler_240.stl",
+   "material": "petg",
+   "side": "c",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "coupler_370",
+   "url": "../parts/assembly/coupler_370.stl",
+   "material": "petg",
+   "side": "c",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "coupler_610",
+   "url": "../parts/assembly/coupler_610.stl",
+   "material": "petg",
+   "side": "c",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "fc_shelf",
+   "url": "../parts/assembly/fc_shelf.stl",
+   "material": "petg",
+   "side": "c",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "frame_main",
+   "url": "../parts/assembly/frame_main.stl",
+   "material": "petg",
+   "side": "c",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "frame_rear",
+   "url": "../parts/assembly/frame_rear.stl",
+   "material": "petg",
+   "side": "c",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "fuse_1",
+   "url": "../parts/assembly/fuse_1.stl",
+   "material": "lwpla",
+   "side": "c",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "fuse_2",
+   "url": "../parts/assembly/fuse_2.stl",
+   "material": "lwpla",
+   "side": "c",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "fuse_3",
+   "url": "../parts/assembly/fuse_3.stl",
+   "material": "lwpla",
+   "side": "c",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "fuse_4",
+   "url": "../parts/assembly/fuse_4.stl",
+   "material": "lwpla",
+   "side": "c",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "pod_collar",
+   "url": "../parts/assembly/pod_collar.stl",
+   "material": "petg",
+   "side": "c",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "rear_motor_mount",
+   "url": "../parts/assembly/rear_motor_mount.stl",
+   "material": "petg",
+   "side": "c",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "rib_midtip_l",
+   "url": "../parts/assembly/rib_midtip_l.stl",
+   "material": "petg",
+   "side": "l",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "rib_midtip_r",
+   "url": "../parts/assembly/rib_midtip_r.stl",
+   "material": "petg",
+   "side": "r",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "rib_root_l",
+   "url": "../parts/assembly/rib_root_l.stl",
+   "material": "petg",
+   "side": "l",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "rib_root_r",
+   "url": "../parts/assembly/rib_root_r.stl",
+   "material": "petg",
+   "side": "r",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "rib_tip_l",
+   "url": "../parts/assembly/rib_tip_l.stl",
+   "material": "petg",
+   "side": "l",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "rib_tip_r",
+   "url": "../parts/assembly/rib_tip_r.stl",
+   "material": "petg",
+   "side": "r",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "ruddervator_l",
+   "url": "../parts/assembly/ruddervator_l.stl",
+   "material": "lwpla",
+   "side": "l",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "ruddervator_r",
+   "url": "../parts/assembly/ruddervator_r.stl",
+   "material": "lwpla",
+   "side": "r",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "tail_block",
+   "url": "../parts/assembly/tail_block.stl",
+   "material": "petg",
+   "side": "c",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "vtail_l",
+   "url": "../parts/assembly/vtail_l.stl",
+   "material": "lwpla",
+   "side": "l",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "vtail_r",
+   "url": "../parts/assembly/vtail_r.stl",
+   "material": "lwpla",
+   "side": "r",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "vtail_root_rib_l",
+   "url": "../parts/assembly/vtail_root_rib_l.stl",
+   "material": "petg",
+   "side": "l",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "vtail_root_rib_r",
+   "url": "../parts/assembly/vtail_root_rib_r.stl",
+   "material": "petg",
+   "side": "r",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "vtail_tip_cap_l",
+   "url": "../parts/assembly/vtail_tip_cap_l.stl",
+   "material": "petg",
+   "side": "l",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "vtail_tip_cap_r",
+   "url": "../parts/assembly/vtail_tip_cap_r.stl",
+   "material": "petg",
+   "side": "r",
+   "group": "structure",
+   "tilt": false
+  },
+  {
+   "name": "wing_mid_l",
+   "url": "../parts/assembly/wing_mid_l.stl",
+   "material": "lwpla",
+   "side": "l",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "wing_mid_r",
+   "url": "../parts/assembly/wing_mid_r.stl",
+   "material": "lwpla",
+   "side": "r",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "wing_root_l",
+   "url": "../parts/assembly/wing_root_l.stl",
+   "material": "lwpla",
+   "side": "l",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "wing_root_r",
+   "url": "../parts/assembly/wing_root_r.stl",
+   "material": "lwpla",
+   "side": "r",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "wing_tip_l",
+   "url": "../parts/assembly/wing_tip_l.stl",
+   "material": "lwpla",
+   "side": "l",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "wing_tip_r",
+   "url": "../parts/assembly/wing_tip_r.stl",
+   "material": "lwpla",
+   "side": "r",
+   "group": "skin",
+   "tilt": false
+  },
+  {
+   "name": "yoke_l",
+   "url": "../parts/assembly/yoke_l.stl",
+   "material": "petg",
+   "side": "l",
+   "group": "structure",
+   "tilt": true
+  },
+  {
+   "name": "yoke_r",
+   "url": "../parts/assembly/yoke_r.stl",
+   "material": "petg",
+   "side": "r",
+   "group": "structure",
+   "tilt": true
+  }
+ ],
+ "tubes": [
+  {
+   "name": "main_spar_r",
+   "a": [
+    432.0,
+    60.0,
+    3.5
+   ],
+   "b": [
+    432.0,
+    710.0,
+    3.5
+   ],
+   "od": 10.0,
+   "id": 8.0
+  },
+  {
+   "name": "rear_spar_r",
+   "a": [
+    480.0,
+    60.0,
+    1.0
+   ],
+   "b": [
+    480.0,
+    710.0,
+    1.0
+   ],
+   "od": 6.0,
+   "id": 4.0
+  },
+  {
+   "name": "main_spar_l",
+   "a": [
+    432.0,
+    -60.0,
+    3.5
+   ],
+   "b": [
+    432.0,
+    -710.0,
+    3.5
+   ],
+   "od": 10.0,
+   "id": 8.0
+  },
+  {
+   "name": "rear_spar_l",
+   "a": [
+    480.0,
+    -60.0,
+    1.0
+   ],
+   "b": [
+    480.0,
+    -710.0,
+    1.0
+   ],
+   "od": 6.0,
+   "id": 4.0
+  },
+  {
+   "name": "main_joiner",
+   "a": [
+    432.0,
+    -210.0,
+    3.5
+   ],
+   "b": [
+    432.0,
+    210.0,
+    3.5
+   ],
+   "od": 8.0,
+   "id": 0.0
+  },
+  {
+   "name": "rear_joiner",
+   "a": [
+    480.0,
+    -160.0,
+    1.0
+   ],
+   "b": [
+    480.0,
+    160.0,
+    1.0
+   ],
+   "od": 4.0,
+   "id": 0.0
+  },
+  {
+   "name": "tail_boom",
+   "a": [
+    420.0,
+    0.0,
+    -20.0
+   ],
+   "b": [
+    1050.0,
+    0.0,
+    -20.0
+   ],
+   "od": 16.0,
+   "id": 14.0
+  }
+ ],
+ "motors": [
+  {
+   "name": "motor_r",
+   "base": [
+    315.0,
+    280.0,
+    46.0
+   ],
+   "tilt": true,
+   "pivot": [
+    315.0,
+    280.0,
+    15.0
+   ],
+   "prop_z": 37.0
+  },
+  {
+   "name": "motor_l",
+   "base": [
+    315.0,
+    -280.0,
+    46.0
+   ],
+   "tilt": true,
+   "pivot": [
+    315.0,
+    -280.0,
+    15.0
+   ],
+   "prop_z": 37.0
+  },
+  {
+   "name": "motor_rear",
+   "base": [
+    820.0,
+    0.0,
+    19.0
+   ],
+   "tilt": false,
+   "prop_z": 37.0
+  }
+ ],
+ "prop_d": 178.0,
+ "tilt_range": [
+  -20.0,
+  90.0
+ ],
+ "x_le": 380.0,
+ "y_tip": 710.0,
+ "joints_y": [
+  63.0,
+  277.0,
+  283.0,
+  487.0,
+  490.0,
+  707.0
+ ]
+}

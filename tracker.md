@@ -26,6 +26,12 @@ means the flow is wrong; recalibrate before printing more. Where each part goes:
   If they differ, change `SERVO_*` in `scripts/params.py` and rebuild.
 - [ ] **Axle shims.** Have two 0.5 mm M3 shim washers (OD ≤ 5 mm) before assembling the yokes;
   without them the yoke binds against the pod.
+- [ ] **Servo hatch fit.** Print one `servo_hatch` and two `hatch_block`s before the other five.
+  The 9 g servo's tabs must screw to the posts (holes 28 mm apart) with its body (up to 23 ×
+  12.2 mm) between them, and its horn must stay within 15 mm of the cover's centre.
+- [ ] **Battery straps before the tray is glued.** The two Velcro straps thread through the
+  `battery_tray` (down a slot, under the plate through the rail gaps, up the other slot); once
+  the tray is epoxied in they cannot be fitted (`DESIGN.md` step 3.8).
 - [x] ~~Boom-rib supports: watch the tree supports on the `boom_rib_l/r` parts on their first
   print.~~ No longer applies: the boom rib now prints flat with no supports. Its inboard ring
   is the separate `boom_cup`.
@@ -33,9 +39,9 @@ means the flow is wrong; recalibrate before printing more. Where each part goes:
 Tick a box once the user confirms it is done.
 
 Suggested order: `wing_tip_r` (flow test), then `rib_tip_r` (fit test), then `wing_mid_r` (web
-check), then the rest. To see every print file on its bed with its mass and time, open the 3D
-viewer (`python scripts/serve_viewer.py`) and press "Show the print files", or look at
-`renders/35_print_files_all.png`.
+check), one `servo_hatch` with two `hatch_block`s (servo fit), then the rest. To see every print
+file on its bed with its mass and time, open the 3D viewer (`python scripts/serve_viewer.py`)
+and press "Show the print files", or look at `renders/35_print_files_all.png`.
 
 | Part | Material | Printer | Qty | Mass each (g) | Time each | Status |
 |---|---|---|---|---|---|---|
@@ -57,11 +63,11 @@ viewer (`python scripts/serve_viewer.py`) and press "Show the print files", or l
 | `wing_mid_l` | LW-PLA vase | X | 1 | 20.7 | 3h 48m | sliced |
 | `wing_root_l` | LW-PLA vase | X | 1 | 33.5 | 6h 06m | sliced |
 | `wing_tip_l` | LW-PLA vase | X | 1 | 14.7 | 2h 42m | sliced |
-| `battery_tray` | PETG | S1 | 1 | 22.6 | 0h 56m | sliced |
+| `battery_tray` | PETG | S1 | 1 | 20.4 | 0h 55m | sliced |
 | `boom_cup_l` | PETG | S1 | 1 | 9.2 | 0h 23m | sliced |
 | `boom_cup_r` | PETG | S1 | 1 | 9.2 | 0h 23m | sliced |
-| `boom_pod_l` | PETG | S1 | 1 | 28.5 | 1h 03m | sliced |
-| `boom_pod_r` | PETG | S1 | 1 | 28.5 | 1h 04m | sliced |
+| `boom_pod_l` | PETG | S1 | 1 | 27.9 | 1h 03m | sliced |
+| `boom_pod_r` | PETG | S1 | 1 | 27.9 | 1h 03m | sliced |
 | `boom_rib_l` | PETG | S1 | 1 | 22.6 | 0h 52m | sliced |
 | `boom_rib_r` | PETG | S1 | 1 | 22.4 | 0h 51m | sliced |
 | `control_horn` | PETG | S1 | 6 | 0.6 | 0h 12m | sliced |
@@ -70,8 +76,9 @@ viewer (`python scripts/serve_viewer.py`) and press "Show the print files", or l
 | `coupler_610` | PETG | S1 | 1 | 22.4 | 0h 53m | sliced |
 | `fc_shelf` | PETG | S1 | 1 | 24.3 | 0h 53m | sliced |
 | `frame_main` | PETG | S1 | 1 | 20.3 | 0h 49m | sliced |
-| `frame_rear` | PETG | S1 | 1 | 14.9 | 0h 38m | sliced |
-| `gps_mount` (new: GPS saddle) | PETG | S1 | 1 | 7.0 | 0h 20m | sliced |
+| `frame_rear` | PETG | S1 | 1 | 14.8 | 0h 38m | sliced |
+| `gps_mount` | PETG | S1 | 1 | 7.0 | 0h 20m | sliced |
+| `hatch_block` (new: two per hatch) | PETG | S1 | 12 | 0.8 | 0h 08m | sliced |
 | `pod_collar` | PETG | S1 | 1 | 4.7 | 0h 16m | sliced |
 | `rear_motor_mount` | PETG | S1 | 1 | 18.1 | 0h 43m | sliced |
 | `rib_midtip_l` | PETG | S1 | 1 | 15.0 | 0h 35m | sliced |
@@ -80,7 +87,7 @@ viewer (`python scripts/serve_viewer.py`) and press "Show the print files", or l
 | `rib_root_r` | PETG | S1 | 1 | 16.1 | 0h 37m | sliced |
 | `rib_tip_l` | PETG | S1 | 1 | 8.1 | 0h 21m | sliced |
 | `rib_tip_r` | PETG | S1 | 1 | 8.1 | 0h 22m | sliced |
-| `servo_cage` | PETG | S1 | 6 | 2.1 | 0h 15m | sliced |
+| `servo_hatch` (new: one file for all six) | PETG | S1 | 6 | 3.0 | 0h 17m | sliced |
 | `tail_block` | PETG | S1 | 1 | 28.2 | 1h 10m | sliced |
 | `vtail_root_rib` (one file, both sides) | PETG | S1 | 2 | 9.3 | 0h 23m | sliced |
 | `vtail_tip_cap` (one file, both sides) | PETG | S1 | 2 | 2.9 | 0h 12m | sliced |
@@ -93,14 +100,14 @@ Totals, quantities included:
 |---|---|---|---|
 | S1 | LW-PLA | 139 g | 26.3 h |
 | X | LW-PLA | 120 g | 22.9 h |
-| S1 | PETG | 467 g | 21.0 h |
+| S1 | PETG | 478 g | 22.7 h |
 
 Notes:
 
-- **One file for both sides.** `vtail_root_rib`, `vtail_tip_cap`, `servo_cage` and
-  `control_horn` are mirror-symmetric, so a mirrored "left" part is the same part turned over.
-  Print the quantity shown; any copy fits either side. `check_parts.py` verifies this for every
-  shared file.
+- **One file for both sides.** `vtail_root_rib`, `vtail_tip_cap`, `servo_hatch`, `hatch_block`
+  and `control_horn` are mirror-symmetric, so a mirrored "left" part is the same part turned
+  over. Print the quantity shown; any copy fits either side. `check_parts.py` verifies this for
+  every shared file.
 - **240 mm parts on the S1.** `fuse_1`, `fuse_3` and `vtail_r` are 240 mm tall. The highest move is
   242 mm, the 2 mm lift after the last layer, against the S1's 250 mm printable height. The
   slicer's 240 mm "height to lid" setting only applies to by-object printing, which this

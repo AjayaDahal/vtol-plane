@@ -12,7 +12,7 @@ from `scripts/mass_balance.py`. Re-check both if you change the airframe or PX4 
 
 ## Geometry (Actuators tab)
 
-Positions are relative to the hover CG (432 mm aft of the nose tip), x forward, y right.
+Positions are relative to the hover CG (437 mm aft of the nose tip), x forward, y right.
 Set **`CA_ROTOR_COUNT` = 3**. The 13100 airframe defaults to 4 rotors, with a fourth one 1 m
 out that would take part of every command.
 
@@ -20,7 +20,7 @@ out that would take part of every command.
 |---|---|---|---|---|---|
 | 0 | front right, CW | 0.12 | 0.28 | −0.05 | Tilt 1 |
 | 1 | front left, CCW | 0.12 | −0.28 | 0.05 | Tilt 2 |
-| 2 | rear, CCW (x = 790) | −0.36 | 0 | 0.05 | None |
+| 2 | rear, CCW (x = 790) | −0.35 | 0 | 0.05 | None |
 
 `KM` is positive for a CCW rotor and negative for CW (viewed from above in hover).
 
@@ -96,11 +96,11 @@ PX4 normalizes the tilt over the servo range set above: angle = −20° + 110° 
 | `VT_TILT_MC` | **0.18** | 0°: thrust straight up in hover |
 | `VT_TILT_TRANS` | 0.55 | ~40° during the front transition |
 | `VT_TILT_FW` | 1.0 | 90°: thrust forward |
-| `FW_AIRSPD_STALL` | 12 m/s | stall at CL 1.0, 35 °C, AUW +10 % |
-| `FW_AIRSPD_MIN` | 15 m/s | 1.25 × that stall |
-| `FW_AIRSPD_TRIM` | 18 m/s | cruise; CL ≈ 0.4 there |
+| `FW_AIRSPD_STALL` | 13 m/s | stall at CL 1.0, 35 °C, AUW +10 % (12.03 m/s, rounded up) |
+| `FW_AIRSPD_MIN` | 16 m/s | 1.25 × that stall |
+| `FW_AIRSPD_TRIM` | 18 m/s | cruise; CL ≈ 0.37 there |
 | `FW_AIRSPD_MAX` | 25 m/s | |
-| `VT_ARSP_TRANS` | 17 m/s | transition ends 2 m/s above `FW_AIRSPD_MIN` |
+| `VT_ARSP_TRANS` | 18 m/s | transition ends 2 m/s above `FW_AIRSPD_MIN`, at the cruise speed |
 | `VT_F_TRANS_DUR` | 5–15 s | front transition |
 | `VT_B_TRANS_DUR` | 8–15 s | back transition |
 
@@ -113,7 +113,7 @@ multicopter mode and confirm the motors point straight up. If they don't, correc
 
 1. Bench, props off: actuator test for every motor (order and spin direction), both tilt
    servos, all four ailerons and both ruddervators.
-2. CG: balance at 431 mm aft of the nose tip with the motors tilted forward. Glide-test
+2. CG: balance at 433 mm aft of the nose tip with the motors tilted forward. Glide-test
    (unpowered hand toss over grass) before any powered hover.
 3. First hover: multicopter mode only, low, over open ground. Hover throttle should be around
    70 %. Check yaw authority (differential tilt) and the vibration and compass logs before
@@ -124,8 +124,8 @@ multicopter mode and confirm the motors point straight up. If they don't, correc
 
 ## Preflight checklist (props off first, then on — every flying day)
 
-1. Balance: motors tilted forward, fingertips 431 mm aft of the nose tip. The battery centre
-   should be at 281–317 mm (the stop pin in the tray hole at x = 370 holds it at 291). If it
+1. Balance: motors tilted forward, fingertips 433 mm aft of the nose tip. The battery centre
+   should be at 272–308 mm (the stop pin in the tray hole at x = 380 holds it at 301). If it
    will not balance there, do not fly. Move equipment; do not add tail weight.
 2. Motor order and direction match the table above (props off, then a brief spin-up). A
    wrong-direction front motor flips the aircraft on the first hover.
@@ -134,6 +134,8 @@ multicopter mode and confirm the motors point straight up. If they don't, correc
 4. Surfaces: ailerons the right way; ruddervators move together for elevator and opposite
    for rudder. A reversed ruddervator is a first-flight crash; check it twice.
 5. Nose: M3 nylon screw in, nose seated on its coupler. If the nose departs, the CG jumps aft.
+   Battery straps tight; every servo hatch has both M2 screws in and its pushrod clevis
+   clipped.
 6. Motor screws: M3×8 in 4 mm plates, checked by hand that none touches the windings.
 7. Wires: nothing chafes on carbon (it conducts) and no ESC touches an LW-PLA skin. The
    battery lead cannot reach a prop. The nose-tip air inlet and the two belly outlets are open.

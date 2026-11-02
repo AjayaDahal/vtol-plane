@@ -15,7 +15,10 @@ import payload as PL
 from make_print_ready import PARTS
 
 G0 = 9.81
-CG_TARGET = 0.27                  # fraction of MAC
+# Fraction of MAC. 28.5 % (not 27) so the stop pin goes one hole further aft: the front motors
+# carry less in hover (the limit is 60 % of their near-empty thrust) and the static margin stays
+# near 19 %, inside the 25-30 % CG band.
+CG_TARGET = 0.285
 CG_BAND = (0.25, 0.30)
 # PX4 airspeed suggestions assume the built aircraft comes out this much over the estimate.
 MASS_MARGIN = 1.10
@@ -55,8 +58,18 @@ ITEMS = [  # name, mass each [g], qty, x in fixed-wing config, x in hover config
     ("power module PM02", 20.0, 1, _X["power_module"], _X["power_module"]),
     ("servo BEC 5-6 V", 12.0, 1, _X["bec"], _X["bec"]),
     # Phase leads now run wing -> plugs at x~330 -> ESC block, instead of short phase leads plus
-    # long ESC power leads into the wing roots: about the same copper, plus 6 bullet pairs.
-    ("wiring, connectors, extensions", 75.0, 1, 420.0, 420.0),
+    # long ESC power leads into the wing roots: about the same copper, plus 6 bullet pairs. The
+    # servo extensions are 500 (mid aileron), 600 (tilt), 800 (tip aileron) and 650 mm (tail).
+    ("wiring, connectors, extensions", 80.0, 1, 420.0, 420.0),
+    # Serviceability: the two battery straps, the M2 screws that hold the servo hatches and the
+    # servos' tabs, and the pushrods with their clevises (they unhook so a hatch can come out).
+    # The motor leads' joints sit outside the pod and the boom (soldered: in the wiring above;
+    # 3.5 mm bullets there would add ~7 g).
+    ("battery straps, 20 mm Velcro", 3.0, 2, sum(P.TRAY_STRAP_X) / 2, sum(P.TRAY_STRAP_X) / 2),
+    ("M2 screws, wing servo hatches and tabs", 0.12, 16, PL.AIL_SERVO_X, PL.AIL_SERVO_X),
+    ("M2 screws, V-tail servo hatches and tabs", 0.12, 8, P.VT_X_LE + 55.0, P.VT_X_LE + 55.0),
+    ("pushrod 1.2 mm with clevis, ailerons", 1.2, 4, 500.0, 500.0),
+    ("pushrod 1.2 mm with clevis, ruddervators", 1.2, 2, P.VT_X_LE + 100.0, P.VT_X_LE + 100.0),
     ("main spars 10x8 carbon, 2 x 650 mm", 650 * tube_g_per_mm(10, 8), 2, P.MAIN_SPAR["x"], P.MAIN_SPAR["x"]),
     ("rear spars 6x4 carbon, 2 x 650 mm", 650 * tube_g_per_mm(6, 4), 2, P.REAR_SPAR["x"], P.REAR_SPAR["x"]),
     ("main joiner 8x6 carbon, 420 mm", 420 * tube_g_per_mm(8, 6), 1, P.MAIN_SPAR["x"], P.MAIN_SPAR["x"]),
@@ -67,7 +80,9 @@ ITEMS = [  # name, mass each [g], qty, x in fixed-wing config, x in hover config
     ("bearings, bolts, inserts, pins", 20.0, 1, 450.0, 450.0),
     ("glue (epoxy + CA) and hinge tape", 35.0, 1, 470.0, 470.0),
 ]
-LOOSE_X = {"servo_cage": [PL.AIL_SERVO_X] * 4 + [P.VT_X_LE + 55.0] * 2,
+_HATCH_X = [h["origin"][0] for h in PL.servo_hatches()]
+LOOSE_X = {"servo_hatch": _HATCH_X,
+           "hatch_block": [x for x in _HATCH_X for _ in (0, 1)],
            "control_horn": [535.0] * 4 + [P.VT_X_LE + 135.0] * 2}
 
 
@@ -123,11 +138,10 @@ def compute(verbose=True):
     auw = m0 + mb
     x_b = (x_cg_target * auw - mx_fw) / mb
     rear_end = x_b + BATTERY["length"] / 2
-    # The battery's rear end rests on a 3 mm stop pin in one of the tray's holes: use the last
-    # hole the battery reaches. The hover numbers use the CG that this actually gives.
+    # The battery's rear end rests on a 3 mm stop pin in one of the tray's holes: use the hole that
+    # brings the CG nearest the target. The hover numbers use the CG that this actually gives.
     holes = np.arange(*P.TRAY_PIN_X)
-    reach = holes[holes - P.TRAY_PIN_R <= rear_end + 1e-6]
-    pin = float(reach.max()) if len(reach) else float(holes.min())
+    pin = float(holes[np.argmin(np.abs(holes - P.TRAY_PIN_R - BATTERY["length"] / 2 - x_b))])
     x_b_pin = pin - P.TRAY_PIN_R - BATTERY["length"] / 2
     x_cg_pin = (mx_fw + mb * x_b_pin) / auw
     x_cg_h = (mx_h + mb * x_b_pin) / auw
@@ -163,7 +177,7 @@ def compute(verbose=True):
         p_hover=p_hover, i_hover=i_hover, hover_min=USABLE * PACK_AH / i_hover * 60,
         s_m2=s_m2, wing_loading=auw / (s_m2 * 100), stall=stall, v_stall=v_stall,
         v_stall_px4=v_stall_px4, fw_min=math.ceil(1.25 * v_stall_px4), vh=vh, vv=vv, arm=arm, x_np=x_np,
-        static_margin=(x_np - x_cg_target) / mac, battery_ok=battery_ok,
+        static_margin=(x_np - x_cg_pin) / mac, battery_ok=battery_ok,
         battery_note=f"centre x={x_b:.0f} for the target ({span[0]:.0f}-{span[1]:.0f} keeps the band); "
                      f"stop pin in the tray hole at x={pin:.0f} puts it at {x_b_pin:.0f} and the CG at "
                      f"x={x_cg_pin:.1f}",
@@ -185,8 +199,10 @@ def report(r):
     print(f"| {BATTERY['name']} | 1 | {BATTERY['mass']:.0f} | {r['x_battery']:.0f} | {r['x_battery']:.0f} |")
     print()
     print(f"- All-up weight: **{r['auw']:.0f} g** ({r['mass_ex_battery']:.0f} g without battery).")
-    print(f"- MAC {r['mac']:.1f} mm, LE at x={P.X_LE:.0f}. CG target 27 % MAC = **x={r['x_cg']:.0f} mm** "
-          f"(25-30 % band x={r['cg_band'][0]:.0f}-{r['cg_band'][1]:.0f}); hover CG x={r['x_cg_hover']:.0f}.")
+    print(f"- MAC {r['mac']:.1f} mm, LE at x={P.X_LE:.0f}. CG target {100 * CG_TARGET:.1f} % MAC = "
+          f"**x={r['x_cg']:.0f} mm** (25-30 % band x={r['cg_band'][0]:.0f}-{r['cg_band'][1]:.0f}); with the stop "
+          f"pin the CG is x={r['x_cg_pin']:.1f} ({100 * (r['x_cg_pin'] - P.X_LE) / r['mac']:.1f} % MAC); "
+          f"hover CG x={r['x_cg_hover']:.0f}.")
     print(f"- Battery centre for that CG: **x={r['x_battery']:.0f} mm** ({r['battery_note']}).")
     print(f"- Hover thrust: front {r['t_front']:.0f} g each ({100 * r['front_share']:.0f} %), "
           f"rear {r['t_rear']:.0f} g ({100 * r['rear_share']:.0f} %).")

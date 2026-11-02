@@ -22,11 +22,11 @@ disagree, the scripts win.
 | Wing | Clark Y, flat bottom level with the fuselage datum, 0° dihedral, straight LE; chord 220 mm root → 150 mm tip; area 0.267 m²; MAC 187 mm |
 | Ailerons | 2 per side, hinge at 75 % chord, top-surface tape hinge, ±25° |
 | V-tail | 2 fixed panels, NACA 0012, 240 mm span, chord 180 → 110 mm, 35° from horizontal (110° included); ruddervators hinged at 70 % chord |
-| All-up weight | ~1.97 kg: printed parts ~726 g, 4S battery 520 g, everything else ~728 g |
-| CG | **431 mm aft of the nose tip** (27 % MAC); 25–30 % band = 427–436 mm |
-| Hover | front motors 743 g each (38 % of AUW), rear 488 g (25 %); front motor at 48–59 % of its maximum; ~7.4 min pure hover (estimate) |
-| Stall | 9.9–11.4 m/s (CL 1.2 at sea level to CL 1.0 at 35 °C) |
-| Static margin | ~20 % MAC |
+| All-up weight | ~2.01 kg: printed parts ~736 g, 4S battery 520 g, everything else ~750 g |
+| CG | **433 mm aft of the nose tip** (28.5 % MAC); 25–30 % band = 427–436 mm |
+| Hover | front motors 745 g each (37 % of AUW), rear 516 g (26 %); front motor at 48–60 % of its maximum (the design limit is 60 %); ~7.2 min pure hover (estimate) |
+| Stall | 10.0–11.5 m/s (CL 1.2 at sea level to CL 1.0 at 35 °C) |
+| Static margin | ~18 % MAC |
 | Motors / props | 3× Emax ECOII 2807 **1700KV** (the 4S winding), 7×4.5: front right CW, front left CCW, rear CCW |
 | ESCs / battery | 3× 50 A DShot; 4S 5000 mAh LiPo |
 | Servos | 2× tilt (Kingmax KM1203MD class, 12 mm mini, metal gear, direct drive); 4× 9 g ailerons; 2× 9 g ruddervators |
@@ -70,7 +70,7 @@ right; every left-hand part has its own file.
 | `coupler_240` | x 220–260 | epoxied into `fuse_2` only; heat-set insert for the nose screw |
 | `fuse_2` | x 240–370 | — |
 | `fc_shelf` | x 255–415, top 32 mm above the centreline | epoxied into `fuse_2` and `fuse_3` (it crosses `coupler_370`); Pixhawk on top, ESC block and small boards underneath |
-| `battery_tray` | x 243–395, on the floor | epoxied into `fuse_2` and `fuse_3`; 3 mm stop-pin holes every 10 mm (x = 250–390) |
+| `battery_tray` | x 243–395, on the floor | epoxied into `fuse_2` and `fuse_3`; 3 mm stop-pin holes every 10 mm (x = 250–390); strap slots beside the battery at x = 280 and 330 |
 | `coupler_370` | x 350–390 | epoxied into `fuse_2` and `fuse_3` |
 | `fuse_3` | x 370–610 | — |
 | `frame_main`, `frame_rear` | x 426–438, 476–484 | epoxied into `fuse_3`; joiner sleeves, boom hole |
@@ -86,14 +86,15 @@ right; every left-hand part has its own file.
 | `wing_root_l/r` | y 63–277 | spigots of the root rib and boom cup |
 | `boom_cup_l/r` | y 267–277 | epoxied to the boom rib's inboard face (the spars align it) |
 | `boom_rib_l/r` | y 277–283, tongue forward to x = 336 | epoxy on the spars |
-| `boom_pod_l/r` | on the tongue, x 295–378 | epoxy + 2× M3×35 through pod and tongue |
+| `boom_pod_l/r` | on the tongue, x 295–378 | epoxy + 2× M3×35 through pod and tongue; tilt servo in its bay, its plug in the pocket under it |
 | `yoke_l/r` | straddles the pod | servo horn (inboard), bearing on the axle boss (outboard) |
 | `wing_mid_l/r` | y 283–487 | spigots of the boom rib and mid/tip rib |
 | `rib_midtip_l/r` | y 487–490 | epoxy on the spars |
 | `wing_tip_l/r` | y 490–707 | spigots |
 | `rib_tip_l/r` | y 707–710 | epoxy on the spars |
 | `aileron_mid_*`, `aileron_tip_*` | y 286–485 and 492–705, behind the 75 % hinge line | tape hinge on top |
-| `servo_cage` ×6 | inside the wing bottom skins (4) and the V-tail panels (2) | epoxied to the skin |
+| `servo_hatch` ×6 | flush in the bottom skins of `wing_mid` and `wing_tip` (4) and the V-tail lower surfaces (2) | 2× M2×6 screws into its two `hatch_block`s; the servo screws to the hatch's posts |
+| `hatch_block` ×12 | inside the skin at each end of a hatch opening | epoxied to the skin's inner face |
 | `control_horn` ×6 | under the ailerons (4) and ruddervators (2) | epoxy |
 
 ## Inside the wing: ribs, spars and webs
@@ -107,11 +108,15 @@ skins between them are 204–217 mm long and need support from inside:
   and 1.31 × 10⁻³ at 1, 2 and 3 g. A wide, gently curved 0.5 mm panel wrinkles at about
   0.5–0.9 × 10⁻³. In hover the root bends the other way and puts the flat bottom in
   compression. So the root and mid sections carry **spanwise webs** from the bottom skin to
-  the top skin, which cut every panel to 37 mm or less:
+  the top skin:
   - root: x = 405, 438.7 (behind the main spar), 475.4 and 484.7 (either side of the rear
-    spar), 515 and 545. The wire bundle runs in the bay between 438.7 and 475.4;
-  - mid: x = 402, 438.7, 484.7 and 505. The aileron servo lies in the bay between 438.7 and the
-    rear spar;
+    spar), 515 and 545, so no panel is wider than 37 mm. The wire bundle runs in the bay
+    between 438.7 and 475.4;
+  - mid: x = 402, 438.7, 484.7 and 505. The aileron servo's bay between 438.7 and 484.7 is
+    46 mm wide: a web ahead of the rear spar would run through the hatch opening. The mid
+    section's top skin sees about a third of the root's strain (0.17 × 10⁻³ at 1 g at its
+    inboard end), so this panel reaches the wrinkling strain of a flat 46 mm panel only near
+    3 g, where the root's 37 mm panels are already well past theirs;
   - tip: none. Its top skin sees about 0.25 × 10⁻³ at 3 g, a fifth of what wrinkles it.
 - **How the webs print.** Each web is a 0.06 mm slot cut up from the bottom surface to 0.6 mm
   under the top surface. In vase mode the single wall runs up one side of the slot and back
@@ -133,15 +138,20 @@ skins between them are 204–217 mm long and need support from inside:
 
 ## Access and openings
 
-The fuselage is closed except at the nose:
+The fuselage is closed except at the nose; the wing and V-tail have a screwed hatch under every
+servo:
 
-- **The nose (`fuse_1`) is the only hatch.** One M3 nylon screw holds it. With it off there is a
+- **The nose (`fuse_1`) is the fuselage's only hatch.** One M3 nylon screw holds it. With it off there is a
   115 × 135 mm opening at x = 220–240, and everything that needs service is within reach:
   - the battery slides out forward on its tray;
   - the Pixhawk (x 263–347) and the boards under the shelf are 25–110 mm in;
   - the wing plugs (x ≈ 330) are about 90 mm in;
   - the ESC block (x 360–410) and the boom's front end (x 420) are 120–180 mm in, above the
     battery's aft end. Take the battery out first.
+- **Servo hatches:** each aileron and ruddervator servo is screwed to a `servo_hatch` that sits
+  flush in its skin, held by two M2 screws. Nothing that needs service is glued in.
+- **Tilt servos:** in the pods ahead of the wing, between each yoke's arms; their plugs sit in a
+  pocket under each servo, open on the pod's inboard face.
 - **Sealed for good:** everything aft of x ≈ 450 once `fuse_4` is on (step 3.7). Nothing lives
   there, and the GPS cable is laid in during step 3.
 - **Outside:** the GPS sits on its saddle on top of `fuse_3` (x = 560), so it never has to be
@@ -153,20 +163,38 @@ The fuselage is closed except at the nose:
   open. Two Ø10 outlets in the belly behind the ESC block (x = 445, y = ±28) let the air out
   past the battery and the ESCs.
 
+## Servicing: battery, servos and motors
+
+| Job | How | Tools, time |
+|---|---|---|
+| **Battery out** | Undo the nose screw under the nose (x = 228) and slide the nose forward off its coupler. Open the two Velcro straps (x = 280 and 330), unplug the XT60 just inside the opening, and slide the pack forward out through the coupler ring (10 mm clear each side). In: slide it back until it touches the stop pin, strap it, plug in, nose on. | small screwdriver (none with a nylon thumb screw); 1 min |
+| **Aileron or ruddervator servo** | Unclip the pushrod's clevis from the horn. Undo the hatch's two M2 screws; the hatch comes out with the servo on it, hanging on its lead. Pull the plug joint out of the opening and unplug it. Undo the two tab screws and fit the new servo, arm through the cover's slot. | small Phillips; 5 min |
+| **Tilt servo** | Undo the two horn screws in the yoke's inboard arm and the axle screw on the outboard side. Lift the yoke off the pod, away from the tilt axis; it stays tethered by the motor's flex loop until the leads are separated. Take the horn's centre screw out, undo the two tab screws and slide the servo out inboard; its lead lifts out of the pocket under it with the plug, which unplugs there. Refit in the order of steps 2.4–2.6, drilling the new disc horn through the arm's existing holes. | small Phillips, 2.5 mm hex; 15 min |
+| **Front motor** | Lift the yoke off as for the tilt servo, separate the three leads at their joints in the flex loop (unplug, or cut and re-solder) and undo the four M3×8 screws under the yoke plate. | 2.5 mm hex, soldering iron unless bulleted; 15 min |
+| **Rear motor** | Separate its three leads at their joints between the motor and the boom's lead hole (x ≈ 765), and undo its four M3×8 screws from under the plate; a 2.5 mm L-key fits there with the mount in place. | 2.5 mm L-key, soldering iron unless bulleted; 5 min |
+| **Pixhawk, receiver, boards** | Nose off; all within 110 mm of the opening. Take the battery out first for anything under the shelf. | 5 min |
+| **ESC block** | Battery out, then reach 120–180 mm in over the tray, undo the block's two straps and lift it down. | 10 min |
+
+The nose screw is the only thing between you and the battery. Keep a spare M3 nylon screw in
+the field box: if it is lost the nose can depart in flight, and the CG jumps aft.
+
 ## Before printing the full set
 
 1. **Measure the tilt servos.** The pod bay fits a 24 × 13 mm body, 21 mm deep. The tab holes
    are 28 mm apart, the output spline is 6 mm from the front of the body, and the tab face is
    ~11 mm below the top of the spline. If yours differ, change `SERVO_*` in `params.py` and run
    `build_all.py` before printing the pods and yokes.
-2. **LW-PLA test:** print `wing_tip_r` on the S1. It should weigh 14.7 g ±15 % and survive a
+2. **Test-fit a servo hatch:** print one `servo_hatch` and two `hatch_block`s. Your 9 g servo's
+   tabs must screw to the posts (holes 28 mm apart) with its body (up to 23 × 12.2 mm) between
+   them, and the horn must stay within 15 mm of the cover's centre, short of the ledges.
+3. **LW-PLA test:** print `wing_tip_r` on the S1. It should weigh 14.7 g ±15 % and survive a
    gentle flex. If not, change the flow in `filament_lwpla.json` and re-slice. Every vase part
    prints at 17–30 mm/s, so one calibration covers them all.
-3. **Fit test:** print `rib_tip_r` and slide its spigot into that tip skin. It should go in with
+4. **Fit test:** print `rib_tip_r` and slide its spigot into that tip skin. It should go in with
    light hand force. If it is tight, sand the ring; never force a skin.
-4. **Web check:** print `wing_mid_r` and look into its open ends. Every web must run from the
+5. **Web check:** print `wing_mid_r` and look into its open ends. Every web must run from the
    bottom skin to the top skin and be joined to it ("Inside the wing").
-5. Then print the rest (`tracker.md`). Nothing needs supports.
+6. Then print the rest (`tracker.md`). Nothing needs supports.
 
 ## Assembly
 
@@ -180,12 +208,23 @@ and every structural PETG joint. Thin epoxy or medium CA is fine for skin-to-spi
 2. Epoxy the `boom_cup` to the inboard face of the `boom_rib`. Thread both spars (wrapped in
    tape, so they do not get glued) through the cup and the rib to align them. The cup's plate
    closes the rib's wire groove.
-3. Aileron servos: fit each servo into a `servo_cage`. Cut a hatch in the bottom skin of
-   `wing_mid` (around y ≈ 320) and `wing_tip` (around y ≈ 530), between the main spar's aft
-   web and the rear spar (x ≈ 440–476). The mid skin's webs are at x = 438.7 and 484.7, so the
-   hatch fits between them; never cut into a web. The tip skin has none. Glue the cage to the
-   inside of the bottom skin with the servo arm coming out through a slot. Run each lead to the
-   wire hole at x = 457, over the servo.
+3. Aileron servo hatches (4 per aircraft: `wing_mid` at y ≈ 325, `wing_tip` at y ≈ 530).
+   Before the panel is threaded, with the skin loose:
+   1. Lay a `servo_hatch` on the bottom skin, centred at x = 458 (between the main spar's aft
+      web at 438.7 and the rear spar), long side spanwise. Draw round it and cut the opening
+      0.2 mm outside the line. The opening stays 1.7 mm clear of the web; never cut into a web.
+      The tip skin has no webs.
+   2. Put a strip of tape over both ends of the cover's inner face, so the epoxy cannot glue
+      the hatch in. Butter the outer (glue) faces of two `hatch_block`s with epoxy and put
+      them in through the opening. Set the hatch in the opening and drive an M2×6 screw through
+      each end of the cover into its block: the ledges pull up under the cover's ends and the
+      blocks' glue faces seat on the inside of the skin. Tape the cover flush from outside and
+      let it cure, then take the hatch out: the blocks stay.
+   3. Screw the servo to the hatch's posts (tabs flat on the posts, 28 mm apart; the posts fit
+      a body up to 23 mm long) and cut a slot in the cover for the arm.
+   4. Lay the servo's lead and its extension (500 mm mid, 800 mm tip) to the wire line at
+      x = 457, over the servo, with the plug joint in the bay beside the servo and ~60 mm of
+      slack, so the hatch comes out far enough to unplug it.
 4. Thread the panel onto the spars from the root: `rib_root`, `wing_root`, boom rib with
    cup, `wing_mid`, `rib_midtip`, `wing_tip`, `rib_tip`. Feed the aileron leads (and, on the
    right wing, the pitot tubing) through the Ø10–12 holes at x = 457 in every rib. Epoxy
@@ -196,31 +235,47 @@ and every structural PETG joint. Thin epoxy or medium CA is fine for skin-to-spi
    and centre the skin until it is flush with the rib all the way round.
 5. Ailerons: tape hinge along the top surface. They deflect ±25°: the bevel under the
    aileron's front face clears the wing. Glue a `control_horn` under each aileron in line
-   with its servo arm. Fit a 1.2 mm pushrod with a Z-bend.
+   with its servo arm. Fit a 1.2 mm pushrod with a Z-bend in the servo arm and a snap clevis
+   (or EZ connector) at the horn: it sets the neutral, and unhooks so the hatch can come out.
 6. Lock pin: drill Ø2.5 straight down through the wing at x = 480, y = ±68, using the root
    rib's vertical guide hole. It goes through the skin, the rib ring and the rear spar. The rear
    joiner gets the matching hole at final assembly.
 
 ### 2. Tilt mechanism (each side)
 
+The yoke cannot be slid sideways onto the pod: its arms clear the pod and the axle boss by
+0.5 mm, far too little to push the horn onto the servo's spline. So the horn goes on the spline
+first, the yoke goes on from above, and the horn screws go in last, through the yoke's inboard
+arm.
+
 1. Press an F693ZZ flanged bearing into the yoke's outboard arm. Melt an M3 heat-set insert
    into the pod's axle boss.
-2. **Screw the motor onto the yoke now**: 4× M3×8. Once the yoke is on the pod, the screw
-   heads can't be reached. Check by hand that no screw touches the windings.
+2. **Screw the motor onto the yoke now**: 4× M3×8. With the yoke on the pod the screw heads
+   can't be reached. Check by hand that no screw touches the windings. Join the motor's leads
+   to their extensions ~40 mm from the motor (solder and heat-shrink, or 3.5 mm bullets): the
+   joints stay outside the pod, so the motor can be changed with the yoke off.
 3. Epoxy the pod onto the boom-rib tongue and bolt it with 2× M3×35 + nyloc nuts (the pod is
    28 mm wide). The 6 mm tongue goes into a 6.3 mm slot; if the first-layer squish makes it
-   tight, sand the tongue. The motor and servo wires run in the groove under the tongue,
-   through the cup into the root section.
-4. Fit the tilt servo in the pod bay; its tabs screw to the pod's inboard face. Power the servo
-   at its centre position and set the yoke to 35° (the middle of −20…90°). Then drill the
-   yoke's inboard arm to match the servo horn and screw the horn on.
-5. Slide the yoke over the pod with the horn on the servo spline. On the outboard side, fit the
-   **0.5 mm shim** (OD ≤ 5 mm) between the bearing's inner race and the axle boss, then the
-   M3×12 screw and washer. The shim fills the 0.5 mm running gap. Without it, tightening the
-   screw pulls the yoke against the pod and it binds. The yoke must swing freely from −20°
-   to 90° with the screw tight.
-6. Leave a loop in the motor wires at the pod's outboard wire hole so they flex through the full
-   tilt range.
+   tight, sand the tongue. The motor wires run in the groove under the tongue, through the cup
+   into the root section.
+4. Tilt servo: lay a 600 mm extension lead from the pod's plug pocket (under the servo bay,
+   open on the inboard face) through the wire channel and the tongue groove to the wing's wire
+   line. Fit the servo in the bay, tabs on the pod's inboard face (2 screws). Its lead drops
+   into the pocket; plug it into the extension there and push the joint into the pocket.
+   Power the servo at its centre position and press a round (disc) horn on its spline. Fit
+   the horn's centre screw.
+5. Hold the yoke at 35° (the middle of −20…90°) and lower it over the pod from above, arms
+   either side of it, outboard arm's bearing onto the axle boss. On the outboard side fit the
+   **0.5 mm shim** (OD ≤ 5 mm) between the bearing's inner race and the boss, then the M3×12
+   screw and washer. The shim fills the 0.5 mm running gap. Without it, tightening the screw
+   pulls the yoke against the pod and it binds.
+6. With the servo still at centre and the yoke at 35°, drill two Ø1.5 holes through the
+   yoke's inboard arm into the disc horn, 7 mm either side of the axis, with tape on the bit
+   6.5 mm from its tip (arm 4 mm + horn 2.5 mm: the servo case is behind it). Fit two M2×6
+   self-tapping screws. The Ø7 hole in the arm on the axis gives a screwdriver the horn's
+   centre screw later. The yoke must swing freely from −20° to 90° with the axle screw tight.
+7. Leave a loop in the motor wires at the pod's outboard wire hole, with the joints in it, so
+   they flex through the full tilt range.
 
 ### 3. Fuselage and tail boom
 
@@ -253,8 +308,11 @@ and every structural PETG joint. Thin epoxy or medium CA is fine for skin-to-spi
    Nothing aft of x ≈ 450 can be reached afterwards, and nothing lives in
    `fuse_4`. The boom's aft end stays free for the motor mount and tail block.
 8. Melt the M3 insert into `coupler_240` and epoxy the coupler 20 mm into the front of
-   `fuse_2`. Slide the `fc_shelf` and the `battery_tray` in through the front and epoxy them in;
-   both reach past the joint at x = 370 into `fuse_3`.
+   `fuse_2`. **Thread the two battery straps through the `battery_tray` first**: each goes down
+   one slot beside the battery's place (x = 280 and 330), under the plate through the gaps in
+   both rails, and up the other slot. They cannot be threaded once the tray is in. Then slide
+   the `fc_shelf` and the tray in through the front and epoxy them in; both reach past the
+   joint at x = 370 into `fuse_3`.
 9. Slide on the nose. Drill Ø3.4 through its bottom centreline at x = 228 (12 mm ahead of its
    aft edge) into the insert, and fit the M3×12 nylon screw with a 12 mm nylon washer. Leave
    the 12 mm opening that vase mode leaves at the nose tip open: it is the cooling-air inlet.
@@ -268,8 +326,13 @@ The motor mount is a closed clamp and the tail block caps the boom, so both go o
 boom's aft end, mount first. Nothing is threaded through the boom's holes until both are on;
 anything sticking out of a hole would be pinched under their bores.
 
-1. Cut a hatch in the lower surface of each V-tail panel about 55 mm aft of the LE and 30–60 mm
-   from the root. Glue a `servo_cage` inside with the arm through a slot.
+1. Ruddervator servo hatches, before the panels go on: on each panel's lower surface, centre a
+   `servo_hatch` 55 mm aft of the LE and 45 mm out from the panel's root edge, long side
+   spanwise. Cut the opening and fit the hatch blocks and the servo exactly as for the wing
+   (step 1.3). The flat cover sits flush with the curved skin along its front and back edges
+   and up to 0.45 mm under it along the middle, and the blocks' glue faces stand 0.3–0.45 mm
+   off the skin: use thickened epoxy there. Lay a 650 mm extension from the servo to the root,
+   joint beside the servo with ~60 mm of slack.
 2. Epoxy a 4 mm carbon pin 12 mm into each `vtail_root_rib`. Slide the panels over the rib
    spigots and fit the `vtail_tip_cap`s. The spigots have the same 0.25 mm slip per side as the
    wing: line each panel up with its rib and cap all the way round before the glue sets.
@@ -285,10 +348,12 @@ anything sticking out of a hole would be pinched under their bores.
    through the nose opening. Tie on the lead's bare end and pull it through, then fit the
    connector at the front.
    - The rear motor's three phase leads (extended ~450 mm) go in at x ≈ 765. Keep them twisted
-     together.
+     together, and make their joints to the motor's own leads outside the boom, between the
+     motor and the hole, where they can be reached to change the motor.
    - The two ruddervator leads go in through the tail block.
    - All of them come out of the boom's front end at x = 420, right behind the ESC block.
-6. Ruddervators: tape hinge on top, horns underneath, 1.2 mm pushrods.
+6. Ruddervators: tape hinge on top, horns underneath, 1.2 mm pushrods with a Z-bend in the
+   servo arm and a clevis at the horn.
 
 ### 5. Electronics
 
@@ -309,7 +374,12 @@ clears the printed parts. `renders/29–33` show it inside the fuselage.
   come into the fuselage through the Ø12 hole at x = 457 and end in plugs at x ≈ 330: 3.5 mm
   bullets for the motor, servo plugs for the rest. They are reachable through the nose, so a
   wing comes off without opening anything else. Short pigtails run on from the plugs to the
-  ESC block and the Pixhawk.
+  ESC block and the Pixhawk. The servos' own plugs meet their extensions where a hatch or the
+  pod's plug pocket can reach them, never deep inside a wing.
+- **Motor-lead joints** (motor lead to extension) sit outside the pod, in the flex loop, and
+  outside the boom, between the rear motor and its lead hole. Solder and heat-shrink them, or
+  use 3.5 mm bullets there (~7 g more, which costs ~0.25 % of the front motors' hover margin):
+  either way a motor can be changed without opening anything.
 - **GPS/compass** on its saddle on top of `fuse_3` at x = 560, arrow forward, on foam tape. Its
   cable runs down through the Ø16 hole and forward along the top, laid in during step 3.3. Use
   its compass and check it for motor interference in the first hover log (`PX4_GUIDE.md`).
@@ -324,11 +394,12 @@ clears the printed parts. `renders/29–33` show it inside the fuselage.
 
 1. Slide the joiners through the fuselage. Plug both wings on and pin each rear spar to the rear
    joiner with the M2.5 nylon pin.
-2. Tilt both motors fully forward and balance on your fingertips **431 mm aft of the nose tip**.
-   The estimate puts the battery centre at x = 295 mm; anywhere in 281–317 mm keeps the CG in
-   the 25–30 % band. The 3 mm stop pin in the tray hole at x = 370 holds the battery at 291 mm
-   (CG 429 mm). The holes run from x = 250 to 390: move the pin aft if the real CG comes out
-   forward, forward if it comes out aft.
+2. Tilt both motors fully forward and balance on your fingertips **433 mm aft of the nose tip**.
+   The estimate puts the battery centre at x = 297 mm; anywhere in 272–308 mm keeps the CG in
+   the 25–30 % band. The 3 mm stop pin in the tray hole at x = 380 holds the battery at 301 mm
+   (CG 434 mm). The holes run from x = 250 to 390: move the pin aft if the real CG comes out
+   forward, forward if it comes out aft. The hover margin wants the CG as far aft as the band
+   allows: each hole forward puts ~0.5 % more of the hover load on the front motors.
 3. If it will not balance in that range, move equipment. Do not add dead weight at the tail.
 4. Then set up PX4: `PX4_GUIDE.md`.
 
@@ -342,12 +413,13 @@ clears the printed parts. `renders/29–33` show it inside the fuselage.
 | `fuse_3`, top centreline (under the `gps_mount`) | GPS cable | x = 560 | Ø16 |
 | `fuse_3`, belly | cooling-air outlets | x = 445, y = ±28 | 2× Ø10 |
 | `fuse_1`, bottom centreline | nose screw | x = 228 | Ø3.4 |
-| `wing_mid`, `wing_tip` bottom skins | aileron servo hatch + arm slot | x ≈ 440–476 (between the webs), y ≈ 320 / 530 | to fit the cage (36 × 18 mm) |
-| V-tail panels, lower surface | ruddervator servo hatch + arm slot | ~55 mm aft of the LE, 30–60 mm from the root | to fit the cage |
+| `wing_mid`, `wing_tip` bottom skins | aileron servo hatch | centred at x = 458 (between the webs at 438.7 and 484.7), y = ±325 / ±530 | the cover's outline + 0.2 mm: 34.4 × 42.4 mm |
+| V-tail panels, lower surface | ruddervator servo hatch | centred 55 mm aft of the LE, 45 mm from the panel's root edge | 34.4 × 42.4 mm, as the wing |
+| every `servo_hatch` cover | servo arm slot | where your servo's arm comes out, within 15 mm of the cover's centre spanwise | to suit the arm |
 | right `wing_mid` LE | pitot tube | y ≈ 400 | pitot OD |
 | tail boom | rear motor leads; ruddervator leads | x ≈ 765 (facing up); x ≈ 1001 and 1024 (marked through the tail block) | Ø6 |
 | rear spar, rear joiner | M2.5 lock pin | x = 480, y = ±68, through the root rib's guide hole | Ø2.5 |
-| yoke inboard arm | servo horn screws | to match the horn | horn screws |
+| yoke inboard arm | servo horn screws | 7 mm either side of the axis, drilled into the disc horn (step 2.6) | 2× Ø1.5, 6.5 mm deep |
 
 ## Rules for the whole build
 
@@ -393,8 +465,11 @@ tilt, an x-ray of the structure and the finished one-colour look. 27–34 show t
 burst view, the nose off with the battery sliding out, cuts along the centreline, at the
 Pixhawk and at the ESC block, an x-ray with the equipment and cables, and a cut through the
 wing root bay showing the webs and spars. 35–38 show every print file on its printer's bed,
-with its mass and print time. `00_all_sides.png`, `00_wing_smoothness.png` and
-`00_inside_and_burst.png` put the main views on one page each. To orbit the model yourself:
+with its mass and print time. 39–42 show servicing: every servo hatch out with its servo, the
+yokes lifted off, a tilt servo out beside its plug pocket, the battery straps' path and a cut
+through an aileron hatch. `00_all_sides.png`, `00_wing_smoothness.png`,
+`00_inside_and_burst.png` and `00_servicing.png` put the main views on one page each. To orbit
+the model yourself:
 
 ```
 python scripts/make_viewer.py     # writes viewer/manifest.json (build_all.py runs it too)
@@ -407,11 +482,14 @@ x-ray skins, a grazing light and the tilt slider. Also:
 - **Burst ▸** separates every part along the way it goes together and flies the camera out;
   press it again to reassemble, or drag the slider beside it.
 - **Open the nose** slides the nose off and the battery out of it.
+- **Service** takes every servo hatch out with its servo, lifts both yokes off their pods and
+  slides the tilt servos out of their bays.
 - **Equipment, cables, labels** show the electronics envelopes from `scripts/payload.py`, a
   sketch of the main cable runs and their names.
-- **Cut** slices the airframe along the centreline, across the Pixhawk or the ESC block, or
-  through the right wing root bay. Faces seen from inside are drawn darker.
-- **Show the print files** lays out all 47 files as they sit on the S1 and X beds, filtered by
+- **Cut** slices the airframe along the centreline, across the battery strap, the Pixhawk or the
+  ESC block, through the right wing root bay, or through the right mid aileron hatch. Faces seen
+  from inside are drawn darker.
+- **Show the print files** lays out all 48 files as they sit on the S1 and X beds, filtered by
   printer and material, each with its sliced mass and time.
 - Hover any part for its name and role; double-click it to zoom in.
 

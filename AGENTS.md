@@ -15,7 +15,13 @@
 - Purchased equipment (battery, ESCs, Pixhawk, boards, GPS, servos, pitot) lives in
   `scripts/payload.py`: size and position of each item, and a sketch of the cable runs. Move
   equipment there, not in the docs; the mass balance, the gate's fit checks and the viewer all
-  read it.
+  read it. The servo hatch frames (`servo_hatches()`) live there too.
+- Nothing that may need replacing (battery, servos, motors, boards) may be glued in or sit
+  behind a joint that has to be cut: the nose, the screwed servo hatches and the pods' plug
+  pockets are the ways in (`DESIGN.md`, "Servicing"). The gate checks the hatches, the plug
+  pockets and the battery-strap path.
+- The hover margin is thin (front motors ~60 % of their near-empty thrust, the gate's limit):
+  count every new gram in `mass_balance.py` and re-run the gate.
 - The wing webs depend on two vase-profile settings, `slice_closing_radius` 0.01 and
   `detect_thin_wall` 0 (`SLICING.md`). Do not let a preset update reset them. The G-code
   stamp only covers the STL, so after any profile change re-slice everything.

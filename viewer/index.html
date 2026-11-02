@@ -69,6 +69,7 @@
     <input type="range" id="explode" min="0" max="100" value="0"> <span id="explodev">0 %</span>
   </div>
   <div class="row aircraft"><button id="nose">Open the nose, slide the battery out</button></div>
+  <div class="row aircraft"><button id="service">Service: open the servo hatches, lift the yokes off</button></div>
   <div class="row aircraft">
     <label><input type="checkbox" id="equip" checked> equipment</label>
     <label><input type="checkbox" id="cables" checked> cables</label>
@@ -78,9 +79,11 @@
     <select id="section">
       <option value="none">no cut</option>
       <option value="y0">along the centreline (y = 0)</option>
+      <option value="x280">across the battery's front strap (x = 280)</option>
       <option value="x305">across the Pixhawk (x = 305)</option>
       <option value="x385">across the ESC block (x = 385)</option>
       <option value="wing">across the right wing root bay (y = 170)</option>
+      <option value="hatch">through the right mid aileron hatch (y = 325)</option>
     </select>
   </div>
   <div class="row hd">Printable parts</div>
@@ -198,21 +201,31 @@ clipMats.add(zebraMat);
 
 const man = await (await fetch('manifest.json')).json();
 const loader = new STLLoader();
+// A local server can drop a request when dozens arrive at once: retry before giving up.
+async function loadSTL(url, tries = 4) {
+  for (let k = 1; ; k++) {
+    try { return await loader.loadAsync(url); }
+    catch (e) { if (k >= tries) throw e; await new Promise(r => setTimeout(r, 400 * k)); }
+  }
+}
 const parts = [], extras = [], movers = [], equip = [], cables = [], pivots = {};
 const root = new THREE.Group(); scene.add(root);
 
-// Everything that moves in the burst view or when the nose opens: base position, burst offset,
-// and (optionally) a nose-open offset that plays within a stage of that animation.
-function mover(o, ex, nose) {
+// Everything that moves in the burst view, when the nose opens or in the service view: base
+// position, burst offset, and offsets that play within a stage of the nose or service animation.
+function mover(o, ex, name) {
   o.userData.base = o.position.clone();
   o.userData.ex = ex ? V3(ex) : V(0, 0, 0);
+  const nose = man.nose[name], svc = (man.service || {})[name];
   if (nose) o.userData.nose = { v: V3(nose.v), stage: nose.stage };
+  if (svc) o.userData.svc = { v: V3(svc.v), stage: svc.stage };
   movers.push(o);
   return o;
 }
 function pivotFor(side, at) {
   if (!pivots[side]) {
-    const p = new THREE.Group(); p.position.set(...at); root.add(p); pivots[side] = p;
+    const p = new THREE.Group(); p.position.set(...at); p.userData.name = 'pivot_' + side;
+    root.add(p); pivots[side] = p;
   }
   return pivots[side];
 }
@@ -284,7 +297,7 @@ function creasedNormals(geos, angle) {
 
 let n = 0;
 const raw = await Promise.all(man.parts.map(async p => {
-  const g = await loader.loadAsync(p.url);
+  const g = await loadSTL(p.url);
   g.deleteAttribute('normal');
   status.textContent = `loading ${++n}/${man.parts.length}`;
   return BGU.mergeVertices(g, 1e-3);
@@ -301,10 +314,27 @@ creasedNormals(raw, THREE.MathUtils.degToRad(35)).forEach((g, i) => {
     piv.add(m);
   } else {
     root.add(m);
-    mover(m, p.burst, man.nose[p.name]);
+    mover(m, p.burst, p.name);
   }
   parts.push(m);
 });
+
+// The loose hatch parts (a cover and two blocks per servo hatch), placed where they fit.
+const instGeo = {};
+for (const i of man.instances || []) {
+  if (!instGeo[i.url]) {
+    const g = await loadSTL(i.url);
+    instGeo[i.url] = BGU.toCreasedNormals(g, THREE.MathUtils.degToRad(30));
+  }
+  const m = new THREE.Mesh(instGeo[i.url], mats[i.material]);
+  m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(V3(i.basis[0]), V3(i.basis[1]), V3(i.basis[2])));
+  m.position.set(...i.origin);
+  m.userData = { name: i.name, kind: 'part', material: i.material, group: 'structure', role: i.role, printer: 's1',
+                 hue: (parts.length * 0.618) % 1 };
+  root.add(m);
+  mover(m, i.burst, i.name);
+  parts.push(m);
+}
 
 function tubeMesh(t) {
   const a = V3(t.a), b = V3(t.b);
@@ -317,7 +347,7 @@ function tubeMesh(t) {
 for (const t of man.tubes) {
   const m = tubeMesh(t);
   m.userData = { name: t.name, kind: 'tube' };
-  root.add(m); extras.push(m); mover(m, t.burst);
+  root.add(m); extras.push(m); mover(m, t.burst, t.name);
 }
 for (const mo of man.motors) {
   const grp = new THREE.Group();
@@ -337,10 +367,10 @@ for (const mo of man.motors) {
     const piv = pivotFor(mo.name.slice(-1), mo.pivot);
     grp.position.set(mo.base[0] - mo.pivot[0], mo.base[1] - mo.pivot[1], mo.base[2] - mo.pivot[2]);
     piv.add(grp);
-    mover(grp, mo.burst_local);                       // along the thrust axis, whatever the tilt
-    if (!piv.userData.base) mover(piv, mo.burst_pivot);
+    mover(grp, mo.burst_local, mo.name);              // along the thrust axis, whatever the tilt
+    if (!piv.userData.base) mover(piv, mo.burst_pivot, piv.userData.name);
   } else {
-    grp.position.set(...mo.base); root.add(grp); mover(grp, mo.burst);
+    grp.position.set(...mo.base); root.add(grp); mover(grp, mo.burst, mo.name);
   }
   extras.push(grp);
 }
@@ -360,7 +390,7 @@ for (const e of man.equipment) {
   m.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), edgeMat));
   m.userData = { ...e, kind: 'equip' };
   eqGroup.add(m); equip.push(m);
-  mover(m, e.burst, man.nose[e.name]);
+  mover(m, e.burst, e.name);
 }
 const cabGroup = new THREE.Group(); root.add(cabGroup);
 let cablesOn = true;
@@ -405,8 +435,8 @@ function setTilt(deg) {
   $('tilt').value = deg;
 }
 
-// ---- burst view and nose animation -----------------------------------------
-const anim = { b: 0, bTo: 0, n: 0, nTo: 0 };
+// ---- burst view, nose and service animations ------------------------------------
+const anim = { b: 0, bTo: 0, n: 0, nTo: 0, s: 0, sTo: 0 };
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const stage = (t, s) => ease(Math.min(1, Math.max(0, (t - s[0]) / (s[1] - s[0]))));
 const approach = (a, b, d) => a < b ? Math.min(b, a + d) : Math.max(b, a - d);
@@ -416,9 +446,10 @@ function pose() {
     const u = o.userData;
     o.position.copy(u.base).addScaledVector(u.ex, eb);
     if (u.nose) o.position.addScaledVector(u.nose.v, stage(anim.n, u.nose.stage));
+    if (u.svc) o.position.addScaledVector(u.svc.v, stage(anim.s, u.svc.stage));
   }
   // The cable sketch belongs to the assembled aircraft.
-  cabGroup.visible = cablesOn && anim.b < 0.01 && anim.n < 0.01;
+  cabGroup.visible = cablesOn && anim.b < 0.01 && anim.n < 0.01 && anim.s < 0.01;
   grid.position.z = -75 - 200 * eb;
 }
 function syncUI() {
@@ -426,20 +457,25 @@ function syncUI() {
   $('explodev').textContent = `${Math.round(anim.b * 100)} %`;
   $('burst').textContent = anim.bTo > 0.5 ? 'Assemble ◂' : 'Burst ▸';
   $('nose').textContent = anim.nTo > 0.5 ? 'Close the nose' : 'Open the nose, slide the battery out';
+  $('service').textContent = anim.sTo > 0.5 ? 'Close the servo hatches, refit the yokes'
+                                            : 'Service: open the servo hatches, lift the yokes off';
 }
 function animate(dt) {
   let moved = false;
   if (anim.b !== anim.bTo) { anim.b = approach(anim.b, anim.bTo, dt / 1.6); moved = true; }
   if (anim.n !== anim.nTo) { anim.n = approach(anim.n, anim.nTo, dt / 2.4); moved = true; }
+  if (anim.s !== anim.sTo) { anim.s = approach(anim.s, anim.sTo, dt / 3.0); moved = true; }
   if (moved) { pose(); syncUI(); }
 }
 
 // ---- section cuts -------------------------------------------------------------
 const SECTIONS = {
   y0: { n: [0, -1, 0], c: 0, view: { dir: V(0.15, -1, -0.3), box: new THREE.Box3(V(150, -75, -90), V(650, 2, 100)), fov: 22 } },
+  x280: { n: [1, 0, 0], c: -280, view: { dir: V(1, -0.35, -0.3), box: new THREE.Box3(V(279, -80, -80), V(335, 80, 95)), fov: 22 } },
   x305: { n: [1, 0, 0], c: -305, view: { dir: V(1, -0.35, -0.3), box: new THREE.Box3(V(304, -80, -80), V(360, 80, 95)), fov: 22 } },
   x385: { n: [1, 0, 0], c: -385, view: { dir: V(1, -0.35, -0.3), box: new THREE.Box3(V(384, -80, -80), V(440, 80, 95)), fov: 22 } },
   wing: { n: [0, -1, 0], c: 170, view: { dir: V(-0.35, -1, -0.55), box: new THREE.Box3(V(370, 60, -25), V(610, 171, 35)), fov: 22 } },
+  hatch: { n: [0, 1, 0], c: -325, view: { dir: V(0.04, 1, 0.1), box: new THREE.Box3(V(400, 324, -10), V(520, 490, 20)), fov: 16 } },
 };
 function setSection(k) {
   const s = SECTIONS[k];
@@ -465,6 +501,8 @@ const VIEWS = {
   burst_top: { dir: V(0, 0, -1), up: V(-1, 0, 0), fov: 14 },
   nose_open: { dir: V(0.75, 0.85, -0.45), box: new THREE.Box3(V(-320, -130, -130), V(470, 130, 130)), fov: 24 },
   xray_fuse: { dir: V(0.55, 0.9, -0.5), box: new THREE.Box3(V(-5, -75, -80), V(640, 75, 90)), fov: 24 },
+  service_under: { dir: V(0.55, -0.75, 0.55), fov: 24 },
+  pod_service: { dir: V(0.4, 0.6, 0.7), box: new THREE.Box3(V(280, 200, -20), V(400, 320, 140)), fov: 24 },
   gallery: { dir: V(0, 0.42, -0.9), fov: 30 },
 };
 const J = (y0, y1) => ({ dir: V(0.75, -0.55, -0.55), box: new THREE.Box3(V(372, y0, -12), V(610, y1, 26)) });
@@ -568,7 +606,7 @@ function animateTo(key, value) {
                      camera.aspect);
   anim[key] = saved; pose();
   anim[key + 'To'] = value;
-  tweenTo(s, key === 'b' ? 1.6 : 2.4);
+  tweenTo(s, key === 'b' ? 1.6 : key === 'n' ? 2.4 : 3.0);
   syncUI();
 }
 
@@ -583,7 +621,11 @@ function topOf(o) {
 function labelList(w, h) {
   const out = [];
   const add = (p, text, kind, half = 0) => {
-    if (sectionOn && !galleryOn && clipPlane.distanceToPoint(p) < -3) return;
+    // In a cut, label only what lies at the cut: within 80 mm behind the plane.
+    if (sectionOn && !galleryOn) {
+      const d = clipPlane.distanceToPoint(p);
+      if (d < -3 || d > 80) return;
+    }
     const q = p.clone().project(camera);
     if (q.z > 1 || q.z < -1 || Math.abs(q.x) > 1.05 || Math.abs(q.y) > 1.05) return;
     // Room a gallery label may use: the bed's width on screen.
@@ -602,11 +644,14 @@ function labelList(w, h) {
         if (m.userData.kind === 'print')
           add(m.userData.anchor.clone().applyMatrix4(sub.matrixWorld), m.userData.label, 'print', m.userData.bed / 2);
     }
-  } else if (eqGroup.visible && shown(eqGroup) && (anim.b > 0.3 || anim.n > 0.3 || sectionOn || xray)) {
+  } else if (eqGroup.visible && shown(eqGroup) && (anim.b > 0.3 || anim.n > 0.3 || anim.s > 0.3 || sectionOn || xray)) {
     // Inside the closed fuselage the equipment is hidden, so its labels only show once it can be
-    // seen; with just the nose open, only what came out of it.
-    const noseOnly = anim.n > 0.3 && !(anim.b > 0.3 || sectionOn || xray);
-    for (const o of equip) if (o.userData.tag && (!noseOnly || o.userData.nose)) add(topOf(o), o.userData.tag, 'equip');
+    // seen; with just the nose or the hatches open, only what came out (and the tilt-servo plug).
+    const only = anim.b > 0.3 || sectionOn || xray ? null : anim.n > 0.3 ? 'nose' : anim.s > 0.3 ? 'svc' : null;
+    for (const o of equip) {
+      const u = o.userData;
+      if (u.tag && (!only || u[only] || (only === 'svc' && u.name.startsWith('tilt_plug')))) add(topOf(o), u.tag, 'equip');
+    }
   }
   return out;
 }
@@ -728,7 +773,7 @@ async function buildGallery() {
   const bedEdge = new THREE.LineBasicMaterial({ color: 0x8e98a3 });
   let k = 0;
   const geos = await Promise.all(man.prints.map(async p => {
-    const g = await loader.loadAsync(p.url);
+    const g = await loadSTL(p.url);
     status.textContent = `loading print files ${++k}/${man.prints.length}`;
     return BGU.toCreasedNormals(g, THREE.MathUtils.degToRad(30));
   }));
@@ -814,6 +859,7 @@ $('tilt').oninput = e => setTilt(+e.target.value);
 $('burst').onclick = () => animateTo('b', anim.bTo > 0.5 ? 0 : 1);
 $('explode').oninput = e => { tween = null; anim.b = anim.bTo = +e.target.value / 100; pose(); syncUI(); };
 $('nose').onclick = () => animateTo('n', anim.nTo > 0.5 ? 0 : 1);
+$('service').onclick = () => animateTo('s', anim.sTo > 0.5 ? 0 : 1);
 $('equip').onchange = e => { eqGroup.visible = e.target.checked; updateLegend(); };
 $('cables').onchange = e => { cablesOn = e.target.checked; pose(); };
 $('labels').onchange = e => { labelsOn = e.target.checked; };
@@ -857,8 +903,8 @@ requestAnimationFrame(loop);
 if (capture) {
   ui.style.display = 'none';
   const S = (name, view, o = {}) => ({ name, view, mode: 'printed', tilt: 0, xray: false, extras: true, graze: false,
-                                       burst: 0, nose: 0, section: 'none', cables: false, labels: false, gallery: null,
-                                       ...o, equip: o.equip ?? (o.extras ?? true) });
+                                       burst: 0, nose: 0, service: 0, section: 'none', cables: false, labels: false,
+                                       gallery: null, ...o, equip: o.equip ?? (o.extras ?? true) });
   const paint = { mode: 'paint', extras: false, graze: true };
   const shots = [
     S('01_iso_front', 'iso_front'), S('02_iso_rear', 'iso_rear'), S('03_front', 'front'), S('04_rear', 'rear'),
@@ -893,6 +939,10 @@ if (capture) {
     S('36_print_files_s1_petg', 'gallery', { gallery: 's1_petg', labels: true }),
     S('37_print_files_s1_lwpla_right_set', 'gallery', { gallery: 's1_lwpla', labels: true }),
     S('38_print_files_x_lwpla_left_set', 'gallery', { gallery: 'x_lwpla', labels: true }),
+    S('39_service_hatches_open_yokes_off', 'service_under', { service: 1, labels: true }),
+    S('40_service_tilt_servo_and_plug_pocket', 'pod_service', { service: 1, labels: true }),
+    S('41_cut_at_battery_strap', 'sec_x280', { section: 'x280', cables: true, labels: true }),
+    S('42_cut_through_aileron_hatch', 'sec_hatch', { section: 'hatch', labels: true }),
   ];
   const shot = new Map();
   async function post(name, blob) {
@@ -921,7 +971,7 @@ if (capture) {
     mode = s.mode; xray = s.xray; applyLook(); setTilt(s.tilt); setLights(s.graze);
     extras.forEach(o => o.visible = s.extras);
     eqGroup.visible = s.equip; cablesOn = s.cables; labelsOn = s.labels;
-    anim.b = anim.bTo = s.burst; anim.n = anim.nTo = s.nose; pose();
+    anim.b = anim.bTo = s.burst; anim.n = anim.nTo = s.nose; anim.s = anim.sTo = s.service; pose();
     setSection(s.section);
     frameView(s.view, camera.aspect);
     const blob = await snap(s.labels);
@@ -944,6 +994,10 @@ if (capture) {
                             ['31_cut_at_esc_block', 'cut at the ESC block (x = 385)'],
                             ['33_xray_equipment_and_cables', 'x-ray: equipment and cables'],
                             ['34_cut_wing_root_webs_and_spars', 'wing root bay: webs and spars'], ['10_xray_structure', 'x-ray: PETG structure']],
+    '00_servicing': [['32_nose_open_battery_out', 'nose off, battery out'], ['41_cut_at_battery_strap', 'battery strap path (x = 280)'],
+                     ['42_cut_through_aileron_hatch', 'aileron servo on its hatch'],
+                     ['39_service_hatches_open_yokes_off', 'servo hatches out, yokes off'],
+                     ['40_service_tilt_servo_and_plug_pocket', 'tilt servo out, plug pocket']],
   };
   for (const [sheet, tiles] of Object.entries(SHEETS)) {
     const W = 640, H = 400, cols = 3;

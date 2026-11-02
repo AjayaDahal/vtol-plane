@@ -59,7 +59,9 @@ PARTS = {
     "tail_block": _p(PETG, "s1", [("y", -90)]),
     "vtail_root_rib": _p(PETG, "s1", [("x", 55)], qty=2, src="vtail_root_rib_r"),
     "vtail_tip_cap": _p(PETG, "s1", [("x", 235)], qty=2, src="vtail_tip_cap_r"),
-    "servo_cage": _p(PETG, "s1", [], qty=6),
+    # Servo hatch: outer face on the bed, posts up. Hatch block: upside down, top face on the bed.
+    "servo_hatch": _p(PETG, "s1", [], qty=6),
+    "hatch_block": _p(PETG, "s1", [("x", 180)], qty=12),
     "control_horn": _p(PETG, "s1", [], qty=6),
 }
 for _sec in ("wing_root", "wing_mid", "wing_tip", "aileron_mid", "aileron_tip"):

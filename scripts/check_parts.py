@@ -600,8 +600,8 @@ def _mesh_dist(pts, tris):
 
 def check_shared_files():
     """A part printed from one file in several copies for both sides (V-tail ribs and caps,
-    servo cages, horns) must be mirror-symmetric, so its mirror image is the same part turned
-    over and either copy fits either side."""
+    servo hatches and their blocks, horns) must be mirror-symmetric, so its mirror image is the
+    same part turned over and either copy fits either side."""
     rng = np.random.default_rng(2)
     bad, done = [], []
     for name, spec in sorted(PARTS.items()):
@@ -633,7 +633,7 @@ def check_balance():
     check("hover thrust split: each front motor <= 40 % of AUW", r["front_share"] <= 0.40,
           f"front {100 * r['front_share']:.1f} % each, rear {100 * r['rear_share']:.1f} %")
     check("hover thrust per front motor <= 60 % of worst-case max", r["front_frac_max"] <= 0.60,
-          f"{100 * r['front_frac_max']:.0f} % of {M.T_MAX_EMPTY:.0f} g")
+          f"{100 * r['front_frac_max']:.1f} % of {M.T_MAX_EMPTY:.0f} g")
     check("battery position reachable on the tray", r["battery_ok"], r["battery_note"])
     check("static margin 10-25 % MAC", 0.10 <= r["static_margin"] <= 0.25, f"{100 * r['static_margin']:.0f} %")
 
@@ -719,9 +719,11 @@ SKIN_ROOM = {"battery": 3.0, "esc": 5.0}
 
 def check_equipment():
     """The equipment inside the fuselage (payload.py) fits: clear of the skin, not cut by any
-    printed part or by each other, and the battery slides out through the nose opening."""
+    printed part or by each other, and the battery slides out through the nose opening. The
+    battery sits where the balance puts its stop pin."""
+    import mass_balance as M
     import payload as PL
-    items = [e for e in PL.equipment() if e["inside"]]
+    items = [e for e in PL.equipment(M.compute(verbose=False)["pin"]) if e["inside"]]
     meshes = {n: load(n) for n in INSERTS}
     skin, cut = [], []
     room_min = (np.inf, "")
@@ -935,6 +937,224 @@ def check_web_gcode():
           "; ".join(bad) or f"{len(info)} skins, every web fused (<= {P.LINE_W} mm): " + "; ".join(info))
 
 
+# --- servicing: servo hatches, tilt-servo plug pocket, battery straps ---------------------
+HATCH_RIBS = {"wing": ("boom_rib", "rib_midtip", "rib_tip"), "vtail": ("vtail_root_rib", "vtail_tip_cap")}
+
+
+def hatch_world(h, pts):
+    """Local hatch coordinates (a chordwise, b spanwise, n into the airfoil) to world points."""
+    pts = np.asarray(pts, float).reshape(-1, 3)
+    return (np.asarray(h["origin"]) + pts[:, :1] * np.asarray(h["a"]) + pts[:, 1:2] * np.asarray(h["b"])
+            + pts[:, 2:] * np.asarray(h["n"]))
+
+
+def hatch_depth(h, pts):
+    """Depth of world points inside the wing's or V-tail's outer surface (negative: outside)."""
+    if h["where"] == "wing":
+        return np.array([-wing_clearance(p) for p in pts])
+    side = 1 if h["origin"][1] > 0 else -1
+    return np.array([-vt_clearance(p, side) for p in pts])
+
+
+def hatch_contents():
+    """Local points over what a hatch carries inside the skin, from the cover's inner face up:
+    the servo, its two tab posts and both hatch blocks."""
+    import payload as PL
+    t, top = P.HATCH_T, P.HATCH_BLOCK_TOP
+    pa, pb, ph = P.HATCH_POST
+    y1 = P.HATCH_B + P.HATCH_CLEAR + P.HATCH_GLUE
+    pts = [box_points(PL.SERVO_ON_HATCH, PL.SERVO9)]
+    pts += [box_points((x, 0, (t + ph) / 2), (pa, pb, ph - t)) for x in (-P.SERVO9_TAB_PITCH / 2, P.SERVO9_TAB_PITCH / 2)]
+    pts += [box_points((0, s * (P.HATCH_MID + y1) / 2, (t + top) / 2), (2 * P.HATCH_BLOCK_A, y1 - P.HATCH_MID, top - t))
+            for s in (-1, 1)]
+    return np.concatenate(pts)
+
+
+def check_hatches():
+    """The removable servo hatches (wing and V-tail): the skin is flat under each cover and
+    block glue face; the servo, posts and blocks fit inside the airfoil clear of the webs,
+    spars, rib spigots and V-tail pins; the opening stays ahead of the hinge and clear of the
+    webs; the leads have room over the mid servo; the screws line up; the ledges seat the cover;
+    and the servo with its horn comes out through the opening past the ledges."""
+    import payload as PL
+    from skins import vt_chord, vt_frame, web_spans
+    a_o, b_o = P.HATCH_A + P.HATCH_CLEAR, P.HATCH_B + P.HATCH_CLEAR
+    plane = [(a, b, 0.0) for a in np.linspace(-a_o, a_o, 11) for b in np.linspace(-b_o, b_o, 15)]
+    plane += [(a, s * b, 0.0) for a in np.linspace(-P.HATCH_BLOCK_A, P.HATCH_BLOCK_A, 5)
+              for b in np.linspace(b_o, b_o + P.HATCH_GLUE, 4) for s in (-1, 1)]
+    edge = [(s * a_o, b, 0.0) for b in np.linspace(-b_o, b_o, 15) for s in (-1, 1)]
+    local = hatch_contents()
+    sv_c, sv = np.array(PL.SERVO_ON_HATCH), np.array(PL.SERVO9)
+    sv_top = [(a, b, sv_c[2] + sv[2] / 2) for a in np.linspace(-sv[0] / 2, sv[0] / 2, 7)
+              for b in np.linspace(sv_c[1] - sv[1] / 2, sv_c[1] + sv[1] / 2, 7)]
+    flat, room, clash, ahead, leads = [], [], [], [], []
+    dev = (np.inf, -np.inf)
+    room_min, clear_min, hinge_min, lead_min, web_edge_min = np.inf, (np.inf, ""), np.inf, np.inf, np.inf
+    half_web = P.WEB_SLOT / 2 + P.LINE_W
+    ribs = {}
+    for h in PL.servo_hatches():
+        side = "r" if h["origin"][1] > 0 else "l"
+        d = hatch_depth(h, hatch_world(h, plane))
+        # d > 0: the skin bulges past the plane, so the cover sits under it there (and the glue
+        # gap under a block is d); d < 0: the cover would stand proud of the skin.
+        dev = (min(dev[0], d.min()), max(dev[1], d.max()))
+        if d.max() > 0.5 or d.min() < -0.1:
+            flat.append(f"{h['name']} {d.min():+.2f}..{d.max():+.2f} mm")
+        w = hatch_world(h, local)
+        # Clearance to the skin's inner face, except where the servo and blocks rest on the cover.
+        dep = hatch_depth(h, w) - P.LWPLA_WALL
+        free = local[:, 2] > P.HATCH_T + 0.05
+        room_min = min(room_min, dep[free].min())
+        if dep.min() < 0.5 or dep[free].min() < 0.5:
+            room.append(f"{h['name']} {min(dep.min(), dep[free].min()):.2f} mm")
+
+        def near(what, dist):
+            nonlocal clear_min
+            if dist < clear_min[0]:
+                clear_min = (dist, f"{h['name']} to {what}")
+            if dist < 0.5:
+                clash.append(f"{h['name']} {dist:.2f} mm from {what}")
+
+        if h["where"] == "wing":
+            y = abs(h["origin"][1])
+            sec, (y0, y1) = ("mid", P.Y_MID_SEC) if y < P.Y_MID_SEC[1] else ("tip", P.Y_TIP_SEC)
+            ew = hatch_world(h, edge)
+            for xw in P.WING_WEBS.get(sec, ()):
+                for ya, yb in web_spans(sec, y0, y1, xw):
+                    m = (np.abs(w[:, 1]) > ya - 0.5) & (np.abs(w[:, 1]) < yb + 0.5)
+                    if m.any():
+                        near(f"web x={xw}", np.min(np.abs(w[m, 0] - xw)) - half_web)
+                    me = (np.abs(ew[:, 1]) > ya - 0.5) & (np.abs(ew[:, 1]) < yb + 0.5)
+                    if me.any():
+                        web_edge_min = min(web_edge_min, np.min(np.abs(ew[me, 0] - xw)) - half_web)
+            for s, tag in ((P.MAIN_SPAR, "main spar"), (P.REAR_SPAR, "rear spar")):
+                near(tag, np.min(np.hypot(w[:, 0] - s["x"], w[:, 2] - s["z"])) - s["od"] / 2)
+            y_out = y + b_o
+            hinge_min = min(hinge_min, P.X_LE + P.AIL_HINGE * P.chord(y_out) - P.AIL_GAP - (h["origin"][0] + a_o))
+            if y < P.Y_MID_SEC[1]:
+                # The tip servo's lead and the pitot tubing pass over the mid servo.
+                up, _ = G.SECTIONS["clarky"]
+                for p in hatch_world(h, sv_top):
+                    c = P.chord(abs(p[1]))
+                    lead_min = min(lead_min, P.Z_WING + c * float(up((p[0] - P.X_LE) / c)) - P.LWPLA_WALL - p[2])
+        else:
+            o, e_s, e_t = vt_frame()
+            if side == "l":
+                o, e_s, e_t = o * [1, -1, 1], e_s * [1, -1, 1], e_t * [1, -1, 1]
+            s_of = (w - o) @ e_s
+            # 4 mm carbon pin: 12 mm into the root rib, on the chord plane at 30 % root chord.
+            pin = o + 0.30 * P.VT_ROOT_CHORD * np.array([1.0, 0, 0])
+            rel = w - pin
+            along = np.clip(rel @ e_s, -P.RIB_T, 12.0)
+            near("V-tail pin", np.min(np.linalg.norm(rel - np.outer(along, e_s), axis=1)) - P.VT_PIN_D / 2)
+            u_out = ((hatch_world(h, [(a_o, b, 0) for b in (-b_o, b_o)]) - o) @ np.array([1.0, 0, 0]))
+            s_ends = (hatch_world(h, [(0, -b_o, 0), (0, b_o, 0)]) - o) @ e_s
+            hinge_min = min(hinge_min, min(P.VT_HINGE * vt_chord(s) for s in s_ends) - u_out.max())
+            if s_of.min() < 0:
+                clash.append(f"{h['name']} reaches past the root rib face")
+        for r in HATCH_RIBS[h["where"]]:
+            key = f"{r}_{side}"
+            if key not in ribs:
+                ribs[key] = load(key)
+            t = ribs[key]
+            lo, hi = t.reshape(-1, 3).min(0) - 1.0, t.reshape(-1, 3).max(0) + 1.0
+            m = np.all((w >= lo) & (w <= hi), axis=1)
+            if m.any():
+                ins = inside_mesh(w[m], t)
+                if ins.any():
+                    clash.append(f"{h['name']} inside {key}")
+                else:
+                    near(key, float(_mesh_dist(w[m], t).min()))
+    check("servo hatches: skin flat under every cover and block (<= 0.5 mm)", not flat,
+          "; ".join(flat) or f"skin {dev[0]:+.2f}..{dev[1]:+.2f} mm from the hatch plane (+: cover sits under the skin)")
+    check("servo hatches: servo, posts and blocks fit inside the skin", not room,
+          "; ".join(room) or f"{room_min:.2f} mm to the skin's inner face at the tightest point off the cover")
+    check("servo hatches clear the webs, spars, rib spigots and V-tail pins", not clash and web_edge_min >= 1.5,
+          "; ".join(clash) or f"closest: {clear_min[1]} {clear_min[0]:.2f} mm; opening edge {web_edge_min:.1f} mm "
+                              f"from a web (want >= 1.5)")
+    check("servo hatch openings stay ahead of the aileron and ruddervator hinge cuts", hinge_min >= 3.0,
+          f"{hinge_min:.1f} mm to spare (want >= 3)")
+    check("leads and pitot tubing have room over the mid aileron servos", lead_min >= 5.0,
+          f"{lead_min:.1f} mm from the servo's top to the top skin (want >= 5)")
+    # Screws, ledges and the way out, in the hatch's own frame.
+    cover, block = load("servo_hatch"), load("hatch_block")
+    both = np.concatenate([cover, block, block * np.array([-1.0, -1.0, 1.0])])
+    hits = sum(len(ray_hits(both, (0, s * P.HATCH_SCREW_B, -2.0), (0, 0, 1))) for s in (-1, 1))
+    cv, bv = cover.reshape(-1, 3), block.reshape(-1, 3)
+    seat = bv[bv[:, 1] < P.HATCH_B, 2].min() - cv[np.abs(cv[:, 1]) > P.HATCH_MID + 0.1, 2].max()
+    lap = P.HATCH_B - P.HATCH_MID
+    check("hatch screws line up through cover and block; the ledges seat the cover", hits == 0 and abs(seat) < 0.02 and lap >= 4,
+          f"{hits} surface crossings on the two screw axes, ledge-to-cover gap {seat:.2f} mm, overlap {lap:.1f} mm")
+    post_a = P.SERVO9_TAB_PITCH / 2 + P.HATCH_POST[0] / 2
+    horn_b = sv_c[1] + sv[1] / 2 + PL.SERVO9_HORN
+    low_b = sv_c[1] - sv[1] / 2
+    check("servo, posts and horn come out through the opening past the ledges",
+          post_a <= a_o - 0.5 and max(horn_b, -low_b) <= P.HATCH_MID - 0.5,
+          f"posts to |a| {post_a:.2f} (opening {a_o:.1f}); servo and horn |b| {low_b:.1f}..{horn_b:.1f} "
+          f"(ledges from {P.HATCH_MID:.1f})")
+
+
+def check_pod_plug():
+    """The tilt servo's plug pocket: open on the pod's inboard face, the servo's lead drops into
+    it from the bay, it joins the wire channel, it takes a mated plug pair, and it keeps its walls."""
+    from structure import pod_profile
+    t = load("boom_pod_r")
+    (x0, x1), (z0, z1) = P.POD_PLUG_X, P.POD_PLUG_Z
+    y0 = P.Y_POD[0]
+    bl, bh, bd = P.SERVO_BODY
+    bx1 = P.X_PIVOT - P.SERVO_SHAFT_FROM_FRONT - 0.5 + bl
+    face = sum(len(ray_hits(t, (x, y0 + d, z), (0, -1, 0))) for x in (x0 + 1.5, (x0 + x1) / 2, x1 - 1.5)
+               for z in (z0 + 1.0, (z0 + z1) / 2, z1 - 1.0) for d in (2.0, P.POD_PLUG_DEPTH - 1.0))
+    drop = sum(len(h[h < P.Z_PIVOT - z0 - 1.0]) for h in
+               (ray_hits(t, (bx1 - dx, y0 + dy, P.Z_PIVOT), (0, 0, -1)) for dx in (2.0, 5.0) for dy in (3.0, 8.0)))
+    xh, zc = bx1 - 4.0, P.Z_WING + 7.0
+    route = [(xh, y0 + 6.0, z0 + 2.0), (xh, P.BOOM_Y - 1.0, zc), (P.TONGUE_X0 - 0.5, P.BOOM_Y, zc)]
+    chan = 0
+    for a, b in zip(route, route[1:]):
+        a, b = np.array(a, float), np.array(b, float)
+        h = ray_hits(t, a, (b - a) / np.linalg.norm(b - a))
+        chan += int(np.sum(h < np.linalg.norm(b - a)))
+    check("tilt-servo plug pocket: open on the face, lead drops in from the bay, joins the wire channel",
+          face == 0 and drop == 0 and chan == 0,
+          f"{face} crossings out through the face, {drop} down from the bay, {chan} along the route to the channel")
+    plug = (25.0, 7.6, 4.0)
+    size = (x1 - x0, P.POD_PLUG_DEPTH, z1 - z0)
+    prof = pod_profile()
+    segs = np.stack([prof, np.roll(prof, -1, axis=0)], axis=1)
+    ring = [(x, z) for x in np.linspace(x0, x1, 12) for z in (z0, z1)] + \
+           [(x, z) for x in (x0, x1) for z in np.linspace(z0, z1, 8)]
+    ring = np.array(ring)
+    wall = dist_2d(ring, segs).min() if inside_2d(ring, segs).all() else -1.0
+    check("plug pocket takes a mated plug pair and keeps >= 1.2 mm walls", all(s >= p + 1.0 for s, p in zip(size, plug))
+          and wall >= 1.2 and P.TONGUE_X0 - 1.0 - x1 >= 0.8,
+          f"pocket {size[0]:.1f} x {size[1]:.1f} x {size[2]:.1f} mm for a {plug[0]:.0f} x {plug[1]} x {plug[2]:.0f} pair; "
+          f"wall to the pod's skin {wall:.1f} mm, to the tongue slot {P.TONGUE_X0 - 1.0 - x1:.1f} mm")
+
+
+def check_tray_straps():
+    """Battery straps: each goes down a slot beside the battery, under the plate through a gap in
+    both rails, and up the other slot, with room to the skin all the way round."""
+    import payload as PL
+    t = load("battery_tray")
+    zt, hs = P.TRAY_Z, P.TRAY_STRAP_W / 2
+    ym = sum(P.TRAY_STRAP_Y) / 2
+    down = under = 0
+    for xs in P.TRAY_STRAP_X:
+        for dx in (-hs + 1.5, 0.0, hs - 1.5):
+            for s in (-1, 1):
+                h = ray_hits(t, (xs + dx, s * ym, zt + 2.0), (0, 0, -1))
+                down += int(np.sum(h < 7.5))
+            h = ray_hits(t, (xs + dx, -ym, zt - 4.5), (0, 1, 0))
+            under += int(np.sum(h < 2 * ym))
+    H = PL.BATTERY_SIZE[2]
+    skin = min(G.fuse_half_width(xs, z, P.LWPLA_WALL) - P.TRAY_STRAP_Y[1]
+               for xs in P.TRAY_STRAP_X for z in np.linspace(zt - 5.0, zt + H, 12))
+    beside = P.TRAY_STRAP_Y[0] - PL.BATTERY_SIZE[1] / 2
+    check("battery straps loop round the battery through the tray", down == 0 and under == 0 and skin >= 0.5 and beside >= 0.8,
+          f"{down} crossings down the slots, {under} under the plate through the rail gaps; "
+          f"strap {beside:.1f} mm clear of the battery, {skin:.1f} mm from the skin at the tightest")
+
+
 if __name__ == "__main__":
     check_meshes()
     check_handedness()
@@ -950,6 +1170,9 @@ if __name__ == "__main__":
     check_equipment()
     check_gps_mount()
     check_webs()
+    check_hatches()
+    check_pod_plug()
+    check_tray_straps()
     if "--no-gcode" not in sys.argv:
         check_gcode()
         check_web_gcode()

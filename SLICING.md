@@ -60,7 +60,7 @@ profile change re-slice every part (`build_all.py` does) rather than only the ch
 
 ## G-code check (Nov 2, 2026)
 
-`check_parts.py` checks the print-ready meshes and parses all 47 files in `gcode/` on every run:
+`check_parts.py` checks the print-ready meshes and parses all 48 files in `gcode/` on every run:
 
 - Every file is present and was sliced from the current STL. `slice_all.py` ends each file with a
   `; vtol_stl_sha256 = ...` stamp, and the gate compares it with the STL's hash; file times are
@@ -69,14 +69,17 @@ profile change re-slice every part (`build_all.py` does) rather than only the ch
   250 mm, X 260 mm). The tallest parts reach 242 mm: a 240 mm top layer plus the 2 mm lift. The
   S1 profile's 240 mm `extruder_clearance_height_to_lid` only applies to by-object printing,
   which is not used.
-- Parts printed from one file for both sides (`vtail_root_rib`, `vtail_tip_cap`, `servo_cage`,
-  `control_horn`) are checked to be mirror-symmetric, so either copy fits either side.
+- Parts printed from one file for both sides (`vtail_root_rib`, `vtail_tip_cap`, `servo_hatch`,
+  `hatch_block`, `control_horn`) are checked to be mirror-symmetric, so either copy fits either
+  side.
 - No part needs supports, judged on the geometry: every PETG face more than 60° from vertical is
   bridged (span ≤ 30 mm, e.g. the top of a hole), and flat faces may also be ledges of ≤ 3 mm.
   Vase skins lean ≤ 45°. The pods print upright (45° gusset under the axle boss, 45° nose
-  chamfer; the slot and servo bay are bridges). The boom rib prints flat, its inboard ring
-  being the separate `boom_cup`. The rear motor mount stands on one end, bore vertical. As a
-  sanity check on the profiles, no G-code file contains a support extrusion.
+  chamfer; the slot, the servo bay and the plug pocket under it are bridges or short ledges).
+  The servo hatches print cover-down and the hatch blocks upside down, both flat. The boom rib
+  prints flat, its inboard ring being the separate `boom_cup`. The rear motor mount stands on
+  one end, bore vertical. As a sanity check on the profiles, no G-code file contains a support
+  extrusion.
 - LW-PLA walls print at 17 mm/s (ruddervator tips) to 30 mm/s.
 - The wing webs print: in a layer where all of a skin's webs are at full depth, the vase path
   turns back once per web and each turn lands within 0.22 mm of the top-skin line (it fuses

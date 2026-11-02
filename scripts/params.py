@@ -148,6 +148,12 @@ TRAY_Z = -52.0              # top surface
 TRAY_W = 60.0
 TRAY_PIN_X = (250.0, 391.0, 10.0)   # battery stop-pin holes: start, stop (exclusive), pitch
 TRAY_PIN_R = 1.6
+# Two Velcro straps loop round the battery: down through a slot beside it, under the plate
+# through a gap in each rail, up through the slot on the other side. Threaded before the tray
+# is glued in; they stay there and open on top of the battery.
+TRAY_STRAP_X = (280.0, 330.0)
+TRAY_STRAP_W = 22.0         # slot and rail-gap length along x (20 mm strap)
+TRAY_STRAP_Y = (25.0, 27.8)  # slot, |y|: outside the 48 mm battery
 GPS_X = 560.0               # external GPS saddle on top of fuse_3
 GPS_PAD = 52.0              # square pad for a 50 mm puck
 GPS_PAD_T = 2.0
@@ -170,3 +176,31 @@ VT_ROOT = (11.0, -2.0)      # (y, z) of the right panel root chord line, rib out
 VT_RUDDERVATOR = (5.0, 236.0)
 TAIL_BLOCK_X = (950.0, 1030.0)
 VT_PIN_D = 4.1
+
+# --- removable servo hatches (4 ailerons, 2 ruddervators) -----------------------
+# A 9 g servo lies on its side on a PETG cover with two posts (servo_hatch). The cover sits
+# flush in an opening cut in the skin and is held by two M2 screws into two PETG blocks glued
+# inside the skin at its span ends (hatch_block); each block's ledge overlaps the cover's end.
+# Local frame: a chordwise, b along the span, n into the airfoil; n = 0 on the outer skin.
+HATCH_A = 17.0              # cover half-length (chordwise): fits the 37.9 mm aileron bay
+HATCH_B = 21.0              # cover half-width (spanwise)
+HATCH_T = 1.2               # cover thickness
+HATCH_CLEAR = 0.2           # opening = cover + this, all round
+HATCH_MID = 15.5            # |b| < this is free for the servo, its spline and horn (to ~14.5); ledges beyond
+HATCH_GLUE = 6.0            # block glue face beyond the opening
+HATCH_BLOCK_A = 8.0         # block half-length (chordwise)
+HATCH_BLOCK_TOP = 5.7       # block top, n (an M2x6 screw: 1.2 mm cover + 4.5 mm block)
+HATCH_SCREW_B = 18.25       # M2 screw station, |b|: 1.95 mm of ledge each side of the pilot hole
+SERVO9_TAB_PITCH = 28.0     # 9 g servo mounting-tab hole pitch
+HATCH_POST = (4.5, 8.0, 13.0)   # tab posts: chordwise, spanwise, height (0.25 mm clear of a 23 mm body)
+# Wing hatches sit on the Clark Y's flat bottom between the main spar's aft web and the rear
+# spar. V-tail hatches sit on the lower surface (a flat cover on a gently curved skin).
+HATCH_VT = (55.0, 45.0)     # V-tail hatch centre: (u aft of the LE, s from the root rib face)
+
+# --- tilt-servo plug pocket in the boom pod ----------------------------------
+# Open on the pod's inboard face under the servo bay: the servo plugs into its extension lead
+# here, so a servo can be swapped without cutting wires. The pocket rises to the bay, so the
+# servo's lead drops straight in and nothing roofs it but the bay's own bridge (prints upright).
+POD_PLUG_X = (306.5, 334.0)  # 27.5 mm: a mated JR/Futaba plug pair is ~25 mm
+POD_PLUG_Z = (-2.0, Z_PIVOT - SERVO_BODY[1] / 2)
+POD_PLUG_DEPTH = 11.5       # from the inboard face; reaches the wire channel

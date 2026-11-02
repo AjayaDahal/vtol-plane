@@ -18,7 +18,7 @@ import params as P
 import payload as PL
 from make_print_ready import PARTS
 
-LOOSE = {"servo_cage", "control_horn"}          # print-only parts modelled at the origin
+LOOSE = {"servo_hatch", "hatch_block", "control_horn"}   # modelled at the origin; hatches placed as instances
 LWPLA = ("wing_", "aileron_", "fuse_", "vtail_l", "vtail_r", "ruddervator_")
 BED = {"s1": 250.0, "x": 260.0}
 
@@ -26,8 +26,8 @@ ROLE = {
     "fuse_1": "removable nose, one M3 nylon screw: the access opening",
     "coupler_240": "nose joint, heat-set insert for the nose screw",
     "fuse_2": "battery and avionics bay",
-    "fc_shelf": "Pixhawk shelf; small boards hang underneath",
-    "battery_tray": "battery tray with stop-pin holes, ESC deck behind",
+    "fc_shelf": "Pixhawk on top; the ESC block and small boards hang underneath",
+    "battery_tray": "battery tray: stop-pin holes, two strap loops round the battery",
     "coupler_370": "joins fuse_2 and fuse_3",
     "fuse_3": "wing section of the fuselage",
     "frame_main": "main joiner sleeve and boom bore",
@@ -54,7 +54,8 @@ ROLE = {
     "ruddervator": "ruddervator",
     "vtail_root_rib": "V-tail root rib (carbon pin into the tail block)",
     "vtail_tip_cap": "V-tail tip cap",
-    "servo_cage": "9 g servo cage, glued inside a skin",
+    "servo_hatch": "removable servo hatch: the servo screws to its posts, 2 M2 screws hold it in",
+    "hatch_block": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it",
     "control_horn": "control horn",
 }
 
@@ -118,6 +119,19 @@ def burst(name):
     return np.zeros(3)    # yokes ride in the tilt group, which carries their offset
 
 
+def hatch_base(h):
+    """Burst offset of the wing section or V-tail panel a servo hatch sits in."""
+    side = h["name"].split("_")[1][0]
+    if h["where"] == "wing":
+        return wing_burst("wing_mid" if abs(h["origin"][1]) < P.Y_MID_SEC[1] else "wing_tip", side)
+    return vt_burst("vtail", side)
+
+
+HATCHES = {h["name"]: h for h in PL.servo_hatches()}
+HATCH_OUT = 50.0       # burst: a hatch cover and its servo come this far out of the skin
+SVC_OUT = 55.0         # service view: the same, with everything else in place
+
+
 def equipment_burst(e):
     n = e["name"]
     if n == "battery":
@@ -130,24 +144,55 @@ def equipment_burst(e):
         return np.array([0.0, 0.0, 180.0])
     if n == "pitot":
         return wing_burst("wing_mid", "r") + (-70.0, 0.0, 0.0)
-    side = n[-1] if n[-1] in "rl" else n.split("_")[-1][0]
+    if e.get("hatch"):
+        h = HATCHES[e["hatch"]]
+        return hatch_base(h) - HATCH_OUT * np.array(h["n"])
+    side = n[-1]
     sgn = 1.0 if side == "r" else -1.0
     if n.startswith("tilt_servo"):
         return wing_burst("boom_pod", side) + (0.0, -sgn * 45.0, 0.0)
-    if n.startswith("aileron_servo"):
-        sec = "wing_mid" if abs(e["pos"][1]) < P.Y_MID_SEC[1] else "wing_tip"
-        return wing_burst(sec, side) + (0.0, 0.0, -45.0)
-    if n.startswith("vtail_servo"):
-        return vt_burst("vtail", side) - 45.0 * vt_axes(side)[1]
+    if n.startswith("tilt_plug"):
+        return wing_burst("boom_pod", side) + (0.0, -sgn * 25.0, -20.0)
     return np.zeros(3)
+
+
+def hatch_instances():
+    """The loose hatch parts placed in the aircraft: a cover and two blocks per servo hatch."""
+    out = []
+    for h in HATCHES.values():
+        a, b, n = (np.array(h[k]) for k in ("a", "b", "n"))
+        base = hatch_base(h)
+        out.append(dict(name=f"servo_hatch@{h['name']}", src="servo_hatch", basis=[a, b, n], origin=h["origin"],
+                        burst=base - HATCH_OUT * n, role=ROLE["servo_hatch"]))
+        for sgn, end in ((1, "+"), (-1, "-")):
+            out.append(dict(name=f"hatch_block@{h['name']}{end}", src="hatch_block",
+                            basis=[sgn * a, sgn * b, n], origin=h["origin"], burst=base, role=ROLE["hatch_block"]))
+    return [dict(i, basis=[[float(c) for c in v] for v in i["basis"]], origin=[float(c) for c in i["origin"]],
+                 burst=[round(float(c), 2) for c in i["burst"]], url=f"../parts/assembly/{i['src']}.stl",
+                 material="petg") for i in out]
+
+
+def service_moves():
+    """Service view: every servo hatch comes out with its servo, then each yoke lifts off its pod
+    and the tilt servo slides out of its bay. Fractions of the animation in `stage`."""
+    moves = {}
+    for h in HATCHES.values():
+        v = [round(float(c), 2) for c in -SVC_OUT * np.array(h["n"])]
+        moves[f"servo_hatch@{h['name']}"] = dict(v=v, stage=[0.0, 0.45])
+        moves[f"servo_{h['name']}"] = dict(v=v, stage=[0.0, 0.45])
+    for sgn, s in ((1, "r"), (-1, "l")):
+        moves[f"pivot_{s}"] = dict(v=[0.0, 0.0, 80.0], stage=[0.3, 0.7])
+        moves[f"tilt_servo_{s}"] = dict(v=[0.0, -sgn * 40.0, 0.0], stage=[0.65, 1.0])
+    return moves
 
 
 # One label per kind of item; the duplicates stay unlabelled.
 LABELS = {"battery": "4S 5000 mAh LiPo", "esc_1": "3 x ESC 50 A", "fc": "Pixhawk 6C",
           "power_module": "power module", "bec": "servo BEC", "airspeed": "airspeed sensor",
           "receiver": "ELRS receiver", "gps": "GPS + compass", "pitot": "pitot tube",
-          "tilt_servo_r": "tilt servo (x2)", "aileron_servo_r320": "aileron servo (x4)",
-          "vtail_servo_r": "ruddervator servo (x2)"}
+          "tilt_servo_r": "tilt servo (x2)", "tilt_plug_r": "tilt-servo plug pocket",
+          "servo_aileron_r325": "aileron servo on its hatch (x4)",
+          "servo_ruddervator_r": "ruddervator servo on its hatch (x2)"}
 
 
 def tube(name, a, b, od, idd=0.0, ex=(0.0, 0.0, 0.0)):
@@ -236,16 +281,17 @@ def main():
     nose = {"fuse_1": dict(v=[-260.0, 0.0, 0.0], stage=[0.0, 0.55]),
             "battery": dict(v=[-215.0, 0.0, 0.0], stage=[0.45, 1.0])}
     out = dict(parts=parts, tubes=tubes, motors=motors, prop_d=P.PROP_D, equipment=equipment, routes=routes,
-               nose=nose, prints=prints(), tilt_range=[P.TILT_MIN_DEG, P.TILT_MAX_DEG], x_le=P.X_LE,
-               y_tip=P.Y_TIP,
+               nose=nose, instances=hatch_instances(), service=service_moves(), prints=prints(),
+               tilt_range=[P.TILT_MIN_DEG, P.TILT_MAX_DEG], x_le=P.X_LE, y_tip=P.Y_TIP,
                joints_y=[P.Y_ROOT_SEC[0], P.Y_BOOM_RIB[0], P.Y_BOOM_RIB[1], P.Y_MIDTIP_RIB[0],
                          P.Y_MIDTIP_RIB[1], P.Y_TIP_RIB[0]])
     path = os.path.join(G.ROOT, "viewer", "manifest.json")
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", newline="\n") as f:
         json.dump(out, f, indent=1)
-    print(f"wrote {path}: {len(parts)} parts, {len(tubes)} tubes, {len(motors)} motors, "
-          f"{len(equipment)} equipment items, {len(routes)} cable runs, {len(out['prints'])} print files")
+    print(f"wrote {path}: {len(parts)} parts, {len(out['instances'])} hatch parts placed, {len(tubes)} tubes, "
+          f"{len(motors)} motors, {len(equipment)} equipment items, {len(routes)} cable runs, "
+          f"{len(out['prints'])} print files")
 
 
 if __name__ == "__main__":

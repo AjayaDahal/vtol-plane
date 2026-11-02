@@ -228,6 +228,10 @@ def boom_pod():
     part -= box(bx0, bx0 + bl, y0 - 1, y0 + bd, zp - bh / 2, zp + bh / 2)
     for dx in (-P.SERVO_TAB_PITCH / 2, P.SERVO_TAB_PITCH / 2):
         part -= cyl_y(0.9, bx0 + bl / 2 + dx, zp, y0 - 1, y0 + 10)
+    # Plug pocket under the front of the bay, open on the inboard face and joined to the wire
+    # channel: the servo plugs into its extension lead here. Its own lead drops straight down
+    # from the bay, so it lifts out with the servo when the servo is changed; nothing is cut.
+    part -= box(*P.POD_PLUG_X, y0 - 1, y0 + P.POD_PLUG_DEPTH, *P.POD_PLUG_Z)
     # Wires: enter beside the axle boss, run aft under the servo into the tongue channel.
     zc = P.Z_WING + 7.0
     part -= cyl_y(P.WIRE_D / 2, xp + 10, zc, P.BOOM_Y, y1 + 1)
@@ -359,17 +363,24 @@ def fc_shelf():
 def battery_tray():
     """The battery slides on it from the nose opening to a stop pin. The rails stand on the
     floor 0.3 mm clear of the skin, or of the coupler ring where there is one; the plate narrows
-    aft with the fuselage and keeps 1.5 mm off it."""
+    aft with the fuselage and keeps 1.5 mm off it. Each Velcro strap loops round the battery:
+    down a slot beside it, under the plate through a gap in each rail, up the other slot."""
     x0, x1 = P.TRAY_X
     zt, hw = P.TRAY_Z, P.TRAY_W / 2
     part = box(x0, x1, -hw, hw, zt - 3, zt) & inner_envelope(x0, x1, 1.5)
     rails = inner_envelope(x0, x1, 0.3)
+    hs = P.TRAY_STRAP_W / 2
     for yr in (-24.0, 24.0):
-        part += box(x0, x1, yr - 1.5, yr + 1.5, zt - 40, zt - 2) & rails
+        rail = box(x0, x1, yr - 1.5, yr + 1.5, zt - 40, zt - 2) & rails
+        for xs in P.TRAY_STRAP_X:
+            rail -= box(xs - hs, xs + hs, yr - 2, yr + 2, zt - 41, zt - 3)
+        part += rail
     for x in np.arange(*P.TRAY_PIN_X):
         part -= cyl_z(P.TRAY_PIN_R, x, 0, zt - 5, zt + 1)
-    for x in (280.0, 330.0):
-        part -= box(x - 1.5, x + 1.5, -12, 12, zt - 5, zt + 1)
+    for xs in P.TRAY_STRAP_X:
+        for sgn in (-1, 1):
+            part -= box(xs - hs, xs + hs, *sorted((sgn * P.TRAY_STRAP_Y[0], sgn * P.TRAY_STRAP_Y[1])),
+                        zt - 5, zt + 1)
     for xa, xb in ((252.0, 275.0), (286.0, 324.0), (336.0, 358.0), (364.0, 386.0)):
         for ya, yb in ((5.0, 19.0), (-19.0, -5.0)):
             part -= box(xa, xb, ya, yb, zt - 5, zt + 1)
@@ -493,13 +504,32 @@ def _along(v):
 
 
 # --- small loose parts (print-only) ---------------------------------------------
-def servo_cage():
-    """9 g micro servo lying on its side: base glues to the skin, tabs screw to the posts."""
-    part = box(-18, 18, -9, 9, 0, 1.6)
-    for x in (-P.SERVO_TAB_PITCH / 2, P.SERVO_TAB_PITCH / 2):
-        part += box(x - 2.5, x + 2.5, -4, 4, 0, 13)
-        part -= cyl_y(0.8, x, 8.0, -5, 5)
+def servo_hatch():
+    """Removable servo hatch: a cover that sits flush in an opening cut in the skin, with two
+    posts the 9 g servo's tabs screw to (the servo lies on its side, shaft spanwise). Two M2
+    screws at its span ends go into the hatch blocks. Local frame: x chordwise, y spanwise,
+    z into the airfoil, z = 0 on the outer skin. Mirror-symmetric, so one file serves all six."""
+    a, b, t = P.HATCH_A, P.HATCH_B, P.HATCH_T
+    pa, pb, ph = P.HATCH_POST
+    part = box(-a, a, -b, b, 0, t)
+    for x in (-P.SERVO9_TAB_PITCH / 2, P.SERVO9_TAB_PITCH / 2):
+        part += box(x - pa / 2, x + pa / 2, -pb / 2, pb / 2, 0, ph)
+        part -= cyl_y(0.8, x, t + 6.1, -pb / 2 - 1, pb / 2 + 1)
+    for y in (-P.HATCH_SCREW_B, P.HATCH_SCREW_B):
+        part -= cyl_z(1.1, 0, y, -1, t + 1)
     return part
+
+
+def hatch_block():
+    """Glued inside the skin at one span end of a servo hatch (local frame as servo_hatch, +y
+    end; turned 180 deg for the other end). Its glue face sits on the skin's inner face beyond
+    the opening; its ledge overlaps the cover's end, and the cover's M2 screw goes into it."""
+    a = P.HATCH_BLOCK_A
+    y_open = P.HATCH_B + P.HATCH_CLEAR
+    top = P.HATCH_BLOCK_TOP
+    part = box(-a, a, P.HATCH_MID, y_open, P.HATCH_T, top) + \
+        box(-a, a, y_open, y_open + P.HATCH_GLUE, P.LWPLA_WALL, top)
+    return part - cyl_z(0.8, 0, P.HATCH_SCREW_B, P.HATCH_T - 1, top + 1)
 
 
 def control_horn():
@@ -536,7 +566,8 @@ def build():
     parts["vtail_tip_cap_r"] = loc * vtail_tip_cap_local()
     for name in ("vtail_root_rib", "vtail_tip_cap"):
         parts[name + "_l"] = mirror(parts[name + "_r"], about=Plane.XZ)
-    parts["servo_cage"] = servo_cage()
+    parts["servo_hatch"] = servo_hatch()
+    parts["hatch_block"] = hatch_block()
     parts["control_horn"] = control_horn()
     os.makedirs(G.ASSEMBLY, exist_ok=True)
     for name, part in parts.items():

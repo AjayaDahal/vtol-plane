@@ -13,10 +13,11 @@ the plane flies. That needs the physical checks listed under "Open".
 ## Current status (v0.2, Nov 2, 2026)
 
 **Ready to print, starting with the test prints.** Print `wing_tip_r`
-(flow), `rib_tip_r` (fit) and `wing_mid_r` (web check) first, then the
-rest (`tracker.md`).
+(flow), `rib_tip_r` (fit), `wing_mid_r` (web check) and one
+`servo_hatch` with two `hatch_block`s (servo fit) first, then the rest
+(`tracker.md`).
 
-- Verification gate: `python scripts/check_parts.py` passes **91/91**.
+- Verification gate: `python scripts/check_parts.py` passes **101/101**.
   It covers mesh integrity, mirrored L/R parts, bed fit, every spigot,
   coupler and frame fit, flush glued skin joints (wing, V-tail and
   fuselage) with crease-free rib flanges, spar, joiner, boom and wire paths, motor holes
@@ -26,33 +27,66 @@ rest (`tracker.md`).
   both sides. Since round 6 it also checks that no two fuselage inserts
   overlap, that the equipment fits (clear of the skin, the inserts and each
   other) and the battery slides out through the nose, the GPS saddle, and
-  the wing webs (clear of the spars and wires along the whole span). It
+  the wing webs (clear of the spars and wires along the whole span). Since
+  round 7 it checks the servo hatches (flat seat, room inside the skin,
+  clear of webs, spars, spigots and pins, ahead of the hinges, screws in
+  line, the servo comes out past the ledges), the tilt servos' plug
+  pockets and the battery straps' path. It
   also checks the G-code: present, sliced from the current STL (hash
   stamp), inside the printer's height, one vase speed band, and every wing
   web printed fused to the skin.
-- 47 G-code files, no supports anywhere. S1 LW-PLA 139 g / 26.3 h,
-  X LW-PLA 120 g / 22.9 h, S1 PETG 467 g / 21.0 h.
-- AUW ~1.97 kg, CG target 431 mm from the nose (27 % MAC; the stop pin at
-  x = 370 gives 429 mm), hover split 38/38/25 %, front motors at 59 % of
-  their near-empty maximum, static margin ~20 %.
+- 48 G-code files, no supports anywhere. S1 LW-PLA 139 g / 26.3 h,
+  X LW-PLA 120 g / 22.9 h, S1 PETG 478 g / 22.7 h.
+- AUW ~2.01 kg, CG target 433 mm from the nose (28.5 % MAC; the stop pin
+  at x = 380 gives 434 mm), hover split 37/37/26 %, front motors at 59.6 %
+  of their near-empty maximum (limit 60 %: the margin is thin), static
+  margin ~18 %.
+- Serviceable: battery out through the nose in a minute; every aileron and
+  ruddervator servo on a screwed hatch; tilt servos and front motors come
+  out with the yoke (`DESIGN.md`, "Servicing").
 - Docs match the files: `DESIGN.md` (design and assembly), `BOM.md`,
   `PX4_GUIDE.md`, `SLICING.md`, `tracker.md`.
 - Renders of the whole aircraft, every wing joint, the burst view, cuts
-  through the fuselage and wing, and every print file on its bed are in
-  `renders/` (3-D viewer: `DESIGN.md`, "Renders and the 3-D viewer").
+  through the fuselage and wing, the service view and every print file on
+  its bed are in `renders/` (3-D viewer: `DESIGN.md`, "Renders and the 3-D
+  viewer").
 
 **Open, can only be closed by building and flying** (in order):
 
-1. LW-PLA flow, spigot fit and web fusion: the three test prints above.
+1. LW-PLA flow, spigot fit, web fusion and servo-hatch fit: the four test
+   prints above.
 2. Tilt servo dimensions against the pod bay, before printing pods and
    yokes.
-3. Real masses: weigh the parts and re-run `mass_balance.py`.
-4. CG: balance at 431 mm, then glide-test.
+3. Real masses: weigh the parts and re-run `mass_balance.py`. The hover
+   margin is thin; if the real AUW comes out above ~2.02 kg, the front
+   motors exceed 60 % of their near-empty thrust.
+4. CG: balance at 433 mm, then glide-test.
 5. Bench: motor order and direction, tilt calibration (−20…90°),
    surface directions, ruddervator mixing, props off.
 6. First hover: vibration and compass interference in the logs, and
    the temperature of the ESC block and battery afterwards.
 7. Transition tuning: at altitude, into wind, back-transition ready.
+
+## Round 7 — serviceability: battery, servos, motors (v0.2, Nov 2, 2026)
+
+Questions: how does the battery come out, is there a hatch that opens and closes, how easy is a
+bad servo to replace, and is the nose removable? Method: every service job was walked through
+on the geometry, part by part and screw by screw, and every way in was proven with ray and
+clearance checks in the gate. The answer is the new "Servicing" table in `DESIGN.md`. The nose
+was already removable (one M3 nylon screw) and is the fuselage's only hatch; everything
+behind it was reachable. The servos and the battery straps were not. The viewer gained a
+"Service" animation and the six servo hatches placed in the model (renders 39–40). All parts
+were rebuilt and re-sliced (48 files).
+
+| # | Severity | Finding | Fix | Status |
+|---|---|---|---|---|
+| 7.1 | P0 build | **The battery could not be strapped down.** The tray's strap slots (x = 280/330, \|y\| < 12) sat under the battery, and the rails at y = ±24 ran unbroken, so no strap could pass under the plate. | Strap slots beside the battery (\|y\| 25–27.8) and a gap in both rails under the plate at each strap station. The straps are threaded before the tray is glued in (`DESIGN.md` step 3.8, and a reminder in `tracker.md`). New check: down both slots and under the plate through the rail gaps nothing is crossed; the strap clears the battery by 1.0 mm and the skin by 4.4 mm. | fixed, gated |
+| 7.2 | P1 service | **The aileron and ruddervator servos were glued in.** Each sat in a `servo_cage` epoxied inside the skin, so a stripped servo meant cutting the skin open. | Removable `servo_hatch` (×6): the servo screws to its posts and the cover sits flush in an opening cut to its outline, held by two M2×6 screws in `hatch_block`s (×12) glued inside the skin. The pushrods unhook at a clevis on the horn. The V-tail hatch plane is a minimax fit to the curved skin, so the cover is never proud of it. The mid hatch moved to y = 325 to clear the boom rib's spigot, and the block ledges start at \|b\| = 15.5 so the horn (to 14.5) clears them. New checks: skin within −0.01…+0.45 mm of every cover and block; contents fit inside the skin; ≥ 2.65 mm from the webs, spars, spigots and V-tail pins, opening 1.7 mm from the nearest web; 29.5 mm ahead of the hinge cuts; 6.6 mm over the mid servos for the leads; screws in line and ledges seating the cover; servo, posts and horn come out past the ledges. | fixed, gated |
+| 7.3 | P1 service | **A tilt servo could not be changed.** Its lead ran through a Ø6 hole, the Ø7 channel and the 5 × 7 tongue groove into the closed wing, and its plug fits none of them. | A plug pocket under each pod's servo bay, open on the inboard face and joined to the wire channel: 27.5 × 11.5 × 10.5 mm for a 25 × 7.6 × 4 mm plug pair. The servo's lead drops straight into it; a 600 mm extension runs from the pocket to the fuselage. A first version, a slot through a 2 mm floor under the bay, would have printed a 19 × 12.5 mm unsupported plate, so the pocket now rises to the bay. New checks: the pocket opens on the face, the lead drops in from the bay, the route to the channel is clear; walls ≥ 2.0 mm to the pod's skin. | fixed, gated |
+| 7.4 | P0 build | **The yoke could not be fitted as documented.** `DESIGN.md` said to screw the horn to the yoke and then slide the yoke onto the spline, but the yoke clears the pod and axle boss by 0.5 mm, far too little to push a horn onto its spline, and spreading the arms ~3 mm risks cracking the PETG. | New order (steps 2.4–2.6): the disc horn goes on the spline first, the yoke is lowered on from above, then the axle screw and shim, then two screws drilled through the inboard arm into the disc horn (with a depth stop). The Ø7 hole on the axis reaches the horn's centre screw later. | fixed (procedure) |
+| 7.5 | P2 service | **Motor-lead joints had no defined place** and could end up inside a pod or the boom, out of reach. | The joints sit in the flex loop outside each pod and outside the boom, between the rear motor and its lead hole: soldered, or 3.5 mm bullets (~7 g more). Front motors come off with the yoke; the rear motor's screws are reached in place. | fixed (procedure) |
+| 7.6 | P1 flight | **The hover margin with every gram counted.** The hatches weigh 14.5 g more than the cages, and the straps, M2 screws, pushrods and clevises, never in the mass list, add ~16 g. The AUW went from 1974 to 2006 g, and with the stop pin at 370 the front motors needed 60.2 % of their near-empty thrust (limit 60 %). | CG target 28.5 % MAC (was 27 %), and the stop pin goes in the hole nearest the target (380): CG 434.4 mm (29.0 % MAC), static margin 18 % (was 20 %), front motors 59.6 %. The static margin is now computed at the CG the pin gives, not at the target. PX4: hover CG 437 mm, `CA_ROTOR2_PX` −0.35. The conservative stall (AUW +10 %, 35 °C, CL 1.0) is now 12.03 m/s, so the rounded-up airspeeds rose one step: STALL 13, MIN 16, TRANS 18 m/s. Round 5's claim (5.7) that they don't shift with small estimate changes was wrong at a rounding boundary. | fixed, gated (margin thin) |
+| 7.7 | P2 doc | **"Every panel ≤ 37 mm" was not true.** The mid section's servo bay is 46 mm wide: a web ahead of the rear spar would run through the hatch opening. | Measured: the mid section's top skin sees a third of the root's strain (0.17 × 10⁻³ at 1 g at its inboard end), so the 46 mm panel reaches a flat panel's wrinkling strain only near 3 g, where the root's 37 mm panels are already past theirs. `DESIGN.md` corrected. | verified |
 
 ## Round 6 — access, internal structure and the electronics bay (v0.2, Nov 2, 2026)
 
@@ -69,7 +103,7 @@ taped).
 
 | # | Severity | Finding | Fix | Status |
 |---|---|---|---|---|
-| 6.1 | P1 structure | **The wing skins had no internal structure.** Each spans 204–217 mm between ribs. At the root the top skin is strained to 0.44/0.87/1.31 × 10⁻³ at 1/2/3 g, while a wide, gently curved 0.5 mm panel wrinkles at about 0.5–0.9 × 10⁻³. In hover the root bends the other way: the flat bottom is compressed to ~1 × 10⁻⁴, above flat-plate buckling (~4 × 10⁻⁵ for 150 mm panels), so it would oil-can in steady hover. | Spanwise webs in the root (6) and mid (4) sections, top skin to bottom skin, cutting every panel to ≤ 37 mm. Each is a 0.06 mm slot that the single vase wall runs into and out of, so it prints as a fused double wall with no extra moves (`webbed_wing_skin`). The tip needs none (0.25 × 10⁻³ at 3 g). +30 g. New checks: spars and wire hole clear of the webs at 159 stations (min 1.62 mm); the boom-cup motor leads and the pitot tubing cross no web; and every web is fused in the G-code (turn-backs within 0.22 mm of the skin line). | fixed, gated |
+| 6.1 | P1 structure | **The wing skins had no internal structure.** Each spans 204–217 mm between ribs. At the root the top skin is strained to 0.44/0.87/1.31 × 10⁻³ at 1/2/3 g, while a wide, gently curved 0.5 mm panel wrinkles at about 0.5–0.9 × 10⁻³. In hover the root bends the other way: the flat bottom is compressed to ~1 × 10⁻⁴, above flat-plate buckling (~4 × 10⁻⁵ for 150 mm panels), so it would oil-can in steady hover. | Spanwise webs in the root (6) and mid (4) sections, top skin to bottom skin, cutting every panel to ≤ 37 mm (except the mid section's 46 mm servo bay, see 7.7). Each is a 0.06 mm slot that the single vase wall runs into and out of, so it prints as a fused double wall with no extra moves (`webbed_wing_skin`). The tip needs none (0.25 × 10⁻³ at 3 g). +30 g. New checks: spars and wire hole clear of the webs at 159 stations (min 1.62 mm); the boom-cup motor leads and the pitot tubing cross no web; and every web is fused in the G-code (turn-backs within 0.22 mm of the skin line). | fixed, gated |
 | 6.2 | P1 print | **The two vase profiles differed,** and neither could print the webs. The S1 had thin-wall detection on, which splits a section at a neck of up to ~0.8 mm, and both had the preset 0.049 mm closing radius, which erases a 0.06 mm slot. | Both profiles: `slice_closing_radius` 0.01 and `detect_thin_wall` 0, set by `make_slicer_profiles.py`. A sweep in the slicer showed one continuous path (0.96–1.02× the outline) with every web fused on both printers. `SLICING.md` explains why the values must stay. | fixed, gated |
 | 6.3 | P1 build | **Inserts ran into the coupler rings.** The battery tray's rail feet sat 0.46–1.05 mm inside `coupler_240` and `coupler_370`, and the FC shelf's edges 0.15–0.44 mm inside them. Neither part would have gone in. | Inserts are cut to the fuselage interior, or to the coupler ring where there is one, plus clearance (`inner_envelope` in `structure.py`). New check "fuselage inserts do not overlap": it reports those depths on the old parts and 0.00 mm now. | fixed, gated |
 | 6.4 | P0 build | **The GPS could never be fitted or serviced.** It was to sit inside `fuse_3` at x = 560, but that bay is sealed when `fuse_4` goes on (step 3.7), and it was installed in step 5. | External PETG saddle (`gps_mount`) glued on top of `fuse_3`, with a Ø16 cable hole that passes the 10-pin plug. The cable, or a pull cord, is laid in during step 3.3. New checks: the skirt follows the skin with a 0.15–0.20 mm glue gap all round, the 50 mm puck fits the pad, and the cable hole is open. | fixed, gated |

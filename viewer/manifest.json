@@ -76,7 +76,7 @@
     0.0,
     -170.0
    ],
-   "role": "battery tray with stop-pin holes, ESC deck behind",
+   "role": "battery tray: stop-pin holes, two strap loops round the battery",
    "printer": "s1",
    "qty": 1
   },
@@ -236,7 +236,7 @@
     0.0,
     190.0
    ],
-   "role": "Pixhawk shelf; small boards hang underneath",
+   "role": "Pixhawk on top; the ESC block and small boards hang underneath",
    "printer": "s1",
    "qty": 1
   },
@@ -969,7 +969,7 @@
    "label": "4S 5000 mAh LiPo",
    "kind": "box",
    "pos": [
-    290.9,
+    300.9,
     0.0,
     -33.5
    ],
@@ -1257,93 +1257,28 @@
    "tag": "tilt servo (x2)"
   },
   {
-   "name": "aileron_servo_r320",
-   "label": "aileron servo",
+   "name": "tilt_plug_r",
+   "label": "tilt-servo plug (in the pod's plug pocket)",
    "kind": "box",
    "pos": [
-    458.0,
-    320.0,
-    3.2999999999999994
+    320.25,
+    271.75,
+    0.0
    ],
-   "color": "#4a4f57",
+   "color": "#c9a227",
    "group": "servos",
    "inside": false,
    "size": [
-    23.0,
-    22.5,
-    12.2
+    25.0,
+    7.6,
+    4.0
    ],
    "burst": [
-    0.0,
-    390.0,
-    -45.0
+    -80.0,
+    305.0,
+    -20.0
    ],
-   "tag": "aileron servo (x4)"
-  },
-  {
-   "name": "aileron_servo_r530",
-   "label": "aileron servo",
-   "kind": "box",
-   "pos": [
-    458.0,
-    530.0,
-    3.2999999999999994
-   ],
-   "color": "#4a4f57",
-   "group": "servos",
-   "inside": false,
-   "size": [
-    23.0,
-    22.5,
-    12.2
-   ],
-   "burst": [
-    0.0,
-    510.0,
-    -45.0
-   ],
-   "tag": null
-  },
-  {
-   "name": "vtail_servo_r",
-   "label": "ruddervator servo",
-   "kind": "box",
-   "pos": [
-    975.0,
-    47.86184199300463,
-    23.810939635797073
-   ],
-   "color": "#4a4f57",
-   "group": "servos",
-   "inside": false,
-   "size": [
-    23.0,
-    22.5,
-    12.2
-   ],
-   "basis": [
-    [
-     1.0,
-     0.0,
-     0.0
-    ],
-    [
-     0.0,
-     0.8191520442889918,
-     0.573576436351046
-    ],
-    [
-     0.0,
-     -0.573576436351046,
-     0.8191520442889918
-    ]
-   ],
-   "burst": [
-    520.0,
-    107.73,
-    20.5
-   ],
-   "tag": "ruddervator servo (x2)"
+   "tag": "tilt-servo plug pocket"
   },
   {
    "name": "tilt_servo_l",
@@ -1370,61 +1305,37 @@
    "tag": null
   },
   {
-   "name": "aileron_servo_l320",
-   "label": "aileron servo",
+   "name": "tilt_plug_l",
+   "label": "tilt-servo plug (in the pod's plug pocket)",
    "kind": "box",
    "pos": [
-    458.0,
-    -320.0,
-    3.2999999999999994
+    320.25,
+    -271.75,
+    0.0
    ],
-   "color": "#4a4f57",
+   "color": "#c9a227",
    "group": "servos",
    "inside": false,
    "size": [
-    23.0,
-    22.5,
-    12.2
+    25.0,
+    7.6,
+    4.0
    ],
    "burst": [
-    0.0,
-    -390.0,
-    -45.0
+    -80.0,
+    -305.0,
+    -20.0
    ],
    "tag": null
   },
   {
-   "name": "aileron_servo_l530",
+   "name": "servo_aileron_r325",
    "label": "aileron servo",
    "kind": "box",
    "pos": [
     458.0,
-    -530.0,
-    3.2999999999999994
-   ],
-   "color": "#4a4f57",
-   "group": "servos",
-   "inside": false,
-   "size": [
-    23.0,
-    22.5,
-    12.2
-   ],
-   "burst": [
-    0.0,
-    -510.0,
-    -45.0
-   ],
-   "tag": null
-  },
-  {
-   "name": "vtail_servo_l",
-   "label": "ruddervator servo",
-   "kind": "box",
-   "pos": [
-    975.0,
-    -47.86184199300463,
-    23.810939635797073
+    324.25,
+    2.3
    ],
    "color": "#4a4f57",
    "group": "servos",
@@ -1442,19 +1353,230 @@
     ],
     [
      0.0,
-     -0.8191520442889918,
-     0.573576436351046
+     1.0,
+     0.0
     ],
     [
      0.0,
-     0.573576436351046,
-     0.8191520442889918
+     0.0,
+     1.0
     ]
    ],
+   "hatch": "aileron_r325",
    "burst": [
-    520.0,
-    -107.73,
-    20.5
+    0.0,
+    390.0,
+    -50.0
+   ],
+   "tag": "aileron servo on its hatch (x4)"
+  },
+  {
+   "name": "servo_aileron_r530",
+   "label": "aileron servo",
+   "kind": "box",
+   "pos": [
+    458.0,
+    529.25,
+    2.3
+   ],
+   "color": "#4a4f57",
+   "group": "servos",
+   "inside": false,
+   "size": [
+    23.0,
+    22.5,
+    12.2
+   ],
+   "basis": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "hatch": "aileron_r530",
+   "burst": [
+    0.0,
+    510.0,
+    -50.0
+   ],
+   "tag": null
+  },
+  {
+   "name": "servo_ruddervator_r",
+   "label": "ruddervator servo",
+   "kind": "box",
+   "pos": [
+    974.9221302128469,
+    48.417802220079366,
+    21.46072841134771
+   ],
+   "color": "#4a4f57",
+   "group": "servos",
+   "inside": false,
+   "size": [
+    23.0,
+    22.5,
+    12.2
+   ],
+   "basis": [
+    [
+     0.9999495504690517,
+     -0.005911947364844878,
+     0.008120677009754633
+    ],
+    [
+     0.0,
+     0.8084518340859428,
+     0.5885623433104393
+    ],
+    [
+     -0.010044725817136758,
+     -0.5885326506162855,
+     0.8084110480701189
+    ]
+   ],
+   "hatch": "ruddervator_r",
+   "burst": [
+    520.5,
+    111.34,
+    16.94
+   ],
+   "tag": "ruddervator servo on its hatch (x2)"
+  },
+  {
+   "name": "servo_aileron_l325",
+   "label": "aileron servo",
+   "kind": "box",
+   "pos": [
+    458.0,
+    -325.75,
+    2.3
+   ],
+   "color": "#4a4f57",
+   "group": "servos",
+   "inside": false,
+   "size": [
+    23.0,
+    22.5,
+    12.2
+   ],
+   "basis": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "hatch": "aileron_l325",
+   "burst": [
+    0.0,
+    -390.0,
+    -50.0
+   ],
+   "tag": null
+  },
+  {
+   "name": "servo_aileron_l530",
+   "label": "aileron servo",
+   "kind": "box",
+   "pos": [
+    458.0,
+    -530.75,
+    2.3
+   ],
+   "color": "#4a4f57",
+   "group": "servos",
+   "inside": false,
+   "size": [
+    23.0,
+    22.5,
+    12.2
+   ],
+   "basis": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "hatch": "aileron_l530",
+   "burst": [
+    0.0,
+    -510.0,
+    -50.0
+   ],
+   "tag": null
+  },
+  {
+   "name": "servo_ruddervator_l",
+   "label": "ruddervator servo",
+   "kind": "box",
+   "pos": [
+    974.9221302128469,
+    -49.630479971208274,
+    22.34357192631337
+   ],
+   "color": "#4a4f57",
+   "group": "servos",
+   "inside": false,
+   "size": [
+    23.0,
+    22.5,
+    12.2
+   ],
+   "basis": [
+    [
+     0.9999495504690517,
+     0.005911947364844878,
+     0.008120677009754633
+    ],
+    [
+     0.0,
+     0.8084518340859428,
+     -0.5885623433104393
+    ],
+    [
+     -0.010044725817136758,
+     0.5885326506162855,
+     0.8084110480701189
+    ]
+   ],
+   "hatch": "ruddervator_l",
+   "burst": [
+    520.5,
+    -111.34,
+    16.94
    ],
    "tag": null
   }
@@ -1466,17 +1588,17 @@
    "color": "#c0392b",
    "pts": [
     [
-     213.39999999999998,
+     223.39999999999998,
      0.0,
      -27.0
     ],
     [
-     201.39999999999998,
+     211.39999999999998,
      0.0,
      -22.0
     ],
     [
-     201.39999999999998,
+     211.39999999999998,
      -8.0,
      0.0
     ],
@@ -1782,6 +1904,110 @@
      24.5
     ]
    ]
+  },
+  {
+   "name": "battery strap at x = 280",
+   "d": 2.0,
+   "color": "#22262b",
+   "pts": [
+    [
+     280.0,
+     -20.0,
+     -14.0
+    ],
+    [
+     280.0,
+     20.0,
+     -14.0
+    ],
+    [
+     280.0,
+     26.4,
+     -19.0
+    ],
+    [
+     280.0,
+     26.4,
+     -53.0
+    ],
+    [
+     280.0,
+     20.0,
+     -56.5
+    ],
+    [
+     280.0,
+     -20.0,
+     -56.5
+    ],
+    [
+     280.0,
+     -26.4,
+     -53.0
+    ],
+    [
+     280.0,
+     -26.4,
+     -19.0
+    ],
+    [
+     280.0,
+     -20.0,
+     -14.0
+    ]
+   ]
+  },
+  {
+   "name": "battery strap at x = 330",
+   "d": 2.0,
+   "color": "#22262b",
+   "pts": [
+    [
+     330.0,
+     -20.0,
+     -14.0
+    ],
+    [
+     330.0,
+     20.0,
+     -14.0
+    ],
+    [
+     330.0,
+     26.4,
+     -19.0
+    ],
+    [
+     330.0,
+     26.4,
+     -53.0
+    ],
+    [
+     330.0,
+     20.0,
+     -56.5
+    ],
+    [
+     330.0,
+     -20.0,
+     -56.5
+    ],
+    [
+     330.0,
+     -26.4,
+     -53.0
+    ],
+    [
+     330.0,
+     -26.4,
+     -19.0
+    ],
+    [
+     330.0,
+     -20.0,
+     -14.0
+    ]
+   ]
   }
  ],
  "nose": {
@@ -1804,6 +2030,798 @@
    ],
    "stage": [
     0.45,
+    1.0
+   ]
+  }
+ },
+ "instances": [
+  {
+   "name": "servo_hatch@aileron_r325",
+   "src": "servo_hatch",
+   "basis": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "origin": [
+    458.0,
+    325.0,
+    -5.0
+   ],
+   "burst": [
+    0.0,
+    390.0,
+    -50.0
+   ],
+   "role": "removable servo hatch: the servo screws to its posts, 2 M2 screws hold it in",
+   "url": "../parts/assembly/servo_hatch.stl",
+   "material": "petg"
+  },
+  {
+   "name": "hatch_block@aileron_r325+",
+   "src": "hatch_block",
+   "basis": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "origin": [
+    458.0,
+    325.0,
+    -5.0
+   ],
+   "burst": [
+    0.0,
+    390.0,
+    0.0
+   ],
+   "role": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it",
+   "url": "../parts/assembly/hatch_block.stl",
+   "material": "petg"
+  },
+  {
+   "name": "hatch_block@aileron_r325-",
+   "src": "hatch_block",
+   "basis": [
+    [
+     -1.0,
+     -0.0,
+     -0.0
+    ],
+    [
+     -0.0,
+     -1.0,
+     -0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "origin": [
+    458.0,
+    325.0,
+    -5.0
+   ],
+   "burst": [
+    0.0,
+    390.0,
+    0.0
+   ],
+   "role": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it",
+   "url": "../parts/assembly/hatch_block.stl",
+   "material": "petg"
+  },
+  {
+   "name": "servo_hatch@aileron_r530",
+   "src": "servo_hatch",
+   "basis": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "origin": [
+    458.0,
+    530.0,
+    -5.0
+   ],
+   "burst": [
+    0.0,
+    510.0,
+    -50.0
+   ],
+   "role": "removable servo hatch: the servo screws to its posts, 2 M2 screws hold it in",
+   "url": "../parts/assembly/servo_hatch.stl",
+   "material": "petg"
+  },
+  {
+   "name": "hatch_block@aileron_r530+",
+   "src": "hatch_block",
+   "basis": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "origin": [
+    458.0,
+    530.0,
+    -5.0
+   ],
+   "burst": [
+    0.0,
+    510.0,
+    0.0
+   ],
+   "role": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it",
+   "url": "../parts/assembly/hatch_block.stl",
+   "material": "petg"
+  },
+  {
+   "name": "hatch_block@aileron_r530-",
+   "src": "hatch_block",
+   "basis": [
+    [
+     -1.0,
+     -0.0,
+     -0.0
+    ],
+    [
+     -0.0,
+     -1.0,
+     -0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "origin": [
+    458.0,
+    530.0,
+    -5.0
+   ],
+   "burst": [
+    0.0,
+    510.0,
+    0.0
+   ],
+   "role": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it",
+   "url": "../parts/assembly/hatch_block.stl",
+   "material": "petg"
+  },
+  {
+   "name": "servo_hatch@ruddervator_r",
+   "src": "servo_hatch",
+   "basis": [
+    [
+     0.9999495504690517,
+     -0.005911947364844878,
+     0.008120677009754633
+    ],
+    [
+     0.0,
+     0.8084518340859428,
+     0.5885623433104393
+    ],
+    [
+     -0.010044725817136758,
+     -0.5885326506162855,
+     0.8084110480701189
+    ]
+   ],
+   "origin": [
+    974.995456711312,
+    53.3204294451427,
+    16.000749517918674
+   ],
+   "burst": [
+    520.5,
+    111.34,
+    16.94
+   ],
+   "role": "removable servo hatch: the servo screws to its posts, 2 M2 screws hold it in",
+   "url": "../parts/assembly/servo_hatch.stl",
+   "material": "petg"
+  },
+  {
+   "name": "hatch_block@ruddervator_r+",
+   "src": "hatch_block",
+   "basis": [
+    [
+     0.9999495504690517,
+     -0.005911947364844878,
+     0.008120677009754633
+    ],
+    [
+     0.0,
+     0.8084518340859428,
+     0.5885623433104393
+    ],
+    [
+     -0.010044725817136758,
+     -0.5885326506162855,
+     0.8084110480701189
+    ]
+   ],
+   "origin": [
+    974.995456711312,
+    53.3204294451427,
+    16.000749517918674
+   ],
+   "burst": [
+    520.0,
+    81.92,
+    57.36
+   ],
+   "role": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it",
+   "url": "../parts/assembly/hatch_block.stl",
+   "material": "petg"
+  },
+  {
+   "name": "hatch_block@ruddervator_r-",
+   "src": "hatch_block",
+   "basis": [
+    [
+     -0.9999495504690517,
+     0.005911947364844878,
+     -0.008120677009754633
+    ],
+    [
+     -0.0,
+     -0.8084518340859428,
+     -0.5885623433104393
+    ],
+    [
+     -0.010044725817136758,
+     -0.5885326506162855,
+     0.8084110480701189
+    ]
+   ],
+   "origin": [
+    974.995456711312,
+    53.3204294451427,
+    16.000749517918674
+   ],
+   "burst": [
+    520.0,
+    81.92,
+    57.36
+   ],
+   "role": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it",
+   "url": "../parts/assembly/hatch_block.stl",
+   "material": "petg"
+  },
+  {
+   "name": "servo_hatch@aileron_l325",
+   "src": "servo_hatch",
+   "basis": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "origin": [
+    458.0,
+    -325.0,
+    -5.0
+   ],
+   "burst": [
+    0.0,
+    -390.0,
+    -50.0
+   ],
+   "role": "removable servo hatch: the servo screws to its posts, 2 M2 screws hold it in",
+   "url": "../parts/assembly/servo_hatch.stl",
+   "material": "petg"
+  },
+  {
+   "name": "hatch_block@aileron_l325+",
+   "src": "hatch_block",
+   "basis": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "origin": [
+    458.0,
+    -325.0,
+    -5.0
+   ],
+   "burst": [
+    0.0,
+    -390.0,
+    0.0
+   ],
+   "role": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it",
+   "url": "../parts/assembly/hatch_block.stl",
+   "material": "petg"
+  },
+  {
+   "name": "hatch_block@aileron_l325-",
+   "src": "hatch_block",
+   "basis": [
+    [
+     -1.0,
+     -0.0,
+     -0.0
+    ],
+    [
+     -0.0,
+     -1.0,
+     -0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "origin": [
+    458.0,
+    -325.0,
+    -5.0
+   ],
+   "burst": [
+    0.0,
+    -390.0,
+    0.0
+   ],
+   "role": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it",
+   "url": "../parts/assembly/hatch_block.stl",
+   "material": "petg"
+  },
+  {
+   "name": "servo_hatch@aileron_l530",
+   "src": "servo_hatch",
+   "basis": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "origin": [
+    458.0,
+    -530.0,
+    -5.0
+   ],
+   "burst": [
+    0.0,
+    -510.0,
+    -50.0
+   ],
+   "role": "removable servo hatch: the servo screws to its posts, 2 M2 screws hold it in",
+   "url": "../parts/assembly/servo_hatch.stl",
+   "material": "petg"
+  },
+  {
+   "name": "hatch_block@aileron_l530+",
+   "src": "hatch_block",
+   "basis": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "origin": [
+    458.0,
+    -530.0,
+    -5.0
+   ],
+   "burst": [
+    0.0,
+    -510.0,
+    0.0
+   ],
+   "role": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it",
+   "url": "../parts/assembly/hatch_block.stl",
+   "material": "petg"
+  },
+  {
+   "name": "hatch_block@aileron_l530-",
+   "src": "hatch_block",
+   "basis": [
+    [
+     -1.0,
+     -0.0,
+     -0.0
+    ],
+    [
+     -0.0,
+     -1.0,
+     -0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "origin": [
+    458.0,
+    -530.0,
+    -5.0
+   ],
+   "burst": [
+    0.0,
+    -510.0,
+    0.0
+   ],
+   "role": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it",
+   "url": "../parts/assembly/hatch_block.stl",
+   "material": "petg"
+  },
+  {
+   "name": "servo_hatch@ruddervator_l",
+   "src": "servo_hatch",
+   "basis": [
+    [
+     0.9999495504690517,
+     0.005911947364844878,
+     0.008120677009754633
+    ],
+    [
+     0.0,
+     0.8084518340859428,
+     -0.5885623433104393
+    ],
+    [
+     -0.010044725817136758,
+     0.5885326506162855,
+     0.8084110480701189
+    ]
+   ],
+   "origin": [
+    974.995456711312,
+    -53.3204294451427,
+    16.000749517918674
+   ],
+   "burst": [
+    520.5,
+    -111.34,
+    16.94
+   ],
+   "role": "removable servo hatch: the servo screws to its posts, 2 M2 screws hold it in",
+   "url": "../parts/assembly/servo_hatch.stl",
+   "material": "petg"
+  },
+  {
+   "name": "hatch_block@ruddervator_l+",
+   "src": "hatch_block",
+   "basis": [
+    [
+     0.9999495504690517,
+     0.005911947364844878,
+     0.008120677009754633
+    ],
+    [
+     0.0,
+     0.8084518340859428,
+     -0.5885623433104393
+    ],
+    [
+     -0.010044725817136758,
+     0.5885326506162855,
+     0.8084110480701189
+    ]
+   ],
+   "origin": [
+    974.995456711312,
+    -53.3204294451427,
+    16.000749517918674
+   ],
+   "burst": [
+    520.0,
+    -81.92,
+    57.36
+   ],
+   "role": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it",
+   "url": "../parts/assembly/hatch_block.stl",
+   "material": "petg"
+  },
+  {
+   "name": "hatch_block@ruddervator_l-",
+   "src": "hatch_block",
+   "basis": [
+    [
+     -0.9999495504690517,
+     -0.005911947364844878,
+     -0.008120677009754633
+    ],
+    [
+     -0.0,
+     -0.8084518340859428,
+     0.5885623433104393
+    ],
+    [
+     -0.010044725817136758,
+     0.5885326506162855,
+     0.8084110480701189
+    ]
+   ],
+   "origin": [
+    974.995456711312,
+    -53.3204294451427,
+    16.000749517918674
+   ],
+   "burst": [
+    520.0,
+    -81.92,
+    57.36
+   ],
+   "role": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it",
+   "url": "../parts/assembly/hatch_block.stl",
+   "material": "petg"
+  }
+ ],
+ "service": {
+  "servo_hatch@aileron_r325": {
+   "v": [
+    -0.0,
+    -0.0,
+    -55.0
+   ],
+   "stage": [
+    0.0,
+    0.45
+   ]
+  },
+  "servo_aileron_r325": {
+   "v": [
+    -0.0,
+    -0.0,
+    -55.0
+   ],
+   "stage": [
+    0.0,
+    0.45
+   ]
+  },
+  "servo_hatch@aileron_r530": {
+   "v": [
+    -0.0,
+    -0.0,
+    -55.0
+   ],
+   "stage": [
+    0.0,
+    0.45
+   ]
+  },
+  "servo_aileron_r530": {
+   "v": [
+    -0.0,
+    -0.0,
+    -55.0
+   ],
+   "stage": [
+    0.0,
+    0.45
+   ]
+  },
+  "servo_hatch@ruddervator_r": {
+   "v": [
+    0.55,
+    32.37,
+    -44.46
+   ],
+   "stage": [
+    0.0,
+    0.45
+   ]
+  },
+  "servo_ruddervator_r": {
+   "v": [
+    0.55,
+    32.37,
+    -44.46
+   ],
+   "stage": [
+    0.0,
+    0.45
+   ]
+  },
+  "servo_hatch@aileron_l325": {
+   "v": [
+    -0.0,
+    -0.0,
+    -55.0
+   ],
+   "stage": [
+    0.0,
+    0.45
+   ]
+  },
+  "servo_aileron_l325": {
+   "v": [
+    -0.0,
+    -0.0,
+    -55.0
+   ],
+   "stage": [
+    0.0,
+    0.45
+   ]
+  },
+  "servo_hatch@aileron_l530": {
+   "v": [
+    -0.0,
+    -0.0,
+    -55.0
+   ],
+   "stage": [
+    0.0,
+    0.45
+   ]
+  },
+  "servo_aileron_l530": {
+   "v": [
+    -0.0,
+    -0.0,
+    -55.0
+   ],
+   "stage": [
+    0.0,
+    0.45
+   ]
+  },
+  "servo_hatch@ruddervator_l": {
+   "v": [
+    0.55,
+    -32.37,
+    -44.46
+   ],
+   "stage": [
+    0.0,
+    0.45
+   ]
+  },
+  "servo_ruddervator_l": {
+   "v": [
+    0.55,
+    -32.37,
+    -44.46
+   ],
+   "stage": [
+    0.0,
+    0.45
+   ]
+  },
+  "pivot_r": {
+   "v": [
+    0.0,
+    0.0,
+    80.0
+   ],
+   "stage": [
+    0.3,
+    0.7
+   ]
+  },
+  "tilt_servo_r": {
+   "v": [
+    0.0,
+    -40.0,
+    0.0
+   ],
+   "stage": [
+    0.65,
+    1.0
+   ]
+  },
+  "pivot_l": {
+   "v": [
+    0.0,
+    0.0,
+    80.0
+   ],
+   "stage": [
+    0.3,
+    0.7
+   ]
+  },
+  "tilt_servo_l": {
+   "v": [
+    0.0,
+    40.0,
+    0.0
+   ],
+   "stage": [
+    0.65,
     1.0
    ]
   }
@@ -1890,9 +2908,9 @@
     60.0,
     11.5
    ],
-   "grams": 22.58,
-   "minutes": 55.8,
-   "role": "battery tray with stop-pin holes, ESC deck behind"
+   "grams": 20.38,
+   "minutes": 54.9,
+   "role": "battery tray: stop-pin holes, two strap loops round the battery"
   },
   {
    "name": "boom_cup_l",
@@ -1941,8 +2959,8 @@
     41.0,
     28.5
    ],
-   "grams": 28.52,
-   "minutes": 63.4,
+   "grams": 27.94,
+   "minutes": 62.8,
    "role": "tilt-servo pod and axle boss"
   },
   {
@@ -1958,8 +2976,8 @@
     41.0,
     28.5
    ],
-   "grams": 28.53,
-   "minutes": 63.6,
+   "grams": 27.94,
+   "minutes": 63.1,
    "role": "tilt-servo pod and axle boss"
   },
   {
@@ -2079,7 +3097,7 @@
    ],
    "grams": 24.27,
    "minutes": 52.8,
-   "role": "Pixhawk shelf; small boards hang underneath"
+   "role": "Pixhawk on top; the ESC block and small boards hang underneath"
   },
   {
    "name": "frame_main",
@@ -2111,8 +3129,8 @@
     107.9,
     7.5
    ],
-   "grams": 14.9,
-   "minutes": 37.9,
+   "grams": 14.79,
+   "minutes": 37.7,
    "role": "rear joiner sleeve and boom bore"
   },
   {
@@ -2196,9 +3214,26 @@
     52.0,
     12.2
    ],
-   "grams": 7.0,
-   "minutes": 20.4,
+   "grams": 6.98,
+   "minutes": 20.3,
    "role": "external GPS saddle, glued on top"
+  },
+  {
+   "name": "hatch_block",
+   "url": "../parts/print_ready/hatch_block.stl",
+   "material": "petg",
+   "printer": "s1",
+   "qty": 12,
+   "supports": false,
+   "bed": 250.0,
+   "size": [
+    16.0,
+    11.7,
+    5.1
+   ],
+   "grams": 0.75,
+   "minutes": 7.8,
+   "role": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it"
   },
   {
    "name": "pod_collar",
@@ -2371,21 +3406,21 @@
    "role": "ruddervator"
   },
   {
-   "name": "servo_cage",
-   "url": "../parts/print_ready/servo_cage.stl",
+   "name": "servo_hatch",
+   "url": "../parts/print_ready/servo_hatch.stl",
    "material": "petg",
    "printer": "s1",
    "qty": 6,
    "supports": false,
    "bed": 250.0,
    "size": [
-    36.0,
-    18.0,
+    34.0,
+    42.0,
     13.0
    ],
-   "grams": 2.14,
-   "minutes": 14.7,
-   "role": "9 g servo cage, glued inside a skin"
+   "grams": 3.02,
+   "minutes": 16.6,
+   "role": "removable servo hatch: the servo screws to its posts, 2 M2 screws hold it in"
   },
   {
    "name": "tail_block",

@@ -18,15 +18,15 @@ disagree, the scripts win.
 
 | Item | Value |
 |---|---|
-| Span / length | 1420 mm / ~1100 mm |
+| Span / length | 1478 mm over the tip fairings (1420 mm at the tip rings) / ~1100 mm |
 | Wing | Clark Y, flat bottom level with the fuselage datum, 0° dihedral, straight LE; chord 220 mm root → 150 mm tip; area 0.267 m²; MAC 187 mm |
 | Ailerons | 2 per side, hinge at 75 % chord, top-surface tape hinge, ±25° |
-| V-tail | 2 fixed panels, NACA 0012, 240 mm span, chord 180 → 110 mm, 35° from horizontal (110° included); ruddervators hinged at 70 % chord |
-| All-up weight | ~2.01 kg: printed parts ~736 g, 4S battery 520 g, everything else ~750 g |
+| V-tail | 2 fixed panels, NACA 0012, 240 mm span plus a 20 mm tip fairing, chord 180 → 110 mm, 35° from horizontal (110° included); ruddervators hinged at 70 % chord |
+| All-up weight | ~2.01 kg: printed parts ~742 g, 4S battery 520 g, everything else ~750 g |
 | CG | **433 mm aft of the nose tip** (28.5 % MAC); 25–30 % band = 427–436 mm |
-| Hover | front motors 745 g each (37 % of AUW), rear 516 g (26 %); front motor at 48–60 % of its maximum (the design limit is 60 %); ~7.2 min pure hover (estimate) |
+| Hover | front motors 746 g each (37 % of AUW), rear 519 g (26 %); front motor at 48–60 % of its maximum (the design limit is 60 %); ~7.2 min pure hover (estimate) |
 | Stall | 10.0–11.5 m/s (CL 1.2 at sea level to CL 1.0 at 35 °C) |
-| Static margin | ~18 % MAC |
+| Static margin | ~19 % MAC |
 | Motors / props | 3× Emax ECOII 2807 **1700KV** (the 4S winding), 7×4.5: front right CW, front left CCW, rear CCW |
 | ESCs / battery | 3× 50 A DShot; 4S 5000 mAh LiPo |
 | Servos | 2× tilt (Kingmax KM1203MD class, 12 mm mini, metal gear, direct drive); 4× 9 g ailerons; 2× 9 g ruddervators |
@@ -43,10 +43,11 @@ right; every left-hand part has its own file.
   ruddervators are single-wall shells, open at both ends. Vase mode cannot print holes, so
   every hole in a skin is drilled by hand (table below). The root and mid wing sections also
   carry internal spanwise webs, printed as part of the same single wall ("Inside the wing").
+  The wing and V-tail tips are closed by vase-mode tip fairings ("Tips").
 - **Structure (PETG):** every skin end slides 10 mm over a PETG spigot ring (wing ribs, boom
-  cup, couplers, V-tail ribs). The rings are 0.85 mm inside the skin surface: 0.6 mm for the
-  foamed wall plus 0.25 mm slip.
-- **Wing:** two carbon spars per panel run from the root rib (y = 60) to the tip rib (y = 710):
+  cup, couplers, V-tail ribs, the hidden tip rings). The rings are 0.85 mm inside the skin
+  surface: 0.6 mm for the foamed wall plus 0.25 mm slip.
+- **Wing:** two carbon spars per panel run from the root rib (y = 60) to the tip ring (y = 710):
   main 10×8 mm at x = 432, z = 3.5; rear 6×4 mm at x = 480, z = 1. The panels plug onto
   joiners that cross the fuselage in two printed frames: an 8×6 mm tube 420 mm long inside
   the main spars, and a 4 mm rod 320 mm long inside the rear spars. An M2.5 nylon pin locks
@@ -59,7 +60,8 @@ right; every left-hand part has its own file.
 - **Fuselage:** four sections joined by PETG couplers at x = 240, 370 and 610. The nose
   (`fuse_1`) comes off for battery access. A 16×14 mm carbon tail boom runs from x = 420 to
   1050 at z = −20. It passes through both frames, the boom web in `coupler_610` and the
-  `pod_collar`. The rear motor mount clamps the boom at x = 790. The tail block on the end of
+  `pod_collar`. The rear motor mount clamps the boom at x = 780, 2 mm behind the fuselage's
+  end. The tail block on the end of
   the boom carries the V-tail.
 
 ## Parts map
@@ -78,9 +80,11 @@ right; every left-hand part has its own file.
 | `coupler_610` | x 590–630 | epoxied into `fuse_3` and `fuse_4`; boom web at its front end |
 | `fuse_4` | x 610–760 | — |
 | `pod_collar` | x 745–760 | epoxied into the tail of `fuse_4`; boom passes through |
-| `rear_motor_mount` | x 772–808 on the boom | 2× M3×16 clamp bolts |
+| `rear_motor_mount` | x 762–798 on the boom | 2× M3×16 clamp bolts |
 | `tail_block` | x 950–1030, end of the boom | epoxy |
-| `vtail_root_rib` ×2, `vtail_l/r`, `vtail_tip_cap` ×2 | V-tail | rib: 4 mm carbon pin + epoxy to the tail block; panel slides over the rib spigot |
+| `vtail_root_rib` ×2, `vtail_l/r` | V-tail | rib: 4 mm carbon pin + epoxy to the tail block; panel slides over the rib spigot |
+| `vtail_tip_cap` ×2 | hidden ring at each V-tail tip, s = 234–245 | glued 6 mm into the panel; the tip fairing slides over its other end |
+| `vtail_tip_fairing` ×2 | V-tail tips, s = 240–260 | butts against the panel's end over the tip ring, glued |
 | `ruddervator_l/r` | behind the 70 % hinge line | tape hinge on top |
 | `rib_root_l/r` | y = ±60–63 | epoxy on the spars |
 | `wing_root_l/r` | y 63–277 | spigots of the root rib and boom cup |
@@ -91,7 +95,8 @@ right; every left-hand part has its own file.
 | `wing_mid_l/r` | y 283–487 | spigots of the boom rib and mid/tip rib |
 | `rib_midtip_l/r` | y 487–490 | epoxy on the spars |
 | `wing_tip_l/r` | y 490–707 | spigots |
-| `rib_tip_l/r` | y 707–710 | epoxy on the spars |
+| `rib_tip_l/r` | hidden ring, y 697–712 | epoxy on the spars (their ends sit in its bosses); 10 mm into `wing_tip`, 5 mm into the tip fairing |
+| `tip_fairing_l/r` | y 707–739, full chord | butts against `wing_tip` over the tip ring, glued |
 | `aileron_mid_*`, `aileron_tip_*` | y 286–485 and 492–705, behind the 75 % hinge line | tape hinge on top |
 | `servo_hatch` ×6 | flush in the bottom skins of `wing_mid` and `wing_tip` (4) and the V-tail lower surfaces (2) | 2× M2×6 screws into its two `hatch_block`s; the servo screws to the hatch's posts |
 | `hatch_block` ×12 | inside the skin at each end of a hatch opening | epoxied to the skin's inner face |
@@ -99,7 +104,8 @@ right; every left-hand part has its own file.
 
 ## Inside the wing: ribs, spars and webs
 
-Each wing has four PETG ribs (root, boom, mid/tip, tip) threaded on two carbon spars. The
+Each wing has three PETG ribs (root, boom, mid/tip) and a hidden tip ring, threaded on two
+carbon spars. The
 skins between them are 204–217 mm long and need support from inside:
 
 - **The spars carry the bending.** At 3 g the main spars see about 62 MPa, well within carbon's
@@ -171,7 +177,7 @@ servo:
 | **Aileron or ruddervator servo** | Unclip the pushrod's clevis from the horn. Undo the hatch's two M2 screws; the hatch comes out with the servo on it, hanging on its lead. Pull the plug joint out of the opening and unplug it. Undo the two tab screws and fit the new servo, arm through the cover's slot. | small Phillips; 5 min |
 | **Tilt servo** | Undo the two horn screws in the yoke's inboard arm and the axle screw on the outboard side. Lift the yoke off the pod, away from the tilt axis; it stays tethered by the motor's flex loop until the leads are separated. Take the horn's centre screw out, undo the two tab screws and slide the servo out inboard; its lead lifts out of the pocket under it with the plug, which unplugs there. Refit in the order of steps 2.4–2.6, drilling the new disc horn through the arm's existing holes. | small Phillips, 2.5 mm hex; 15 min |
 | **Front motor** | Lift the yoke off as for the tilt servo, separate the three leads at their joints in the flex loop (unplug, or cut and re-solder) and undo the four M3×8 screws under the yoke plate. | 2.5 mm hex, soldering iron unless bulleted; 15 min |
-| **Rear motor** | Separate its three leads at their joints between the motor and the boom's lead hole (x ≈ 765), and undo its four M3×8 screws from under the plate; a 2.5 mm L-key fits there with the mount in place. | 2.5 mm L-key, soldering iron unless bulleted; 5 min |
+| **Rear motor** | Separate its three leads at their joints between the motor and the boom's lead hole (x ≈ 803, just behind the clamp), and undo its four M3×8 screws from under the plate; a 2.5 mm L-key fits there with the mount in place. | 2.5 mm L-key, soldering iron unless bulleted; 5 min |
 | **Pixhawk, receiver, boards** | Nose off; all within 110 mm of the opening. Take the battery out first for anything under the shelf. | 5 min |
 | **ESC block** | Battery out, then reach 120–180 mm in over the tray, undo the block's two straps and lift it down. | 10 min |
 
@@ -190,8 +196,11 @@ the field box: if it is lost the nose can depart in flight, and the CG jumps aft
 3. **LW-PLA test:** print `wing_tip_r` on the S1. It should weigh 14.7 g ±15 % and survive a
    gentle flex. If not, change the flow in `filament_lwpla.json` and re-slice. Every vase part
    prints at 17–30 mm/s, so one calibration covers them all.
-4. **Fit test:** print `rib_tip_r` and slide its spigot into that tip skin. It should go in with
-   light hand force. If it is tight, sand the ring; never force a skin.
+4. **Fit test:** print `rib_tip_r` (the tip ring) and slide it into that tip skin. It should go in with
+   light hand force. If it is tight, sand the ring; never force a skin. Then print
+   `tip_fairing_r` and slide it onto the ring's outboard half: it must meet the skin's end edge
+   to edge. Its top closes as a thin fused fin; if the top loops sag instead, lengthen
+   `WING_TIP_CLOSE` and `VT_TIP_CLOSE` in `scripts/params.py` (less lean) and rebuild.
 5. **Web check:** print `wing_mid_r` and look into its open ends. Every web must run from the
    bottom skin to the top skin and be joined to it ("Inside the wing").
 6. Then print the rest (`tracker.md`). Nothing needs supports.
@@ -226,13 +235,17 @@ and every structural PETG joint. Thin epoxy or medium CA is fine for skin-to-spi
       x = 457, over the servo, with the plug joint in the bay beside the servo and ~60 mm of
       slack, so the hatch comes out far enough to unplug it.
 4. Thread the panel onto the spars from the root: `rib_root`, `wing_root`, boom rib with
-   cup, `wing_mid`, `rib_midtip`, `wing_tip`, `rib_tip`. Feed the aileron leads (and, on the
+   cup, `wing_mid`, `rib_midtip`, `wing_tip`, then the tip ring `rib_tip` (its full-chord side
+   outboard). Feed the aileron leads (and, on the
    right wing, the pitot tubing) through the Ø10–12 holes at x = 457 in every rib. Epoxy
    the spars into the rib bosses and the skins onto the spigots. Keep the panel flat on the
    table and sight along the LE for twist before the glue sets.
    Each spigot leaves 0.25 mm of slip per side. A skin pushed to one side therefore shows a
    step of up to 0.25 mm at its rib. Before the glue sets, run a fingertip over every seam
    and centre the skin until it is flush with the rib all the way round.
+   Then slide the `tip_fairing` over the tip ring until it butts against the end of `wing_tip`,
+   line the two up flush all round and wick thin CA into the seam. There is no rib band here:
+   the two skins meet edge to edge, as the fuselage sections do.
 5. Ailerons: tape hinge along the top surface. They deflect ±25°: the bevel under the
    aileron's front face clears the wing. Glue a `control_horn` under each aileron in line
    with its servo arm. Fit a 1.2 mm pushrod with a Z-bend in the servo arm and a snap clevis
@@ -296,8 +309,9 @@ arm.
    `fuse_3` with its boom web forward, inside `fuse_3`. As with the wing skins, the couplers
    leave 0.25 mm of slip per side: line `fuse_2` and `fuse_3` up all the way round before the
    glue sets.
-5. Prepare the boom. Drill Ø6 at x ≈ 765 for the rear motor leads, on the side that will face
-   up (just ahead of the motor mount, 5 mm behind the end of the fuselage). Dry-fit the `tail_block` on the aft end, square to that hole, and mark the boom through
+5. Prepare the boom. Drill Ø6 at x ≈ 803 for the rear motor leads, on the side that will face
+   up (5 mm behind the motor mount's clamp, which sits at x = 762–798). Dry-fit the
+   `tail_block` on the aft end, square to that hole, and mark the boom through
    the block's two wire holes (x ≈ 1001 right, 1024 left). Take the block off and drill Ø6 there.
 6. Slide the boom into `fuse_3` through its open aft end, front end first. It passes the
    `coupler_610` web, `frame_rear` and `frame_main`; stop when its front end is at x = 420,
@@ -334,11 +348,13 @@ anything sticking out of a hole would be pinched under their bores.
    off the skin: use thickened epoxy there. Lay a 650 mm extension from the servo to the root,
    joint beside the servo with ~60 mm of slack.
 2. Epoxy a 4 mm carbon pin 12 mm into each `vtail_root_rib`. Slide the panels over the rib
-   spigots and fit the `vtail_tip_cap`s. The spigots have the same 0.25 mm slip per side as the
-   wing: line each panel up with its rib and cap all the way round before the glue sets.
+   spigots. Glue a `vtail_tip_cap` ring 6 mm into each panel's tip, its full-chord side out,
+   then slide a `vtail_tip_fairing` over it until it butts against the panel. The spigots have
+   the same 0.25 mm slip per side as the wing: line each panel up with its rib and its fairing
+   all the way round before the glue sets.
 3. Rear motor: screw the motor onto `rear_motor_mount` first. The plate stands 25 mm above the
    clamp, so a 2.5 mm L-key fits under the screw heads. Slide the mount onto the boom from the
-   aft end, with the motor shaft at x = 790 and the plate level. Tighten the 2× M3×16 clamp
+   aft end, with the motor shaft at x = 780 and the plate level. Tighten the 2× M3×16 clamp
    bolts.
 4. Epoxy the `tail_block` onto the aft end with its wire holes over the boom holes. Epoxy each
    root rib to its angled face with the pin in the 8 mm hole. Sight from behind that the V is
@@ -347,7 +363,8 @@ anything sticking out of a hole would be pinched under their bores.
    forward along the boom, until it comes out of the boom's front end inside `fuse_3`. Reach it
    through the nose opening. Tie on the lead's bare end and pull it through, then fit the
    connector at the front.
-   - The rear motor's three phase leads (extended ~450 mm) go in at x ≈ 765. Keep them twisted
+   - The rear motor's three phase leads (extended ~450 mm) go in at x ≈ 803, behind the clamp:
+     run them down the mount's aft face to the hole. Keep them twisted
      together, and make their joints to the motor's own leads outside the boom, between the
      motor and the hole, where they can be reached to change the motor.
    - The two ruddervator leads go in through the tail block.
@@ -395,11 +412,12 @@ clears the printed parts. `renders/29–33` show it inside the fuselage.
 1. Slide the joiners through the fuselage. Plug both wings on and pin each rear spar to the rear
    joiner with the M2.5 nylon pin.
 2. Tilt both motors fully forward and balance on your fingertips **433 mm aft of the nose tip**.
-   The estimate puts the battery centre at x = 297 mm; anywhere in 272–308 mm keeps the CG in
-   the 25–30 % band. The 3 mm stop pin in the tray hole at x = 380 holds the battery at 301 mm
-   (CG 434 mm). The holes run from x = 250 to 390: move the pin aft if the real CG comes out
+   The estimate puts the battery centre at x = 296 mm; anywhere in 271–306 mm keeps the CG in
+   the 25–30 % band. The 3 mm stop pin in the tray hole at x = 370 holds the battery at 291 mm
+   (CG 432 mm). The holes run from x = 250 to 390: move the pin aft if the real CG comes out
    forward, forward if it comes out aft. The hover margin wants the CG as far aft as the band
-   allows: each hole forward puts ~0.5 % more of the hover load on the front motors.
+   allows: each hole forward puts ~0.5 % more of the hover load on the front motors, and at
+   x = 360 they would already need more than 60 % of their thrust.
 3. If it will not balance in that range, move equipment. Do not add dead weight at the tail.
 4. Then set up PX4: `PX4_GUIDE.md`.
 
@@ -417,7 +435,7 @@ clears the printed parts. `renders/29–33` show it inside the fuselage.
 | V-tail panels, lower surface | ruddervator servo hatch | centred 55 mm aft of the LE, 45 mm from the panel's root edge | 34.4 × 42.4 mm, as the wing |
 | every `servo_hatch` cover | servo arm slot | where your servo's arm comes out, within 15 mm of the cover's centre spanwise | to suit the arm |
 | right `wing_mid` LE | pitot tube | y ≈ 400 | pitot OD |
-| tail boom | rear motor leads; ruddervator leads | x ≈ 765 (facing up); x ≈ 1001 and 1024 (marked through the tail block) | Ø6 |
+| tail boom | rear motor leads; ruddervator leads | x ≈ 803 (facing up, 5 mm behind the motor clamp); x ≈ 1001 and 1024 (marked through the tail block) | Ø6 |
 | rear spar, rear joiner | M2.5 lock pin | x = 480, y = ±68, through the root rib's guide hole | Ø2.5 |
 | yoke inboard arm | servo horn screws | 7 mm either side of the axis, drilled into the disc horn (step 2.6) | 2× Ø1.5, 6.5 mm deep |
 
@@ -437,26 +455,47 @@ clears the printed parts. `renders/29–33` show it inside the fuselage.
 Every rib flange is ruled between the skin sections at its two faces, so it continues the
 skin's taper with no crease. At every seam but one it also uses the skin's own points. The
 exception is the boom rib's outboard face, where the full-chord rib meets the hinge-cut mid
-skin; the shapes there still agree within 0.02 mm. The fuselage sections meet ring to ring.
+skin; the shapes there still agree within 0.02 mm. The fuselage sections, and each tip skin
+and its tip fairing, meet edge to edge over a hidden ring.
 Two gate checks hold this. "Glued skin joints are flush" keeps each seam within 0.15 mm, and
-the model measures 0.02 mm or less. "Rib flanges keep the skin taper" catches a flange that
-would leave a crease. In `renders/`, 12–15 and 17–20 show the wing and every joint in one
-colour, and 22–25 show them with reflection stripes. The stripes run straight across every
-seam. What still shows once glued:
+the model measures 0.04 mm or less. "Rib flanges and tip fairings keep the skin taper"
+catches a flange or fairing that would leave a crease. In `renders/`, 12–15 and 17–20 show the
+wing and every joint in one colour, and 22–25 show them with reflection stripes. The stripes
+run straight across every seam. What still shows once glued:
 
 - **PETG rib bands**, 3 mm wide (6 mm at the boom rib), if the PETG is a different colour
-  from the LW-PLA. Print the PETG in the same colour, or paint.
+  from the LW-PLA. Print the PETG in the same colour, or paint. The tips have none.
 - **Glue lines.** Wipe off squeeze-out before it cures.
 - **The pod fairing.** Ahead of x ≈ 422 the boom rib's tongue rises up to 18 mm above the
   wing (and 5 mm below the LE) into the pod. It is part of the pod mount, not a step.
-- **Control-surface gaps,** including where nothing sits behind the hinge line: y 283–286,
-  485–492 and 705–710 on the wing.
-- **The spar ends** in the tip ribs. Fill them with lightweight filler if you want a closed
-  tip.
+- **Control-surface gaps,** including where nothing sits behind the hinge line: y 283–286
+  and 485–492 on the wing. At each tip the aileron (and the ruddervator) stops 2 mm short of
+  the tip fairing.
 
 For a painted finish, sand the seams lightly (400 grit; the LW-PLA wall is only ~0.5 mm), then
 apply a thin filler primer and a light-coloured paint. Paint adds weight: keep it to a light
 coat and balance again afterwards.
+
+## Tips
+
+The wing and V-tail tips are closed by LW-PLA vase-mode fairings (`tip_fairing_l/r`,
+`vtail_tip_fairing` ×2), so no flat end, rib band or spar end shows. Each butts against its
+skin's end over a hidden PETG ring (`rib_tip`, `vtail_tip_cap`), the way the fuselage sections
+join, and runs straight on for 6 mm before it closes:
+
+- **Wing:** the flat bottom runs on flat and the upper surface curves down to meet it at a
+  sharp edge 32 mm out from the skin (a Hoerner tip, which sheds the tip vortex a little further
+  out than a square tip does). The leading edge pulls back 18 mm and the trailing edge in 8 mm,
+  rounding both corners of the planform. The fairing is full chord, so it also closes the
+  space outboard of the aileron's end; the tip ring is solid behind the hinge there.
+- **V-tail:** both faces close symmetrically onto the chord plane 20 mm out, with the leading
+  edge pulled back 9 mm and the trailing edge in 4 mm. One file prints both.
+- **Printing:** each stands on its root and closes at the top. The surfaces curve away from
+  the skin tangentially, then run in at no more than 41.4° from vertical (37.6° on the V-tail;
+  the vase limit is 45°),
+  so nothing needs support. The last few tenths of a millimetre close as a fused edge.
+- **Span:** the fairings take the span from 1420 to 1478 mm. The mass balance still counts
+  only the area to the tip rings, so its stall speeds are conservative.
 
 ## Renders and the 3-D viewer
 
@@ -467,9 +506,9 @@ Pixhawk and at the ESC block, an x-ray with the equipment and cables, and a cut 
 wing root bay showing the webs and spars. 35–38 show every print file on its printer's bed,
 with its mass and print time. 39–42 show servicing: every servo hatch out with its servo, the
 yokes lifted off, a tilt servo out beside its plug pocket, the battery straps' path and a cut
-through an aileron hatch. `00_all_sides.png`, `00_wing_smoothness.png`,
-`00_inside_and_burst.png` and `00_servicing.png` put the main views on one page each. To orbit
-the model yourself:
+through an aileron hatch. 43–46 show the wing and V-tail tip fairings. `00_all_sides.png`,
+`00_wing_smoothness.png`, `00_inside_and_burst.png`, `00_servicing.png` and `00_tips.png` put
+the main views on one page each. To orbit the model yourself:
 
 ```
 python scripts/make_viewer.py     # writes viewer/manifest.json (build_all.py runs it too)
@@ -489,7 +528,7 @@ x-ray skins, a grazing light and the tilt slider. Also:
 - **Cut** slices the airframe along the centreline, across the battery strap, the Pixhawk or the
   ESC block, through the right wing root bay, or through the right mid aileron hatch. Faces seen
   from inside are drawn darker.
-- **Show the print files** lays out all 48 files as they sit on the S1 and X beds, filtered by
+- **Show the print files** lays out all 51 files as they sit on the S1 and X beds, filtered by
   printer and material, each with its sliced mass and time.
 - Hover any part for its name and role; double-click it to zoom in.
 

@@ -12,11 +12,14 @@ python scripts/build_all.py        # everything below in order (--no-slice to sk
 python scripts/skins.py            # LW-PLA skins     -> parts/assembly/*.stl
 python scripts/structure.py        # PETG structure   -> parts/assembly/*.stl
 python scripts/make_print_ready.py # rotates into print orientation -> parts/print_ready/*.stl
-python scripts/make_viewer.py      # 3-D viewer manifest -> viewer/manifest.json (serve_viewer.py, DESIGN.md)
 python scripts/slice_all.py        # -> gcode/<s1|x>_<lwpla|petg>/<part>.gcode  (one part: slice_all.py fuse_1)
+python scripts/make_viewer.py      # 3-D viewer manifest, with each file's sliced mass and time -> viewer/manifest.json
+python scripts/make_tracker.py     # print table and totals in tracker.md, from the manifest
 python scripts/mass_balance.py     # mass, CG, battery position (reads masses from the G-code)
-python scripts/check_parts.py      # the gate: geometry, fits, flush joints, mechanism, balance, overhangs, G-code (80 checks)
+python scripts/check_parts.py      # the gate: geometry, fits, flush joints, mechanism, balance, overhangs, G-code
 ```
+
+`slice_all.py` run on its own also runs `make_viewer.py` and `make_tracker.py` when it is done.
 
 `scripts/make_print_ready.py` holds the print table: printer, material, slicer process,
 orientation and copy count per part. Set `VTOL_SLICER` if the slicer is not at
@@ -60,7 +63,7 @@ profile change re-slice every part (`build_all.py` does) rather than only the ch
 
 ## G-code check (Nov 2, 2026)
 
-`check_parts.py` checks the print-ready meshes and parses all 48 files in `gcode/` on every run:
+`check_parts.py` checks the print-ready meshes and parses all 51 files in `gcode/` on every run:
 
 - Every file is present and was sliced from the current STL. `slice_all.py` ends each file with a
   `; vtol_stl_sha256 = ...` stamp, and the gate compares it with the STL's hash; file times are
@@ -69,17 +72,19 @@ profile change re-slice every part (`build_all.py` does) rather than only the ch
   250 mm, X 260 mm). The tallest parts reach 242 mm: a 240 mm top layer plus the 2 mm lift. The
   S1 profile's 240 mm `extruder_clearance_height_to_lid` only applies to by-object printing,
   which is not used.
-- Parts printed from one file for both sides (`vtail_root_rib`, `vtail_tip_cap`, `servo_hatch`,
-  `hatch_block`, `control_horn`) are checked to be mirror-symmetric, so either copy fits either
-  side.
+- Parts printed from one file for both sides (`vtail_root_rib`, `vtail_tip_cap`,
+  `vtail_tip_fairing`, `servo_hatch`, `hatch_block`, `control_horn`) are checked to be
+  mirror-symmetric, so either copy fits either side.
 - No part needs supports, judged on the geometry: every PETG face more than 60° from vertical is
   bridged (span ≤ 30 mm, e.g. the top of a hole), and flat faces may also be ledges of ≤ 3 mm.
   Vase skins lean ≤ 45°. The pods print upright (45° gusset under the axle boss, 45° nose
   chamfer; the slot, the servo bay and the plug pocket under it are bridges or short ledges).
   The servo hatches print cover-down and the hatch blocks upside down, both flat. The boom rib
-  prints flat, its inboard ring being the separate `boom_cup`. The rear motor mount stands on
-  one end, bore vertical. As a sanity check on the profiles, no G-code file contains a support
-  extrusion.
+  prints flat, its inboard ring being the separate `boom_cup`. The hidden tip rings stand on
+  their full-chord fairing end. The rear motor mount stands on one end, bore vertical. The tip
+  fairings stand on their root like the skins and close at the top; no wall leans more than
+  41.4° (the wing's; the V-tail's 37.6°), and the gate prints the steepest. As a sanity check
+  on the profiles, no G-code file contains a support extrusion.
 - LW-PLA walls print at 17 mm/s (ruddervator tips) to 30 mm/s.
 - The wing webs print: in a layer where all of a skin's webs are at full depth, the vase path
   turns back once per web and each turn lands within 0.22 mm of the top-skin line (it fuses
@@ -87,8 +92,13 @@ profile change re-slice every part (`build_all.py` does) rather than only the ch
 - Every part fits its bed, brim included. The largest is `wing_root`, 234 x 40 mm on the
   250 mm S1 bed; the tallest are `fuse_1`/`fuse_3`/`vtail_r` at 240 mm against 250 mm.
 - LW-PLA files: `spiral_mode = 1`, 235 C, bed 35 C. PETG files: 255 C, bed 60 C, 3 walls.
-- Masses and times in `tracker.md` equal the slicer's footer (`total filament used [g]`,
-  `print_time`). Totals: S1 LW-PLA 139 g / 26.3 h, X LW-PLA 120 g / 22.9 h, S1 PETG 467 g / 21.0 h.
+- Masses and times in `tracker.md` and the viewer equal the slicer's footer (`total filament
+  used [g]`, `print_time`): `build_all.py` writes the viewer's manifest and the tracker's table
+  (`make_tracker.py`) after slicing, and the gate checks both against every file.
+  Totals: S1 LW-PLA 141 g / 26.8 h, X LW-PLA 125 g / 24.0 h, S1 PETG 476 g / 22.6 h.
+- Re-slicing an unchanged STL does not always give the same file: in round 8 `frame_main` came
+  out at 20.1 g in one build and 20.26 g in the next. Treat each mass as good to ~0.2 g, and
+  expect a full re-slice to move a few tracker entries by 0.1 g.
 
 Not checked: print quality. The LW-PLA flow (0.55) and vase-mode wall quality need a real test print
 (one `wing_tip_r`) before the full set is printed; see the reminders in `tracker.md`.

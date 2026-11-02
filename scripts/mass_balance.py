@@ -178,7 +178,7 @@ def compute(verbose=True):
         s_m2=s_m2, wing_loading=auw / (s_m2 * 100), stall=stall, v_stall=v_stall,
         v_stall_px4=v_stall_px4, fw_min=math.ceil(1.25 * v_stall_px4), vh=vh, vv=vv, arm=arm, x_np=x_np,
         static_margin=(x_np - x_cg_pin) / mac, battery_ok=battery_ok,
-        battery_note=f"centre x={x_b:.0f} for the target ({span[0]:.0f}-{span[1]:.0f} keeps the band); "
+        battery_note=f"centre x={x_b:.0f} for the target ({math.ceil(span[0])}-{math.floor(span[1])} keeps the band); "
                      f"stop pin in the tray hole at x={pin:.0f} puts it at {x_b_pin:.0f} and the CG at "
                      f"x={x_cg_pin:.1f}",
         rows=rows,

@@ -4,6 +4,8 @@ Set VTOL_SLICER to the slicer executable if it is not at the default Windows ins
 Output: gcode/<printer>_<lwpla|petg>/<part>.gcode, one copy per file (print `qty` copies).
 Each file ends with a `; vtol_stl_sha256 = ...` comment naming the STL it was sliced from, so
 check_parts.py can tell stale G-code from current (git does not keep file times).
+Run on its own (`python slice_all.py [part ...]`), it then refreshes viewer/manifest.json and
+tracker.md, which carry each file's sliced mass and time.
 """
 import glob
 import hashlib
@@ -75,4 +77,11 @@ def main(names=None):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    try:
+        main(sys.argv[1:])
+    finally:
+        # The viewer manifest and tracker.md carry each file's sliced mass and time.
+        import make_tracker
+        import make_viewer
+        make_viewer.main()
+        make_tracker.main()

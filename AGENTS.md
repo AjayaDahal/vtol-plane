@@ -6,6 +6,10 @@
   Design, assembly order and hand-drilled holes: `DESIGN.md`.
 - After any change to `scripts/` or `slicer_profiles/`, run `python scripts/build_all.py` (rebuild,
   re-slice, verify). `scripts/check_parts.py` must pass before anything is printed.
+- The print table and totals in `tracker.md` are generated from the sliced files
+  (`scripts/make_tracker.py`, run by `build_all.py` and `slice_all.py` after slicing). Edit only
+  the Status column, the notes in brackets after a part's name and the text around the tables;
+  the gate fails when the table is stale.
 - When a finding is fixed or a new one is found, update its status in `REPORT.md` (the
   "Current status" section and the round tables) in the same commit. Never leave a fixed
   finding marked open, or an open one marked fixed.

@@ -37,7 +37,6 @@ Y_POD = (BOOM_Y - BOOM_W / 2, BOOM_Y + BOOM_W / 2)
 Y_MID_SEC = (BOOM_Y + BOOM_RIB_T / 2, 487.0)
 Y_MIDTIP_RIB = (487.0, 490.0)
 Y_TIP_SEC = (490.0, 707.0)
-Y_TIP_RIB = (707.0, 710.0)
 
 MAIN_SPAR = dict(x=432.0, z=Z_WING + 8.5, od=10.0, id=8.0)
 REAR_SPAR = dict(x=480.0, z=Z_WING + 6.0, od=6.0, id=4.0)
@@ -51,6 +50,22 @@ AIL_HINGE = 0.75            # hinge line at 75 % local chord (straight, top-surf
 AIL_BEVEL_DEG = 25.0        # underside bevel lets a top hinge deflect both ways
 AIL_GAP = 0.6
 AILERONS = {"mid": (286.0, 485.0), "tip": (492.0, 705.0)}
+
+# --- tip fairings --------------------------------------------------------------
+# The wing and V-tail tips are closed by LW-PLA vase fairings. Each butts against its skin's end
+# over a hidden PETG ring (rib_tip, vtail_tip_cap), the way the fuselage sections join, so no rib
+# band shows at a tip and the spar ends are covered. A fairing runs straight on over the ring,
+# then closes: its faces curve in tangentially for the first TIP_SHOULDER of the closing length,
+# then run straight in at ~41 deg from vertical as printed (root down; the vase limit is 45),
+# while the leading and trailing edges pull in to round the planform's corners. The wing's flat
+# bottom runs on flat, so its upper surface comes down to meet it at a sharp edge (a Hoerner
+# tip); the V-tail's two faces meet on its chord plane.
+TIP_RING_OUT = 5.0          # hidden ring length inside a fairing
+TIP_STRAIGHT = 6.0          # a fairing runs straight on over its ring
+TIP_SHOULDER = 0.35
+TIP_END = 0.02              # thickness left at the closed end, fraction of the root's
+WING_TIP_CLOSE, WING_TIP_RAKE = 26.0, (18.0, 8.0)   # closing length; LE and TE pull-in (mm)
+VT_TIP_CLOSE, VT_TIP_RAKE = 14.0, (9.0, 4.0)
 
 # --- internal webs in the vase-mode wing skins (skins.py) --------------------
 # The skins span ~210 mm between ribs; without support the flattish top skin would wrinkle at
@@ -161,9 +176,11 @@ GPS_SKIRT_T = 2.4
 GPS_PAD_HOLE = 30.0         # lightens the pad; the GPS cable goes down through it
 
 # --- rear lift motor (vertical, on the boom) --------------------------------
-# As far forward as the clamp allows (its front face 12 mm behind the fuselage's end): it takes
+# As far forward as the clamp allows (its front face 2 mm behind the fuselage's end): it takes
 # more of the hover load off the front motors, and the prop disc clears the V-tail by more.
-X_REAR_MOTOR = 790.0
+# Its leads enter the boom through a hole just behind the clamp (BOOM_LEAD_X).
+X_REAR_MOTOR = 780.0
+BOOM_LEAD_X = 803.0
 REAR_PLATE_Z = 15.0         # plate underside; leaves ~25 mm under the screw heads for a hex key
 REAR_MOUNT_LEN = 36.0       # clamp, web and plate share this length along the boom
 
@@ -173,7 +190,7 @@ VT_ROOT_CHORD, VT_TIP_CHORD, VT_SPAN = 180.0, 110.0, 240.0
 VT_DIHEDRAL = 35.0          # each panel from horizontal (110 deg included)
 VT_HINGE = 0.70
 VT_ROOT = (11.0, -2.0)      # (y, z) of the right panel root chord line, rib outer face
-VT_RUDDERVATOR = (5.0, 236.0)
+VT_RUDDERVATOR = (5.0, 238.0)    # its outboard end clears the tip fairing by 2 mm, as the ailerons do
 TAIL_BLOCK_X = (950.0, 1030.0)
 VT_PIN_D = 4.1
 

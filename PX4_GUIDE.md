@@ -12,7 +12,7 @@ from `scripts/mass_balance.py`. Re-check both if you change the airframe or PX4 
 
 ## Geometry (Actuators tab)
 
-Positions are relative to the hover CG (437 mm aft of the nose tip), x forward, y right.
+Positions are relative to the hover CG (435 mm aft of the nose tip), x forward, y right.
 Set **`CA_ROTOR_COUNT` = 3**. The 13100 airframe defaults to 4 rotors, with a fourth one 1 m
 out that would take part of every command.
 
@@ -20,7 +20,7 @@ out that would take part of every command.
 |---|---|---|---|---|---|
 | 0 | front right, CW | 0.12 | 0.28 | −0.05 | Tilt 1 |
 | 1 | front left, CCW | 0.12 | −0.28 | 0.05 | Tilt 2 |
-| 2 | rear, CCW (x = 790) | −0.35 | 0 | 0.05 | None |
+| 2 | rear, CCW (x = 780) | −0.35 | 0 | 0.05 | None |
 
 `KM` is positive for a CCW rotor and negative for CW (viewed from above in hover).
 
@@ -96,7 +96,7 @@ PX4 normalizes the tilt over the servo range set above: angle = −20° + 110° 
 | `VT_TILT_MC` | **0.18** | 0°: thrust straight up in hover |
 | `VT_TILT_TRANS` | 0.55 | ~40° during the front transition |
 | `VT_TILT_FW` | 1.0 | 90°: thrust forward |
-| `FW_AIRSPD_STALL` | 13 m/s | stall at CL 1.0, 35 °C, AUW +10 % (12.03 m/s, rounded up) |
+| `FW_AIRSPD_STALL` | 13 m/s | stall at CL 1.0, 35 °C, AUW +10 % (12.05 m/s, rounded up) |
 | `FW_AIRSPD_MIN` | 16 m/s | 1.25 × that stall |
 | `FW_AIRSPD_TRIM` | 18 m/s | cruise; CL ≈ 0.37 there |
 | `FW_AIRSPD_MAX` | 25 m/s | |
@@ -125,7 +125,7 @@ multicopter mode and confirm the motors point straight up. If they don't, correc
 ## Preflight checklist (props off first, then on — every flying day)
 
 1. Balance: motors tilted forward, fingertips 433 mm aft of the nose tip. The battery centre
-   should be at 272–308 mm (the stop pin in the tray hole at x = 380 holds it at 301). If it
+   should be at 271–306 mm (the stop pin in the tray hole at x = 370 holds it at 291). If it
    will not balance there, do not fly. Move equipment; do not add tail weight.
 2. Motor order and direction match the table above (props off, then a brief spin-up). A
    wrong-direction front motor flips the aircraft on the first hover.

@@ -32,6 +32,7 @@ PARTS = {
     "rib_root_l": _p(PETG, "s1", [("x", -90)]),
     "rib_midtip_r": _p(PETG, "s1", [("x", 90)]),
     "rib_midtip_l": _p(PETG, "s1", [("x", -90)]),
+    # The tip rib is a hidden ring: it stands on its fairing end, the full-chord side.
     "rib_tip_r": _p(PETG, "s1", [("x", -90)]),
     "rib_tip_l": _p(PETG, "s1", [("x", 90)]),
     # Boom rib prints flat on its inboard face; its inboard spigot ring is the separate cup.
@@ -58,13 +59,16 @@ PARTS = {
     "rear_motor_mount": _p(PETG, "s1", [("y", 90)]),
     "tail_block": _p(PETG, "s1", [("y", -90)]),
     "vtail_root_rib": _p(PETG, "s1", [("x", 55)], qty=2, src="vtail_root_rib_r"),
+    # Hidden tip rings stand on their fairing end, like the wing's tip rib.
     "vtail_tip_cap": _p(PETG, "s1", [("x", 235)], qty=2, src="vtail_tip_cap_r"),
+    # V-tail tip fairing: symmetric, one file for both sides, root down like the panels.
+    "vtail_tip_fairing": _p(LW, "x", [("x", 55)], qty=2, src="vtail_tip_fairing_r"),
     # Servo hatch: outer face on the bed, posts up. Hatch block: upside down, top face on the bed.
     "servo_hatch": _p(PETG, "s1", [], qty=6),
     "hatch_block": _p(PETG, "s1", [("x", 180)], qty=12),
     "control_horn": _p(PETG, "s1", [], qty=6),
 }
-for _sec in ("wing_root", "wing_mid", "wing_tip", "aileron_mid", "aileron_tip"):
+for _sec in ("wing_root", "wing_mid", "wing_tip", "aileron_mid", "aileron_tip", "tip_fairing"):
     PARTS[_sec + "_r"] = _p(LW, "s1", [("x", 90)])
     PARTS[_sec + "_l"] = _p(LW, "x", [("x", -90)])
 

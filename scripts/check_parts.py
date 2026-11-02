@@ -217,7 +217,9 @@ def check_fits():
     mt = load("rib_midtip_r")
     fit("mid/tip rib spigot in mid section", mt, w["wing_mid_r"], 1, P.Y_MIDTIP_RIB[0] - 5, lo, hi)
     fit("mid/tip rib spigot in tip section", mt, w["wing_tip_r"], 1, P.Y_MIDTIP_RIB[1] + 5, lo, hi)
-    fit("tip rib spigot in tip section", load("rib_tip_r"), w["wing_tip_r"], 1, P.Y_TIP_RIB[0] - 4, lo, hi)
+    fit("tip rib ring in tip section", load("rib_tip_r"), w["wing_tip_r"], 1, P.Y_TIP_SEC[1] - 4, lo, hi)
+    fit("tip rib ring in tip fairing", load("rib_tip_r"), load("tip_fairing_r"), 1,
+        P.Y_TIP_SEC[1] + P.TIP_RING_OUT / 2, lo, hi)
     f = {i: load(f"fuse_{i}") for i in range(1, 5)}
     for xj, (a, b) in zip(P.FUSE_SPLITS[1:-1], ((1, 2), (2, 3), (3, 4))):
         c = load(f"coupler_{int(xj)}")
@@ -235,8 +237,10 @@ def check_fits():
     to_local = lambda t: (t - origin) @ R.T
     vt = to_local(load("vtail_r"))
     fit("V-tail root rib spigot in panel", to_local(load("vtail_root_rib_r")), vt, 1, 5.0, lo, hi, plane=(0, 2))
-    fit("V-tail tip cap spigot in panel", to_local(load("vtail_tip_cap_r")), vt, 1, P.VT_SPAN - 3, lo, hi,
+    fit("V-tail tip ring in panel", to_local(load("vtail_tip_cap_r")), vt, 1, P.VT_SPAN - 3, lo, hi,
         plane=(0, 2))
+    fit("V-tail tip ring in tip fairing", to_local(load("vtail_tip_cap_r")), to_local(load("vtail_tip_fairing_r")),
+        1, P.VT_SPAN + P.TIP_RING_OUT / 2, lo, hi, plane=(0, 2))
 
 
 def outline_z(segs, xs):
@@ -291,11 +295,12 @@ def check_flush():
               ("boom rib out", "boom_rib_r", "wing_mid_r", P.Y_BOOM_RIB[1], tongue_end, False),
               ("mid/tip rib in", "wing_mid_r", "rib_midtip_r", P.Y_MIDTIP_RIB[0], None, True),
               ("mid/tip rib out", "rib_midtip_r", "wing_tip_r", P.Y_MIDTIP_RIB[1], None, True),
-              ("tip rib", "wing_tip_r", "rib_tip_r", P.Y_TIP_RIB[0], None, True))
+              # The full-chord tip fairing runs on past the tip skin's hinge face, outboard of the aileron.
+              ("tip fairing", "wing_tip_r", "tip_fairing_r", P.Y_TIP_SEC[1], None, False))
     res = [(lbl, step(sec(a, y - e), sec(b, y + e), xf, te)) for lbl, a, b, y, xf, te in joints]
     res.append(("V-tail root rib", step(sec("vtail_root_rib_r", -e, True), sec("vtail_r", e, True))))
-    res.append(("V-tail tip cap", step(sec("vtail_r", P.VT_SPAN - e, True),
-                                       sec("vtail_tip_cap_r", P.VT_SPAN + e, True))))
+    res.append(("V-tail tip fairing", step(sec("vtail_r", P.VT_SPAN - e, True),
+                                           sec("vtail_tip_fairing_r", P.VT_SPAN + e, True), te=False)))
     # Fuselage sections butt skin to skin: compare the two rings point to outline both ways.
     for xj, (a, b) in zip(P.FUSE_SPLITS[1:-1], ((1, 2), (2, 3), (3, 4))):
         sa = slice_points(load(f"fuse_{a}"), 0, xj - e)[:, :, [1, 2]]
@@ -309,22 +314,22 @@ def check_flush():
 
     # A rib flange that is a prism of one section meets its tapered skin at a crease (up to 6 deg
     # at the trailing edge). Ruled flanges continue the taper: their free face is the skin's own
-    # section continued to that station.
+    # section continued to that station. A tip fairing's straight run must continue it the same way.
     from skins import vt_loop, wing_loop
     ring = lambda pts: np.stack([pts, np.roll(pts, -1, axis=0)], axis=1)
     to_ut = lambda pts: ((pts - origin) @ R.T)[:, [0, 2]]
-    yr, yt = mesh("rib_root_r")[..., 1].min(), mesh("rib_tip_r")[..., 1].max()
+    yr = mesh("rib_root_r")[..., 1].min()
     sr = mesh("vtail_root_rib_r", True)[..., 1].min()
-    sc = mesh("vtail_tip_cap_r", True)[..., 1].max()
+    yf, sf = P.Y_TIP_SEC[1] + P.TIP_STRAIGHT - e, P.VT_SPAN + P.TIP_STRAIGHT - e
     free = (("root rib, y=60 face", sec("rib_root_r", yr + e), ring(wing_loop(yr + e)[:, [0, 2]])),
-            ("tip rib, y=710 face", sec("rib_tip_r", yt - e), ring(wing_loop(yt - e, P.AIL_HINGE)[:, [0, 2]])),
+            ("wing tip fairing, end of its straight run", sec("tip_fairing_r", yf), ring(wing_loop(yf)[:, [0, 2]])),
             ("V-tail rib, inner face", sec("vtail_root_rib_r", sr + e, True),
              ring(to_ut(vt_loop(sr + e, P.VT_HINGE, "main")))),
-            ("V-tail cap, outer face", sec("vtail_tip_cap_r", sc - e, True),
-             ring(to_ut(vt_loop(sc - e, P.VT_HINGE, "main")))))
+            ("V-tail tip fairing, end of its straight run", sec("vtail_tip_fairing_r", sf, True),
+             ring(to_ut(vt_loop(sf, None, "main")))))
     res = [(lbl, step(a, b)) for lbl, a, b in free]
     worst = max(s for _, s in res)
-    check("rib flanges keep the skin taper (no crease at the seams)", worst <= FLUSH_TOL,
+    check("rib flanges and tip fairings keep the skin taper (no crease at the seams)", worst <= FLUSH_TOL,
           ", ".join(f"{lbl} {s:.2f}" for lbl, s in res) + f" mm off the continued skin (want <= {FLUSH_TOL})")
 
 
@@ -368,6 +373,14 @@ def check_paths():
                     for dx in (-sq, sq) for dy in (-sq, sq))
         check(f"{n} hex-key room under the motor screws", worst >= 23.0, f"{worst:.1f} mm (want >= 23)")
     clear_path("yoke bearing pocket", load("yoke_r"), (P.X_PIVOT, P.BOOM_Y, P.Z_PIVOT), (0, 1, 0), 60)
+    # Rear motor: its clamp clears the tail cone, and its leads' Ø6 boom hole sits in the open
+    # boom behind the clamp, ahead of the tail block.
+    m0, m1 = P.X_REAR_MOTOR - P.REAR_MOUNT_LEN / 2, P.X_REAR_MOTOR + P.REAR_MOUNT_LEN / 2
+    h0, h1 = P.BOOM_LEAD_X - 3.0, P.BOOM_LEAD_X + 3.0
+    check("rear motor clamp clears the tail cone; its lead hole is in open boom",
+          m0 >= P.FUSE_SPLITS[-1] + 1.0 and h0 >= m1 + 2.0 and h1 <= P.TAIL_BLOCK_X[0] - 2.0,
+          f"clamp x {m0:.0f}-{m1:.0f} ({m0 - P.FUSE_SPLITS[-1]:.0f} mm behind the tail cone), "
+          f"lead hole x {h0:.0f}-{h1:.0f} ({h0 - m1:.0f} mm behind the clamp)")
     pod = load("boom_pod_r").reshape(-1, 3)
     yk = load("yoke_r").reshape(-1, 3)
     near = lambda v: np.hypot(v[:, 0] - P.X_PIVOT, v[:, 2] - P.Z_PIVOT) < P.AXLE_BOSS_R + 1
@@ -478,7 +491,7 @@ def check_overhangs():
     """Print-ready parts need no supports, judged on the geometry (the slicer has supports
     switched off, so its output cannot show this). See unsupported_area(). Vase skins must not
     lean more than 45 deg."""
-    bad, lean_bad = [], []
+    bad, lean_bad, leans = [], [], {}
     for name, spec in sorted(PARTS.items()):
         t = load(name, G.PRINT)
         if spec["material"].startswith("lwpla"):
@@ -486,6 +499,7 @@ def check_overhangs():
             nz = nrm[:, 2] / (np.linalg.norm(nrm, axis=1) + 1e-12)
             side = (t[:, :, 2].max(1) - t[:, :, 2].min(1)) > 0.3
             lean = np.degrees(np.arcsin(np.clip(np.abs(nz[side]), 0, 1))).max()
+            leans[name] = lean
             if lean > 45.0:
                 lean_bad.append(f"{name} {lean:.0f} deg")
             continue
@@ -494,7 +508,9 @@ def check_overhangs():
             bad.append(f"{name} ~{a:.0f} mm2 (e.g. print xyz {np.round(worst, 1)})")
     check("PETG overhangs are bridges <= 30 mm or ledges <= 3 mm (no supports needed)", not bad,
           "; ".join(bad) or "all PETG parts")
-    check("vase skins lean <= 45 deg", not lean_bad, "; ".join(lean_bad) or "all LW-PLA skins")
+    steep = max(leans, key=leans.get)
+    check("vase skins lean <= 45 deg", not lean_bad,
+          "; ".join(lean_bad) or f"all LW-PLA skins, steepest {leans[steep]:.1f} deg ({steep})")
 
 
 def gcode_path(name):
@@ -504,8 +520,9 @@ def gcode_path(name):
 
 
 def check_gcode():
-    """The sliced files: present, sliced from the current STL, inside the printer's height
-    (end-of-print lift included), no support extrusions, one vase speed band."""
+    """The sliced files: present, sliced from the current STL, shown as sliced in the viewer
+    manifest and tracker.md, inside the printer's height (end-of-print lift included), no
+    support extrusions, one vase speed band."""
     import json
     import re
     from slice_all import MACHINE, PROFILES, STAMP, stl_hash
@@ -565,6 +582,28 @@ def check_gcode():
     check("G-code present for every part", not missing, ", ".join(missing) or f"{len(PARTS)} files")
     check("G-code sliced from the current print-ready STL (hash stamp)", not stale,
           ", ".join(stale) or "all current")
+    # The viewer's print panel and tracker.md are made from the manifest: it must list exactly the
+    # print table's files, with their printer, material and copies, and must not lag a slice.
+    from make_viewer import gcode_stats
+    with open(os.path.join(G.ROOT, "viewer", "manifest.json")) as fh:
+        shown = {p["name"]: p for p in json.load(fh)["prints"]}
+    lagging = sorted(set(shown) - set(PARTS))
+    for name, spec in sorted(PARTS.items()):
+        grams, minutes = gcode_stats(name)
+        want = dict(printer=spec["printer"], material="lwpla" if spec["material"].startswith("lwpla") else "petg",
+                    qty=spec["qty"], grams=grams, minutes=None if minutes is None else round(minutes, 1))
+        p = shown.get(name)
+        if p is None or any(p.get(k) != v for k, v in want.items()):
+            lagging.append(name)
+    check("viewer manifest lists every print file with its printer, copies and sliced mass and time", not lagging,
+          f"stale: {', '.join(lagging)} (run python scripts/make_viewer.py)" if lagging
+          else f"{len(shown)} files match the print table and their G-code")
+    import make_tracker
+    with open(make_tracker.PATH, "rb") as fh:
+        text = fh.read().decode("utf-8")
+    current = make_tracker.render(text, list(shown.values())) == text
+    check("tracker.md lists every print file with its copies, mass and time (make_tracker.py)", current,
+          f"{len(shown)} files" if current else "stale: run python scripts/make_tracker.py")
     tallest = max(z_top, key=z_top.get) if z_top else None
     check("G-code stays inside the printer's height, end-of-print lift included", not too_tall,
           "; ".join(too_tall) or (f"highest move Z {z_top[tallest]:.1f} ({tallest}); "
@@ -1155,6 +1194,39 @@ def check_tray_straps():
           f"strap {beside:.1f} mm clear of the battery, {skin:.1f} mm from the skin at the tightest")
 
 
+def check_tips():
+    """The wing and V-tail tip fairings: the hidden ring closes each fairing's root behind the
+    hinge (outboard of the aileron or ruddervator), that surface's end clears the fairing, and
+    the fairing closes to a sharp edge."""
+    from skins import vt_chord, vt_frame
+    origin, e_s, e_t = vt_frame()
+    R = np.stack([[1, 0, 0], e_s, e_t])
+    loc = lambda t: (t - origin) @ R.T
+    cases = (("wing", load("rib_tip_r"), load("tip_fairing_r"), load("aileron_tip_r"), P.Y_TIP_SEC[1],
+              P.chord(P.Y_TIP_SEC[1]), P.X_LE, P.AIL_HINGE),
+             ("V-tail", loc(load("vtail_tip_cap_r")), loc(load("vtail_tip_fairing_r")), loc(load("ruddervator_r")),
+              P.VT_SPAN, vt_chord(P.VT_SPAN), 0.0, P.VT_HINGE))
+    holes, gaps, edges = [], [], []
+    for name, ring, fair, surf, y0, c, x0, hinge in cases:
+        gaps.append((name, fair[..., 1].min() - surf[..., 1].max()))
+        # Mid-height of the fairing's root section behind the hinge must be inside the ring.
+        y = y0 + 0.3
+        fs = slice_points(fair, 1, y)[:, :, [0, 2]]
+        rs = slice_points(ring, 1, y)[:, :, [0, 2]]
+        xs = np.linspace(x0 + hinge * c + 0.5, x0 + 0.93 * c, 25)
+        top, bot = outline_z(fs, xs)
+        holes.append((name, int(np.sum(~inside_2d(np.stack([xs, (top + bot) / 2], axis=1), rs)))))
+        v = fair.reshape(-1, 3)
+        tip = v[v[:, 1] > v[:, 1].max() - 0.01]
+        edges.append((name, tip[:, 2].max() - tip[:, 2].min(), v[:, 1].max() - y0))
+    check("hidden tip rings close each fairing's root behind the hinge", not any(n for _, n in holes),
+          ", ".join(f"{k}: {n} of 25 points open" for k, n in holes))
+    check("aileron and ruddervator ends clear the tip fairings by 1.5-3 mm", all(1.5 <= g <= 3.0 for _, g in gaps),
+          ", ".join(f"{k} {g:.1f} mm" for k, g in gaps))
+    check("tip fairings close to a sharp edge (<= 0.5 mm)", all(t <= 0.5 for _, t, _ in edges),
+          ", ".join(f"{k}: {t:.2f} mm thick at the end, {ln:.0f} mm beyond the skin" for k, t, ln in edges))
+
+
 if __name__ == "__main__":
     check_meshes()
     check_handedness()
@@ -1173,6 +1245,7 @@ if __name__ == "__main__":
     check_hatches()
     check_pod_plug()
     check_tray_straps()
+    check_tips()
     if "--no-gcode" not in sys.argv:
         check_gcode()
         check_web_gcode()

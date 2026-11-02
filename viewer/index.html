@@ -486,7 +486,7 @@ function setSection(k) {
 }
 
 // ---- views ----------------------------------------------------------------
-const wingBox = new THREE.Box3(V(370, 40, -20), V(610, 720, 30));
+const wingBox = new THREE.Box3(V(370, 40, -20), V(610, 745, 30));
 // Axis views use a narrow field of view so they read almost like orthographic drawings.
 const VIEWS = {
   iso_front: { dir: V(1, 0.85, -0.55), fov: 24 }, iso_rear: { dir: V(-1, -0.8, -0.6), fov: 24 },
@@ -503,10 +503,13 @@ const VIEWS = {
   xray_fuse: { dir: V(0.55, 0.9, -0.5), box: new THREE.Box3(V(-5, -75, -80), V(640, 75, 90)), fov: 24 },
   service_under: { dir: V(0.55, -0.75, 0.55), fov: 24 },
   pod_service: { dir: V(0.4, 0.6, 0.7), box: new THREE.Box3(V(280, 200, -20), V(400, 320, 140)), fov: 24 },
+  tip_front: { dir: V(0.8, -0.55, -0.45), box: new THREE.Box3(V(370, 630, -20), V(545, 745, 25)), fov: 24 },
+  tip_rear: { dir: V(-0.75, -0.5, 0.45), box: new THREE.Box3(V(370, 630, -20), V(545, 745, 25)), fov: 24 },
+  vt_tip: { dir: V(0.75, -0.55, -0.35), box: new THREE.Box3(V(905, 150, 95), V(1060, 250, 180)), fov: 24 },
   gallery: { dir: V(0, 0.42, -0.9), fov: 30 },
 };
 const J = (y0, y1) => ({ dir: V(0.75, -0.55, -0.55), box: new THREE.Box3(V(372, y0, -12), V(610, y1, 26)) });
-Object.assign(VIEWS, { joint_root: J(30, 110), joint_boom: J(235, 330), joint_midtip: J(445, 535), joint_tip: J(660, 740) });
+Object.assign(VIEWS, { joint_root: J(30, 110), joint_boom: J(235, 330), joint_midtip: J(445, 535), joint_tip: J(655, 745) });
 for (const [k, s] of Object.entries(SECTIONS)) VIEWS['sec_' + k] = s.view;
 
 function shown(o) { for (; o; o = o.parent) if (!o.visible) return false; return true; }
@@ -943,6 +946,10 @@ if (capture) {
     S('40_service_tilt_servo_and_plug_pocket', 'pod_service', { service: 1, labels: true }),
     S('41_cut_at_battery_strap', 'sec_x280', { section: 'x280', cables: true, labels: true }),
     S('42_cut_through_aileron_hatch', 'sec_hatch', { section: 'hatch', labels: true }),
+    S('43_wing_tip_fairing_front', 'tip_front', paint),
+    S('44_wing_tip_fairing_rear_below', 'tip_rear', paint),
+    S('45_wing_tip_fairing_reflection_stripes', 'tip_front', { mode: 'zebra', extras: false }),
+    S('46_vtail_tip_fairing', 'vt_tip', paint),
   ];
   const shot = new Map();
   async function post(name, blob) {
@@ -986,7 +993,7 @@ if (capture) {
     '00_wing_smoothness': [['12_wing_top_one_colour', 'wing top, one colour'], ['22_wing_top_reflection_stripes', 'wing top, reflection stripes'],
                            ['23_wing_sight_down_span_reflection_stripes', 'sighting down the span'],
                            ['17_joint_root', 'root rib joint'], ['18_joint_boom_rib', 'boom rib joint'], ['19_joint_mid_tip', 'mid/tip rib joint'],
-                           ['20_joint_tip', 'tip rib joint'], ['24_joint_mid_tip_reflection_stripes', 'mid/tip joint, stripes'],
+                           ['20_joint_tip', 'tip fairing joint'], ['24_joint_mid_tip_reflection_stripes', 'mid/tip joint, stripes'],
                            ['25_joint_boom_rib_reflection_stripes', 'boom rib joint, stripes']],
     '00_inside_and_burst': [['27_burst_view', 'burst view'], ['28_burst_view_top', 'burst view from above'],
                             ['32_nose_open_battery_out', 'nose off, battery out'],
@@ -998,6 +1005,11 @@ if (capture) {
                      ['42_cut_through_aileron_hatch', 'aileron servo on its hatch'],
                      ['39_service_hatches_open_yokes_off', 'servo hatches out, yokes off'],
                      ['40_service_tilt_servo_and_plug_pocket', 'tilt servo out, plug pocket']],
+    '00_tips': [['43_wing_tip_fairing_front', 'wing tip fairing from the front'],
+                ['44_wing_tip_fairing_rear_below', 'wing tip from behind, below'],
+                ['45_wing_tip_fairing_reflection_stripes', 'wing tip, reflection stripes'],
+                ['46_vtail_tip_fairing', 'V-tail tip fairing'], ['20_joint_tip', 'tip fairing joint, one colour'],
+                ['07_top', 'from above']],
   };
   for (const [sheet, tiles] of Object.entries(SHEETS)) {
     const W = 640, H = 400, cols = 3;

@@ -1,9 +1,11 @@
-"""LW-PLA vase-mode skins in the aircraft frame: wing sections, ailerons, V-tail, fuselage.
+"""LW-PLA vase-mode skins in the aircraft frame: wing sections, ailerons, V-tail, fuselage, and
+the wing and V-tail tip fairings.
 
 Vase mode keeps only each layer's outer contour, so these are closed outer surfaces. The root
 and mid wing sections also carry spanwise internal webs, made as thin slots that the single
-vase wall runs into and back out of (webbed_wing_skin). All other internal structure is PETG
-(structure.py). Writes parts/assembly/*.stl.
+vase wall runs into and back out of (webbed_wing_skin). The tip fairings print root down and
+close at the top. All other internal structure is PETG (structure.py). Writes
+parts/assembly/*.stl.
 """
 import math
 import os
@@ -145,6 +147,63 @@ def fuse_skin(x0, x1, step=4.0):
     return G.loft([G.fuse_ring(x) for x in xs])
 
 
+def _ramp(u):
+    """0 -> 1 as u goes 0 -> 1: a parabola for the first TIP_SHOULDER, so the fairing leaves the
+    skin tangentially, then a straight line, so it reaches its steepest slope early and keeps it."""
+    a = P.TIP_SHOULDER
+    u = min(max(u, 0.0), 1.0)
+    return (u * u / (2 * a) if u < a else u - a / 2) / (1 - a / 2)
+
+
+def _fairing_stations(close):
+    """Span stations from a fairing's root: the straight run over the ring, then every mm."""
+    return list(np.arange(0.0, P.TIP_STRAIGHT, 3.0)) + \
+        list(P.TIP_STRAIGHT + np.linspace(0.0, close, int(round(close)) + 1))
+
+
+def _squash(ordinates, scale, floor=0.01):
+    """A fairing station's thickness ordinates, scaled. Every point but those on the chord line
+    stays at least `floor` off it, so near the closed end the upper and lower points stay apart
+    (where the loop is thinnest they would otherwise merge into a non-manifold mesh)."""
+    t = scale * np.asarray(ordinates, float)
+    m = np.abs(ordinates) > 1e-9
+    t[m] = np.sign(t[m]) * np.maximum(np.abs(t[m]), floor)
+    return t
+
+
+def wing_tip_fairing():
+    """Right wing tip fairing, from the tip skin's end outward (params, "tip fairings"). Full chord:
+    it also closes the space outboard of the aileron's end. Every station is the same Clark Y loop,
+    so the loft is valid down to the closed end."""
+    y0 = P.Y_TIP_SEC[1]
+    lp = G.airfoil_loop("clarky", 48)
+    r_le, r_te = P.WING_TIP_RAKE
+    loops = []
+    for s in _fairing_stations(P.WING_TIP_CLOSE):
+        cb = P.chord(y0 + s)
+        g = _ramp((s - P.TIP_STRAIGHT) / P.WING_TIP_CLOSE)
+        c = cb - (r_le + r_te) * g
+        x = P.X_LE + r_le * g + c * lp[:, 0]
+        z = P.Z_WING + _squash(cb * lp[:, 1], 1.0 - (1.0 - P.TIP_END) * g)
+        loops.append(np.column_stack([x, np.full(len(lp), y0 + s), z]))
+    return G.loft(loops)
+
+
+def vt_tip_fairing():
+    """Right V-tail tip fairing, from the panel's end outward: symmetric, so one file prints both."""
+    lp = G.airfoil_loop("naca0012", 48)
+    r_le, r_te = P.VT_TIP_RAKE
+    loops = []
+    for s in _fairing_stations(P.VT_TIP_CLOSE):
+        sa = P.VT_SPAN + s
+        cb = vt_chord(sa)
+        g = _ramp((s - P.TIP_STRAIGHT) / P.VT_TIP_CLOSE)
+        c = cb - (r_le + r_te) * g
+        loops.append(vt_point(r_le * g + c * lp[:, 0], np.full(len(lp), sa),
+                              _squash(cb * lp[:, 1], 1.0 - (1.0 - P.TIP_END) * g)))
+    return G.loft(loops)
+
+
 def build():
     out = {}
     h = P.AIL_HINGE
@@ -156,6 +215,8 @@ def build():
     out["vtail_r"] = G.loft([vt_loop(0.0, P.VT_HINGE, "main"), vt_loop(P.VT_SPAN, P.VT_HINGE, "main")])
     s0, s1 = P.VT_RUDDERVATOR
     out["ruddervator_r"] = G.loft([vt_loop(s0, P.VT_HINGE, "surface"), vt_loop(s1, P.VT_HINGE, "surface")])
+    out["tip_fairing_r"] = wing_tip_fairing()
+    out["vtail_tip_fairing_r"] = vt_tip_fairing()
     for name in list(out):
         out[name[:-2] + "_l"] = G.mirror_y(out[name])
     for i, (x0, x1) in enumerate(zip(P.FUSE_SPLITS, P.FUSE_SPLITS[1:]), start=1):

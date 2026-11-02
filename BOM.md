@@ -14,7 +14,9 @@ part goes and how it is assembled is in `DESIGN.md`.
 | Ailerons mid / tip | 1 L + 1 R each | LW-PLA vase | one servo per aileron |
 | V-tail panels | 1 L + 1 R | LW-PLA vase | fixed panels |
 | Ruddervators | 1 L + 1 R | LW-PLA vase | |
-| Wing ribs root / mid-tip / tip | 1 L + 1 R each | PETG | spigots slide into the skins, spar bosses |
+| Wing ribs root / mid-tip | 1 L + 1 R each | PETG | spigots slide into the skins, spar bosses |
+| Wing tip ring (`rib_tip`) | 1 L + 1 R | PETG | hidden under the joint between the tip skin and the tip fairing; the spar ends sit in its bosses |
+| Wing tip fairings | 1 L + 1 R | LW-PLA vase | close the wing tips (Hoerner-style); L and R are mirror images |
 | Boom rib + boom cup | 1 L + 1 R each | PETG | the cup is the rib's inboard spigot ring, glued on (prints flat, no supports) |
 | Boom pod | 1 L + 1 R | PETG | tilt-servo bay, plug pocket under it, axle boss |
 | Tilt yoke (motor mount) | 1 L + 1 R | PETG | 19×19 mm motor pattern |
@@ -24,13 +26,14 @@ part goes and how it is assembled is in `DESIGN.md`.
 | GPS mount | 1 | PETG | saddle glued on top of `fuse_3`; the GPS lives outside |
 | Rear motor mount | 1 | PETG | clamps the tail boom, vertical thrust |
 | Tail block | 1 | PETG | carries both V-tail panels |
-| V-tail root rib, V-tail tip cap | 2 each | PETG | one file for both sides: the parts are mirror-symmetric, so either copy fits either side |
+| V-tail root rib, V-tail tip ring (`vtail_tip_cap`) | 2 each | PETG | one file for both sides: the parts are mirror-symmetric, so either copy fits either side |
+| V-tail tip fairing | 2 | LW-PLA vase | one file for both sides (symmetric) |
 | Servo hatch | 6 | PETG | one per aileron and ruddervator servo: the servo screws to it, two M2 screws hold it in the skin; one file, mirror-symmetric |
 | Hatch block | 12 | PETG | two per hatch, epoxied inside the skin; the hatch screws go into them |
 | Control horn | 6 | PETG | 4 ailerons + 2 ruddervators |
 
-Filament (from the sliced G-code, see `tracker.md`): LW-PLA ~260 g,
-PETG ~480 g. No part needs supports.
+Filament (from the sliced G-code, see `tracker.md`): LW-PLA ~265 g,
+PETG ~475 g. No part needs supports.
 
 ## Electronics
 

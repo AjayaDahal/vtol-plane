@@ -13,11 +13,11 @@ the plane flies. That needs the physical checks listed under "Open".
 ## Current status (v0.2, Nov 2, 2026)
 
 **Ready to print, starting with the test prints.** Print `wing_tip_r`
-(flow), `rib_tip_r` (fit), `wing_mid_r` (web check) and one
-`servo_hatch` with two `hatch_block`s (servo fit) first, then the rest
-(`tracker.md`).
+(flow), `rib_tip_r` and `tip_fairing_r` (fit and closing tip), `wing_mid_r`
+(web check) and one `servo_hatch` with two `hatch_block`s (servo fit)
+first, then the rest (`tracker.md`).
 
-- Verification gate: `python scripts/check_parts.py` passes **101/101**.
+- Verification gate: `python scripts/check_parts.py` passes **109/109**.
   It covers mesh integrity, mirrored L/R parts, bed fit, every spigot,
   coupler and frame fit, flush glued skin joints (wing, V-tail and
   fuselage) with crease-free rib flanges, spar, joiner, boom and wire paths, motor holes
@@ -31,30 +31,36 @@ the plane flies. That needs the physical checks listed under "Open".
   round 7 it checks the servo hatches (flat seat, room inside the skin,
   clear of webs, spars, spigots and pins, ahead of the hinges, screws in
   line, the servo comes out past the ledges), the tilt servos' plug
-  pockets and the battery straps' path. It
+  pockets and the battery straps' path. Since round 8 it checks the tip
+  rings and fairings (fit, flush, taper, root closed behind the hinge,
+  control-surface end gaps, the closing edge), the rear motor's clamp and
+  lead hole, and that the viewer's manifest and `tracker.md` show each
+  file's sliced mass and time. It
   also checks the G-code: present, sliced from the current STL (hash
   stamp), inside the printer's height, one vase speed band, and every wing
   web printed fused to the skin.
-- 48 G-code files, no supports anywhere. S1 LW-PLA 139 g / 26.3 h,
-  X LW-PLA 120 g / 22.9 h, S1 PETG 478 g / 22.7 h.
+- 51 G-code files, no supports anywhere. S1 LW-PLA 141 g / 26.8 h,
+  X LW-PLA 125 g / 24.0 h, S1 PETG 476 g / 22.6 h.
 - AUW ~2.01 kg, CG target 433 mm from the nose (28.5 % MAC; the stop pin
-  at x = 380 gives 434 mm), hover split 37/37/26 %, front motors at 59.6 %
+  at x = 370 gives 432 mm), hover split 37/37/26 %, front motors at 59.7 %
   of their near-empty maximum (limit 60 %: the margin is thin), static
-  margin ~18 %.
+  margin ~19 %.
+- Span 1478 mm: the wing and V-tail tips close in vase-mode fairings over
+  hidden rings, with no flat end or spar end showing (`DESIGN.md`, "Tips").
 - Serviceable: battery out through the nose in a minute; every aileron and
   ruddervator servo on a screwed hatch; tilt servos and front motors come
   out with the yoke (`DESIGN.md`, "Servicing").
 - Docs match the files: `DESIGN.md` (design and assembly), `BOM.md`,
   `PX4_GUIDE.md`, `SLICING.md`, `tracker.md`.
 - Renders of the whole aircraft, every wing joint, the burst view, cuts
-  through the fuselage and wing, the service view and every print file on
-  its bed are in `renders/` (3-D viewer: `DESIGN.md`, "Renders and the 3-D
-  viewer").
+  through the fuselage and wing, the service view, the tip fairings and
+  every print file on its bed are in `renders/` (3-D viewer: `DESIGN.md`,
+  "Renders and the 3-D viewer").
 
 **Open, can only be closed by building and flying** (in order):
 
-1. LW-PLA flow, spigot fit, web fusion and servo-hatch fit: the four test
-   prints above.
+1. LW-PLA flow, spigot fit, closing tips, web fusion and servo-hatch fit:
+   the test prints above.
 2. Tilt servo dimensions against the pod bay, before printing pods and
    yokes.
 3. Real masses: weigh the parts and re-run `mass_balance.py`. The hover
@@ -66,6 +72,24 @@ the plane flies. That needs the physical checks listed under "Open".
 6. First hover: vibration and compass interference in the logs, and
    the temperature of the ESC block and battery afterwards.
 7. Transition tuning: at altitude, into wind, back-transition ready.
+
+## Round 8 — wing and V-tail tips (v0.2, Nov 2, 2026)
+
+Question: is a part missing at the wing tip, and should it be smoothed out or pointed? Method:
+the tip was measured on the model and compared with the reference (a Flightory Stallion, whose
+tips are faired). Nothing structural was missing, but the wing ended in a flat PETG plate with
+the spar ends showing and a notch behind the aileron, and the V-tail in a flat flange. Both
+tips now close in LW-PLA vase fairings over hidden PETG rings, the way the fuselage sections
+join (`DESIGN.md`, "Tips"; renders 43–46 and `00_tips`). The extra mass pushed the hover
+margin past its limit, so the rear motor moved forward 10 mm. All parts were rebuilt and
+re-sliced (51 files).
+
+| # | Severity | Finding | Fix | Status |
+|---|---|---|---|---|
+| 8.1 | P2 finish, drag | **The wing ended flat.** `rib_tip` was a solid 3 mm PETG plate cut at the hinge line (y 707–710), with both carbon spar ends showing in it and a 5 mm notch behind the hinge between the aileron's end (y = 705) and the plate. A square end also sheds the tip vortex right at the skin's end. | A Hoerner-style vase fairing (`tip_fairing_l/r`, 2.6 g) butts against `wing_tip`'s end over a hidden ring (`rib_tip`, now 7.1 g): straight for 6 mm, then the upper surface curves down to the flat bottom at a sharp edge 32 mm out, with the LE pulled back 18 mm and the TE 8 mm. The fairing is full chord and the ring is solid behind the hinge, so the notch is closed too; the spar ends sit in the ring's bosses. Span 1420 → 1478 mm. New checks: the ring fits both skins (0.82–0.83 mm), the seam is flush (0.04 mm) and keeps the taper (0.01 mm), the ring closes the fairing's root behind the hinge (0 of 25 points open), the aileron stops 2.0 mm short of the fairing, and the fairing closes to 0.34 mm. Its walls lean at most 41.4° from vertical (vase limit 45°). | fixed, gated |
+| 8.2 | P2 finish | **The V-tail tips were flat too:** a 1.5 mm flange on `vtail_tip_cap`, square to the panel. | The same build: a symmetric fairing (`vtail_tip_fairing` ×2, one file, 1.3 g) closing onto the chord plane 20 mm out over a hidden ring (`vtail_tip_cap`, now 2.7 g). The ruddervators run 2 mm further out (s = 238) and stop 2.0 mm short of the fairing, as the ailerons do. Checks as for the wing: fits 0.84–0.85 mm, flush 0.03 mm, taper 0.00 mm, root closed, 0.25 mm at the end, walls ≤ 37.6°, and the shared file is mirror-symmetric to 0.01 mm. | fixed, gated |
+| 8.3 | P1 flight | **The hover margin, again.** The tip parts add 5 g net, 2 g of it on the V-tail, 540 mm behind the CG. That moved the battery's target about 2.4 mm forward, past the midpoint between two stop-pin holes, so the pin moved from x = 380 to 370 (CG 2.6 mm further forward), and the front motors needed 60.1 % of their near-empty thrust (limit 60 %). | Rear motor forward 10 mm, x = 790 → 780: for the same CG it takes more of the load. Its clamp (x 762–798) stays 2 mm behind the fuselage's tail cone, and the boom's lead hole moves behind the clamp to x = 803 (`BOOM_LEAD_X`). The rear prop clears the fuselage by 33.3 mm and the V-tail by 66.7 mm. New check: the clamp clears the tail cone and the lead hole is in open boom. Result: AUW ~2.01 kg, CG 432.1 mm (27.8 % MAC) with the pin at x = 370, front motors 746 g = 59.7 %, static margin 19 %. PX4: hover CG 435 mm, `CA_ROTOR2_PX` still −0.35 after rounding, airspeeds unchanged (conservative stall 12.05 m/s). | fixed, gated (margin thin) |
+| 8.4 | P2 process | **The viewer's masses and times lagged the G-code.** `build_all.py` wrote the viewer manifest before slicing, so the print panel, and any tracker made from it, showed the previous build's slice. After this round's second build the manifest disagreed with the G-code on three PETG parts (`battery_tray`, `frame_main`, `tail_block`) by 0.1–0.2 g, though their STLs had not changed: the slicer is not run-to-run repeatable (`frame_main` came out at 20.1 g in one build and 20.26 g in the next three slices; `battery_tray`'s toolpath order changed at the same mass). Separately, `SLICING.md`'s totals (PETG 467 g / 21.0 h) disagreed with the tracker's (478 g / 22.7 h). | The manifest is now written after slicing (also when a part fails to slice, and by `slice_all.py` run on its own), and the tracker's print table and totals are generated from it (`make_tracker.py`, which keeps the hand-edited Status column). Two new checks: the manifest lists exactly the print table's files, with their printer, material, copies and each file's sliced mass and time; and the tracker matches the manifest. PETG now 476 g / 22.6 h everywhere. Masses are good to ~0.2 g a part (`SLICING.md`). | fixed, gated |
 
 ## Round 7 — serviceability: battery, servos, motors (v0.2, Nov 2, 2026)
 
@@ -204,7 +228,7 @@ rest. "Check" names the `check_parts.py` test that guards each fix.
 
 | # | Finding | Status |
 |---|---|---|
-| 4.1 | Rear motor pointed backwards; its socket barely engaged. | **Fixed (v0.2):** vertical lift motor on a boom clamp at x = 820, x = 790 since 6.8 (round 5 made it printable and serviceable). Check: rear prop disc clearance, motor holes, hex-key room. |
+| 4.1 | Rear motor pointed backwards; its socket barely engaged. | **Fixed (v0.2):** vertical lift motor on a boom clamp at x = 820, x = 790 since 6.8, x = 780 since 8.3 (round 5 made it printable and serviceable). Check: rear prop disc clearance, motor holes, hex-key room. |
 | 4.2 | Both printers printed the same-handed wing. | **Fixed (v0.2):** separate mirrored `_r` (S1) and `_l` (X) files. Check: "left/right parts are mirror images". |
 | 4.3 | Wing had no structural load path. | **Fixed (v0.2):** PETG ribs with spar bosses on 10×8 / 6×4 spars, joiners through two fuselage frames. Checks: spar paths, spigot fits, joiner sleeves. |
 | 4.4 | No ailerons. | **Fixed (v0.2):** two ailerons per side, tape hinge, servo cages and horns. |

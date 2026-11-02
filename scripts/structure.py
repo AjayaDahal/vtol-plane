@@ -1,5 +1,6 @@
-"""PETG structure in the aircraft frame (build123d): wing ribs, boom ribs and pods, tilt yokes,
-couplers, frames, shelf, tray, pod collar, rear motor mount, tail block, V-tail ribs, cages, horns.
+"""PETG structure in the aircraft frame (build123d): wing ribs and the hidden tip rings, boom ribs
+and pods, tilt yokes, couplers, frames, shelf, tray, pod collar, rear motor mount, tail block,
+V-tail ribs, servo hatches, horns.
 
 Writes parts/assembly/*.stl. Left-hand parts are y-mirrors of the right-hand ones.
 """
@@ -123,12 +124,31 @@ def midtip_rib():
 
 
 def tip_rib():
-    y0, y1 = P.Y_TIP_RIB
-    h = P.AIL_HINGE
-    part = ruled_y(airfoil_xz(y0, hinge=h), y0, airfoil_xz(y1, hinge=h), y1)
-    ring, env = spigot(y0, -1, hinge=h)
-    bosses, holes = spar_features(y0 - L, y1, [env])
-    return part + ring + bosses - holes
+    """Hidden ring at the wing tip, under the joint where the tip skin and the tip fairing butt
+    (like the fuselage sections); both spars end in its bosses. Prints standing on its fairing end."""
+    y0 = P.Y_TIP_SEC[1]
+    ring, envs = end_ring("clarky", P.chord, P.X_LE, P.Z_WING, y0, L, P.TIP_RING_OUT, P.AIL_HINGE)
+    bosses, holes = spar_features(y0 - L, y0 + P.TIP_RING_OUT, list(envs))
+    return ring + bosses - holes
+
+
+def end_ring(foil, chord_at, x0, z0, y0, l_in, l_out, hinge):
+    """Ring under the joint at span y0 between a hinge-cut skin and its tip fairing (span along y):
+    l_in into the skin, l_out into the fairing. The fairing side runs full chord and is solid aft
+    of the bore, so it closes the fairing's root behind the control surface's end. Each side takes
+    the chord at its smaller end, so it stays inside its skin. Returns (ring, (skin side, fairing
+    side)) where the sides are solid envelopes for clipping spar bosses."""
+    lp = G.airfoil_loop(foil, n=40)
+    sec = lambda c: np.stack([x0 + c * lp[:, 0], z0 + c * lp[:, 1]], axis=1)
+    c_in = min(chord_at(y0), chord_at(y0 - l_in))
+    c_out = min(chord_at(y0), chord_at(y0 + l_out))
+    x_cut = x0 + hinge * c_in - P.HINGE_MARGIN
+    # The skin side overlaps the fairing side by 0.5 mm: coplanar unions leave open mesh edges.
+    env_in = prism_y(G.clip_x(G.offset_loop(sec(c_in), P.INSET), x_cut), y0 - l_in, y0 + 0.5)
+    env_out = prism_y(G.offset_loop(sec(c_out), P.INSET), y0, y0 + l_out)
+    bore = prism_y(G.clip_x(G.offset_loop(sec(c_in), P.INSET + P.RING_WALL), x_cut - P.RING_WALL),
+                   y0 - l_in - 0.1, y0 + l_out + 0.1)
+    return env_in + env_out - bore, (env_in, env_out)
 
 
 def pod_profile():
@@ -476,8 +496,10 @@ def vtail_root_rib_local():
 
 
 def vtail_tip_cap_local():
-    part, _ = vt_rib_local(P.VT_SPAN, -1, 1.5)
-    return part
+    """Hidden ring at the V-tail tip, under the joint where the panel and its tip fairing butt:
+    6 mm into the panel, TIP_RING_OUT into the fairing. Prints standing on its fairing end."""
+    ring, _ = end_ring("naca0012", vt_chord, 0.0, 0.0, P.VT_SPAN, 6.0, P.TIP_RING_OUT, P.VT_HINGE)
+    return ring
 
 
 def tail_block():

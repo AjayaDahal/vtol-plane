@@ -19,7 +19,7 @@ import payload as PL
 from make_print_ready import PARTS
 
 LOOSE = {"servo_hatch", "hatch_block", "control_horn"}   # modelled at the origin; hatches placed as instances
-LWPLA = ("wing_", "aileron_", "fuse_", "vtail_l", "vtail_r", "ruddervator_")
+LWPLA = ("wing_", "aileron_", "fuse_", "vtail_l", "vtail_r", "ruddervator_", "tip_fairing_", "vtail_tip_fairing_")
 BED = {"s1": 250.0, "x": 260.0}
 
 ROLE = {
@@ -44,7 +44,8 @@ ROLE = {
     "boom_pod": "tilt-servo pod and axle boss",
     "yoke": "tilting motor mount",
     "rib_midtip": "mid/tip joint rib",
-    "rib_tip": "tip rib",
+    "rib_tip": "hidden tip ring: the spar ends; the tip skin and the tip fairing butt over it",
+    "tip_fairing": "wing tip fairing: the top surface comes down to the flat bottom (Hoerner tip)",
     "wing_root": "wing skin with internal webs",
     "wing_mid": "wing skin with internal webs",
     "wing_tip": "wing skin with internal webs",
@@ -53,7 +54,8 @@ ROLE = {
     "vtail": "V-tail panel",
     "ruddervator": "ruddervator",
     "vtail_root_rib": "V-tail root rib (carbon pin into the tail block)",
-    "vtail_tip_cap": "V-tail tip cap",
+    "vtail_tip_cap": "hidden V-tail tip ring: the panel and its tip fairing butt over it",
+    "vtail_tip_fairing": "V-tail tip fairing",
     "servo_hatch": "removable servo hatch: the servo screws to its posts, 2 M2 screws hold it in",
     "hatch_block": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it",
     "control_horn": "control horn",
@@ -64,7 +66,7 @@ ROLE = {
 # fuselage, and the tail slides off the end of the boom.
 WING_OUT, WING_GAP = 150.0, 60.0
 WING_ORDER = {"rib_root": 0, "wing_root": 1, "boom_cup": 2, "boom_rib": 3, "boom_pod": 3, "wing_mid": 4,
-              "aileron_mid": 4, "rib_midtip": 5, "wing_tip": 6, "aileron_tip": 6, "rib_tip": 7}
+              "aileron_mid": 4, "rib_midtip": 5, "wing_tip": 6, "aileron_tip": 6, "rib_tip": 7, "tip_fairing": 8}
 FUSE_X = {"fuse_1": -330.0, "coupler_240": -210.0, "fuse_2": -120.0, "coupler_370": -55.0, "fuse_3": 0.0,
           "coupler_610": 90.0, "fuse_4": 170.0, "pod_collar": 260.0}
 IN_FUSE_2 = FUSE_X["fuse_2"]
@@ -72,7 +74,8 @@ LIFT = {"fc_shelf": (IN_FUSE_2, 190.0), "battery_tray": (IN_FUSE_2, -170.0), "fr
         "frame_rear": (0.0, 190.0), "gps_mount": (0.0, 110.0)}
 TAIL_X = 430.0
 POD_OUT = -80.0
-VT_OUT = {"vtail_root_rib": 40.0, "vtail": 100.0, "ruddervator": 100.0, "vtail_tip_cap": 170.0}
+VT_OUT = {"vtail_root_rib": 40.0, "vtail": 100.0, "ruddervator": 100.0, "vtail_tip_cap": 170.0,
+          "vtail_tip_fairing": 230.0}
 
 
 def split(name):
@@ -239,7 +242,7 @@ def main():
         name = f[:-4]
         if not f.endswith(".stl") or name in LOOSE:
             continue
-        mat = "lwpla" if name.startswith(LWPLA) and not name.startswith(("vtail_root", "vtail_tip")) else "petg"
+        mat = "lwpla" if name.startswith(LWPLA) and not name.startswith(("vtail_root_rib", "vtail_tip_cap")) else "petg"
         base, side = split(name)
         spec = PARTS.get(name) or PARTS.get(base) or {}
         parts.append(dict(name=name, url=f"../parts/assembly/{f}", material=mat, side=side,
@@ -284,7 +287,7 @@ def main():
                nose=nose, instances=hatch_instances(), service=service_moves(), prints=prints(),
                tilt_range=[P.TILT_MIN_DEG, P.TILT_MAX_DEG], x_le=P.X_LE, y_tip=P.Y_TIP,
                joints_y=[P.Y_ROOT_SEC[0], P.Y_BOOM_RIB[0], P.Y_BOOM_RIB[1], P.Y_MIDTIP_RIB[0],
-                         P.Y_MIDTIP_RIB[1], P.Y_TIP_RIB[0]])
+                         P.Y_MIDTIP_RIB[1], P.Y_TIP_SEC[1]])
     path = os.path.join(G.ROOT, "viewer", "manifest.json")
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", newline="\n") as f:

@@ -19,6 +19,13 @@ means the flow is wrong; recalibrate before printing more. Where each part goes:
 
 ## Reminders for print time (agents: raise these with the user when printing starts)
 
+- [ ] **3S build: hold PETG plates 6 and 7.** The owner is switching to his own 3S packs, the
+  Cube Black and new motors on 12 in props (`PLAN_3S.md`). That changes `fc_shelf` and
+  `rear_motor_mount` (plate `petg_6_fuselage_tail`) and `yoke_l/r` (plate `petg_7_pods_yokes`).
+  Print these two plates only once the plan is built in and re-sliced, with the new motors
+  measured. Everything else prints as it is now, every LW-PLA part included. Plate 6's
+  unchanged parts (`battery_tray`, `gps_mount`, `pod_collar`, `tail_block`) may print early
+  from their single files; mark them printed here.
 - [ ] **Print quality is unverified.** G-code checks cannot show it. The LW-PLA flow of 0.55 and
   the vase-mode walls need a real test print on each printer before the full set is printed:
   `wing_tip_r` on the S1 and its mirror `wing_tip_l` on the X (target 14.7 g each). The two
@@ -57,8 +64,8 @@ Tick a box once the user confirms it is done.
 
 Suggested order. S1: `wing_tip_r` (flow test), then plate `petg_1_fit_tests` (tip-ring and
 servo-hatch fit) and `tip_fairing_r` (closing-tip test), then `wing_mid_r` (web check), then the
-rest of the right wing and PETG plates 2–6; plate 7 (pods and yokes) once the tilt servos have
-been measured. X: `wing_tip_l` first (its flow test: weigh it), then the left wing, the
+rest of the right wing and PETG plates 2–5. Plates 6 and 7 wait for the 3S changes
+(`PLAN_3S.md`); plate 7 (pods and yokes) also waits for the tilt servos to be measured. X: `wing_tip_l` first (its flow test: weigh it), then the left wing, the
 fuselage and the V-tail, in any order. To see every print file and plate on its bed with its mass and time, open the 3D
 viewer (`python scripts/serve_viewer.py`) and press "Show the print files", or look at
 `renders/35_print_files_all.png` and `renders/47_print_plates_s1_petg.png`. Both printers'
@@ -73,8 +80,8 @@ queues in this order, with their sliced times: `renders/print_schedule.svg`.
 | `petg_3_boom_vtail_ribs` | S1 | `boom_rib_l`, `boom_rib_r`, `vtail_root_rib` ×2, `vtail_tip_cap` ×2 | 68.0 | 2h 26m | sliced |
 | `petg_4_fuselage_rings` | S1 | `coupler_240`, `coupler_370` | 39.4 | 1h 15m | sliced |
 | `petg_5_fuselage_frames` | S1 | `coupler_610`, `frame_main`, `frame_rear` | 57.4 | 2h 09m | sliced |
-| `petg_6_fuselage_tail` | S1 | `fc_shelf`, `battery_tray`, `gps_mount`, `pod_collar`, `tail_block`, `rear_motor_mount` | 102.6 | 3h 49m | sliced |
-| `petg_7_pods_yokes` | S1 | `boom_pod_l`, `boom_pod_r`, `yoke_l`, `yoke_r` | 81.1 | 3h 03m | sliced |
+| `petg_6_fuselage_tail` | S1 | `fc_shelf`, `battery_tray`, `gps_mount`, `pod_collar`, `tail_block`, `rear_motor_mount` | 102.6 | 3h 49m | on hold (3S plan) |
+| `petg_7_pods_yokes` | S1 | `boom_pod_l`, `boom_pod_r`, `yoke_l`, `yoke_r` | 81.1 | 3h 03m | on hold (3S plan) |
 
 ## Every part, one per file
 
@@ -115,13 +122,13 @@ for reprinting one part.
 | `coupler_240` | PETG | S1 | 1 | 20.5 | 0h 40m | sliced |
 | `coupler_370` | PETG | S1 | 1 | 19.2 | 0h 37m | sliced |
 | `coupler_610` | PETG | S1 | 1 | 22.4 | 0h 53m | sliced |
-| `fc_shelf` | PETG | S1 | 1 | 24.2 | 0h 53m | sliced |
+| `fc_shelf` | PETG | S1 | 1 | 24.2 | 0h 53m | on hold (3S plan) |
 | `frame_main` | PETG | S1 | 1 | 20.3 | 0h 50m | sliced |
 | `frame_rear` | PETG | S1 | 1 | 14.9 | 0h 38m | sliced |
 | `gps_mount` | PETG | S1 | 1 | 7.0 | 0h 20m | sliced |
 | `hatch_block` (two per hatch) | PETG | S1 | 12 | 0.8 | 0h 08m | sliced |
 | `pod_collar` | PETG | S1 | 1 | 4.7 | 0h 16m | sliced |
-| `rear_motor_mount` | PETG | S1 | 1 | 18.1 | 0h 43m | sliced |
+| `rear_motor_mount` | PETG | S1 | 1 | 18.1 | 0h 43m | on hold (3S plan) |
 | `rib_midtip_l` | PETG | S1 | 1 | 15.0 | 0h 36m | sliced |
 | `rib_midtip_r` | PETG | S1 | 1 | 15.0 | 0h 36m | sliced |
 | `rib_root_l` | PETG | S1 | 1 | 16.1 | 0h 37m | sliced |
@@ -132,8 +139,8 @@ for reprinting one part.
 | `tail_block` | PETG | S1 | 1 | 27.9 | 1h 10m | sliced |
 | `vtail_root_rib` (one file, both sides) | PETG | S1 | 2 | 9.3 | 0h 24m | sliced |
 | `vtail_tip_cap` (tip ring; one file, both sides) | PETG | S1 | 2 | 2.7 | 0h 12m | sliced |
-| `yoke_l` | PETG | S1 | 1 | 12.6 | 0h 44m | sliced |
-| `yoke_r` | PETG | S1 | 1 | 12.6 | 0h 44m | sliced |
+| `yoke_l` | PETG | S1 | 1 | 12.6 | 0h 44m | on hold (3S plan) |
+| `yoke_r` | PETG | S1 | 1 | 12.6 | 0h 44m | on hold (3S plan) |
 
 Totals, quantities included, printed as above (LW-PLA one part per job, PETG as plates):
 

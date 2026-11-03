@@ -270,6 +270,11 @@ renders/            pictures, animations, the exterior model and the print sched
 4. Balance at the design CG, then glide-test.
 5. Bench tests with the props off, then the first hover, then transitions at altitude.
 
+**Next design change: the 3S build** ([`PLAN_3S.md`](PLAN_3S.md), not built in yet). The
+owner flies his own 3S packs and a Cube Black, with SunnySky X2814 900KV motors on 12 in
+props. Modelled, the front motors hover at about half their thrust instead of ~59 %, for about
+18 min of pure hover. Only PETG plates 6 and 7 change, so everything else prints now.
+
 ## Documentation
 
 | File | What is in it |
@@ -279,5 +284,6 @@ renders/            pictures, animations, the exterior model and the print sched
 | [`tracker.md`](tracker.md) | every print job and plate, print-time reminders, status |
 | [`SLICING.md`](SLICING.md) | slicer profiles, the pipeline and the G-code checks |
 | [`PX4_GUIDE.md`](PX4_GUIDE.md) | PX4 setup: geometry, outputs, tilt calibration, airspeeds, first flight |
+| [`PLAN_3S.md`](PLAN_3S.md) | the planned 3S build with the owner's parts: motor choice, changes, what to buy |
 | [`REPORT.md`](REPORT.md) | every design review and premortem, and the current status |
 | [`AGENTS.md`](AGENTS.md) | working notes for AI coding agents on this repository |

@@ -37,6 +37,11 @@
   pockets and the battery-strap path.
 - The hover margin is thin (front motors ~60 % of their near-empty thrust, the gate's limit):
   count every new gram in `mass_balance.py` and re-run the gate.
+- The owner is moving to a 3S build (`PLAN_3S.md`, not built in yet): his own 3S packs, Cube
+  Black, Power Brick Mini, 3DR GPS and Readytosky ESCs, with SunnySky X2814 900KV motors on
+  12 in props. Until it is built in, PETG plates 6 and 7 stay on hold (`tracker.md`). To build
+  it in, follow the plan's "Order of work" (tag `v0.2-4s`, branch `build-3s`, PR), then update
+  this note and the hover-margin note above.
 - The wing webs depend on two vase-profile settings, `slice_closing_radius` 0.01 and
   `detect_thin_wall` 0 (`SLICING.md`). Do not let a preset update reset them. The G-code
   stamp only covers the STL, so after any profile change re-slice everything.

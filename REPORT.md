@@ -17,6 +17,19 @@ the plane flies. That needs the physical checks listed under "Open".
 hatch blocks), then `tip_fairing_r` (closing tip) and `wing_mid_r` (web
 check), then the rest on both printers at once (`tracker.md`).
 
+**Hold PETG plates 6 and 7: a 3S build is planned** (`PLAN_3S.md`, not
+built in yet). The owner will fly his own 3S packs, Cube Black, Power Brick
+Mini, 3DR GPS and Readytosky ESCs, with SunnySky X2814 900KV motors on
+APC 12 × 6 props. It was run through the gate's own balance, fit, strap and
+prop-clearance checks: AUW ~2.29 kg, front motors at 47.9 % of their
+near-empty thrust (limit 60 %; ~50–51 % with the propwash on the wing,
+which the gate does not model), ~18 min of pure hover on the 8000 mAh
+pack. That margin rests on SunnySky's own thrust table, so one motor is
+thrust-tested before anything is built in. It changes four PETG parts
+(`yoke_l/r`, `rear_motor_mount`, `fc_shelf`) and moves the pitot, a
+hand-drilled hole, out of the bigger props' wash. Every LW-PLA part
+prints as it is.
+
 - Verification gate: `python scripts/check_parts.py` passes **114/114**,
   locally and in CI on every push (`.github/workflows/gate.yml`).
   It covers mesh integrity, mirrored L/R parts, bed fit, every spigot,
@@ -78,7 +91,11 @@ check), then the rest on both printers at once (`tracker.md`).
 5. Bench: motor order and direction, tilt calibration (−20…90°),
    surface directions, ruddervator mixing, props off.
 6. First hover: vibration and compass interference in the logs, and
-   the temperature of the ESC block and battery afterwards.
+   the temperature of the ESC block and battery afterwards. With the
+   3S plan's 12 in props, the hover throttle also shows the propwash
+   load on the wing, which the gate does not model: an estimated 5–8 %
+   of the front thrust (`PLAN_3S.md`, risk 1). The 7 in props'
+   slipstream barely reaches the wing.
 7. Transition tuning: at altitude, into wind, back-transition ready.
 
 ## Round 9 — print plates and the printer split (v0.2, Nov 2, 2026)

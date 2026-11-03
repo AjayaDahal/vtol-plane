@@ -4,3 +4,4 @@ __pycache__/
 venv/
 gcode_test/
 *.tmp
+gitignore_me/

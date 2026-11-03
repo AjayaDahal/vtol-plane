@@ -208,7 +208,8 @@ the field box: if it is lost the nose can depart in flight, and the CG jumps aft
    bottom skin to the top skin and be joined to it ("Inside the wing").
 6. Then print the rest (`tracker.md`), both printers at once: the S1 prints the right wing and
    the PETG as seven plates, the X the left wing, the fuselage and the V-tail, about 35 h each.
-   Nothing needs supports.
+   Nothing needs supports. Hold PETG plates 6 and 7 until the 3S changes are built in
+   (`PLAN_3S.md`): they carry the motor mounts and the FC shelf.
 
 ## Assembly
 

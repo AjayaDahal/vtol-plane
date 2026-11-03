@@ -1,0 +1,33 @@
+# Runs the verification gate (scripts/check_parts.py) on the committed parts, G-code, viewer
+# manifest and docs. It does not rebuild or re-slice anything: the slicer is not installed here,
+# and the G-code's hash stamps tie every file to the STL it was sliced from.
+name: gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: OpenGL libraries for OCP (build123d)
+        run: sudo apt-get update -q && sudo apt-get install -y -q libgl1 libglu1-mesa libxrender1 libxext6
+      - run: pip install -r requirements.txt
+      - name: Verification gate
+        run: python scripts/check_parts.py

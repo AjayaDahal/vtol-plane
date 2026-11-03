@@ -16,8 +16,9 @@ python scripts/structure.py        # PETG structure   -> parts/assembly/*.stl
 python scripts/make_print_ready.py # rotates into print orientation -> parts/print_ready/*.stl
 python scripts/slice_all.py        # -> gcode/<s1|x>_<lwpla|petg>/<part>.gcode and gcode/s1_petg_plates/<plate>.gcode
                                    #    (one file: slice_all.py fuse_1, or a plate's name)
-python scripts/make_viewer.py      # 3-D viewer manifest, with each file's sliced mass and time -> viewer/manifest.json
-python scripts/make_tracker.py     # print table and totals in tracker.md, from the manifest
+python scripts/make_viewer.py      # 3-D viewer manifest, with each file's sliced mass and time -> viewer/manifest.json;
+                                   #    the exterior model for GitHub's 3-D viewer -> renders/vtol_plane.stl
+python scripts/make_tracker.py     # print tables and totals in tracker.md, and the queue chart renders/print_schedule.svg
 python scripts/mass_balance.py     # mass, CG, battery position (reads masses from the G-code)
 python scripts/check_parts.py      # the gate: geometry, fits, flush joints, mechanism, balance, overhangs, G-code
 ```

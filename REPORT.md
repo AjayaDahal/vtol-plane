@@ -17,7 +17,8 @@ the plane flies. That needs the physical checks listed under "Open".
 hatch blocks), then `tip_fairing_r` (closing tip) and `wing_mid_r` (web
 check), then the rest on both printers at once (`tracker.md`).
 
-- Verification gate: `python scripts/check_parts.py` passes **114/114**.
+- Verification gate: `python scripts/check_parts.py` passes **114/114**,
+  locally and in CI on every push (`.github/workflows/gate.yml`).
   It covers mesh integrity, mirrored L/R parts, bed fit, every spigot,
   coupler and frame fit, flush glued skin joints (wing, V-tail and
   fuselage) with crease-free rib flanges, spar, joiner, boom and wire paths, motor holes
@@ -56,7 +57,8 @@ check), then the rest on both printers at once (`tracker.md`).
 - Serviceable: battery out through the nose in a minute; every aileron and
   ruddervator servo on a screwed hatch; tilt servos and front motors come
   out with the yoke (`DESIGN.md`, "Servicing").
-- Docs match the files: `DESIGN.md` (design and assembly), `BOM.md`,
+- Docs match the files: `README.md` (overview, animations, the 3-D
+  viewers), `DESIGN.md` (design and assembly), `BOM.md`,
   `PX4_GUIDE.md`, `SLICING.md`, `tracker.md`.
 - Renders of the whole aircraft, every wing joint, the burst view, cuts
   through the fuselage and wing, the service view, the tip fairings,

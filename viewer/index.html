@@ -136,6 +136,7 @@ function setLights(graze) {
 setLights(false);
 const grid = new THREE.GridHelper(2400, 48, 0xb9c0c8, 0xd5dae0);
 grid.rotation.x = Math.PI / 2; grid.position.set(550, 0, -75); scene.add(grid);
+let gridOn = true;   // off for the animations: a plain background keeps the GIFs small
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const V3 = a => new THREE.Vector3(a[0], a[1], a[2]);
@@ -536,15 +537,14 @@ function framePoints(clip) {
   return pts;
 }
 
-// Camera position, target and up that fit the view's points in the frame.
-function viewSpec(v, aspect) {
+// Camera position, target and up that fit the view's points in the frame (or the points given).
+function viewSpec(v, aspect, pts = framePoints(v.box)) {
   const f = v.dir.clone().normalize();
   const up = (v.up || V(0, 0, 1)).clone();
   const r = new THREE.Vector3().crossVectors(f, up).normalize();
   const u = new THREE.Vector3().crossVectors(r, f).normalize();
   const fov = v.fov || 30;
   const tv = Math.tan(THREE.MathUtils.degToRad(fov / 2)), th = tv * aspect;
-  const pts = framePoints(v.box);
   if (!pts.length) return null;
   const t = new THREE.Box3().setFromPoints(pts).getCenter(new THREE.Vector3());
   const q = new THREE.Vector3();
@@ -933,7 +933,7 @@ function draw() {
   camera.near = Math.max(1, dist * 0.02);
   camera.far = dist * 6 + 4000;
   camera.updateProjectionMatrix();
-  grid.visible = !galleryOn && camera.position.z > grid.position.z;
+  grid.visible = gridOn && !galleryOn && camera.position.z > grid.position.z;
   renderer.render(scene, camera);
   if (capture) return;
   const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight, s = overlay.width / Math.max(1, w);
@@ -950,7 +950,10 @@ function loop(now) {
 requestAnimationFrame(loop);
 
 // ---- capture mode: /viewer/?capture=1 posts PNGs to scripts/serve_viewer.py -------
+// ?capture=1 renders every still, the contact sheets and the animations; ?capture=gif only the
+// animations (serve_viewer.py turns their frames into renders/anim_*.gif).
 if (capture) {
+  const onlyGifs = params.get('capture') === 'gif';
   ui.style.display = 'none';
   const S = (name, view, o = {}) => ({ name, view, mode: 'printed', tilt: 0, xray: false, extras: true, graze: false,
                                        burst: 0, nose: 0, service: 0, section: 'none', cables: false, labels: false,
@@ -1000,10 +1003,24 @@ if (capture) {
     S('47_print_plates_s1_petg', 'gallery', { gallery: 's1_plates', labels: true }),
   ];
   const shot = new Map();
+  // Uploads to serve_viewer.py, retried: a local server can drop a connection now and then. Any
+  // failure ends the capture with "capture-error" in the title.
+  async function postOk(url, body) {
+    for (let k = 1; ; k++) {
+      try {
+        const res = await fetch(url, { method: 'POST', body });
+        await res.text();
+        if (res.ok) return;
+        if (res.status < 500) k = 4;                   // refused: retrying cannot help
+        throw new Error(`HTTP ${res.status}`);
+      } catch (e) {
+        if (k >= 4) { document.title = `capture-error ${url}`; status.textContent = `capture failed: ${url}`; throw e; }
+        await new Promise(r => setTimeout(r, 500 * k));
+      }
+    }
+  }
   async function post(name, blob) {
-    const res = await fetch(`/__capture__/${name}.png`, { method: 'POST', body: blob });
-    await res.text();
-    if (!res.ok) { document.title = `capture-error ${name}`; status.textContent = `capture failed: ${name}`; throw new Error(name); }
+    await postOk(`/__capture__/${name}.png`, blob);
     status.textContent = `captured ${name}`;
   }
   async function snap(withLabels) {
@@ -1018,7 +1035,7 @@ if (capture) {
     drawLabels(g, img.width, img.height, 1.3);
     return new Promise(r => c.toBlob(r, 'image/png'));
   }
-  for (const s of shots) {
+  for (const s of onlyGifs ? [] : shots) {
     if (s.gallery) {
       galleryFilter = s.gallery;
       if (!galleryOn) await showGallery(true); else layoutGallery();
@@ -1059,7 +1076,7 @@ if (capture) {
                 ['46_vtail_tip_fairing', 'V-tail tip fairing'], ['20_joint_tip', 'tip fairing joint, one colour'],
                 ['07_top', 'from above']],
   };
-  for (const [sheet, tiles] of Object.entries(SHEETS)) {
+  for (const [sheet, tiles] of onlyGifs ? [] : Object.entries(SHEETS)) {
     const W = 640, H = 400, cols = 3;
     const c = document.createElement('canvas');
     c.width = W * cols; c.height = H * Math.ceil(tiles.length / cols);
@@ -1074,6 +1091,75 @@ if (capture) {
       g.strokeStyle = '#c3c9d0'; g.strokeRect(x + 0.5, y + 0.5, W - 1, H - 1);
     });
     await post(sheet, await new Promise(r => c.toBlob(r, 'image/png')));
+  }
+
+  // Animations for README.md. Each frame goes to serve_viewer.py with how long it shows; the
+  // server writes renders/<name>.gif once the last one is in.
+  const place = s => {
+    camera.fov = s.fov; camera.up.copy(s.up); camera.position.copy(s.pos); camera.lookAt(s.target);
+    camera.updateProjectionMatrix(); controls.target.copy(s.target);
+  };
+  async function movie(name, frames, width = 800) {
+    for (let i = 0; i < frames.length; i++) {
+      frames[i].set();
+      draw();
+      const blob = await new Promise(r => renderer.domElement.toBlob(r, 'image/png'));
+      await postOk(`/__frame__/${name}/${i}.png?ms=${frames[i].ms}`, blob);
+      status.textContent = `recording ${name} ${i + 1}/${frames.length}`;
+    }
+    await postOk(`/__movie__/${name}.gif?w=${width}`);
+  }
+  // There and back: the start held, n steps to the end, the end held, and back (the GIF loops).
+  function swing(set, n, ms, hold) {
+    const f = [{ set: () => set(0), ms: hold }];
+    for (let k = 1; k <= n; k++) f.push({ set: () => set(k / n), ms: k === n ? hold : ms });
+    for (let k = n - 1; k >= 1; k--) f.push({ set: () => set(k / n), ms });
+    return f;
+  }
+  // One camera for a whole animation: it frames every state the animation passes through.
+  function fitOver(view, states) {
+    const pts = [];
+    for (const st of states) { st(); for (const p of framePoints(view.box)) pts.push(p); }
+    return viewSpec(view, camera.aspect, pts);
+  }
+  // A turntable: n headings round the aircraft at the view's elevation, one distance that fits all.
+  function orbit(view, n) {
+    const f0 = view.dir.clone().normalize(), el = Math.asin(-f0.z), az0 = Math.atan2(f0.y, f0.x);
+    const fov = view.fov || 30, tv = Math.tan(THREE.MathUtils.degToRad(fov / 2)), th = tv * camera.aspect;
+    const pts = framePoints(), t = new THREE.Box3().setFromPoints(pts).getCenter(V(0, 0, 0)), q = V(0, 0, 0);
+    let d = 0;
+    const axes = [];
+    for (let i = 0; i < n; i++) {
+      const az = az0 + 2 * Math.PI * i / n;
+      const f = V(Math.cos(az) * Math.cos(el), Math.sin(az) * Math.cos(el), -Math.sin(el));
+      const r = new THREE.Vector3().crossVectors(f, V(0, 0, 1)).normalize();
+      const u = new THREE.Vector3().crossVectors(r, f).normalize();
+      for (const p of pts) {
+        q.subVectors(p, t);
+        d = Math.max(d, Math.abs(q.dot(r)) / th - q.dot(f), Math.abs(q.dot(u)) / tv - q.dot(f));
+      }
+      axes.push([f, u]);
+    }
+    return axes.map(([f, u]) => ({ pos: t.clone().addScaledVector(f, -1.04 * d), target: t, up: u, fov }));
+  }
+  if (galleryOn) await showGallery(false);
+  mode = 'printed'; xray = false; applyLook(); setLights(false); setSection('none');
+  extras.forEach(o => o.visible = true);
+  eqGroup.visible = true; cablesOn = false; labelsOn = false; gridOn = false;
+  const rest = () => { anim.b = anim.bTo = 0; anim.n = anim.nTo = 0; anim.s = anim.sTo = 0; setTilt(0); pose(); };
+  rest();
+  const spin = orbit(VIEWS.iso_front, 60);
+  await movie('anim_turntable', spin.map(s => ({ set: () => place(s), ms: 60 })));
+  place(fitOver(VIEWS.iso_front, [() => setTilt(0), () => setTilt(90)]));
+  await movie('anim_transition', swing(k => setTilt(90 * ease(k)), 24, 50, 1000));
+  rest();
+  for (const [name, key, view, n] of [['anim_burst', 'b', VIEWS.burst_iso, 30],
+                                      ['anim_nose_battery', 'n', VIEWS.nose_open, 36],
+                                      ['anim_service', 's', VIEWS.service_under, 36]]) {
+    const at = k => { anim[key] = anim[key + 'To'] = k; pose(); };
+    place(fitOver(view, [() => at(0), () => at(1)]));
+    await movie(name, swing(at, n, 45, 1200));
+    rest();
   }
   document.title = 'capture-done';
   status.textContent = 'capture done';

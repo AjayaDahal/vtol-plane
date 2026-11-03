@@ -668,12 +668,13 @@ def check_gcode():
           not lagging, f"stale: {', '.join(lagging)} (run python scripts/make_viewer.py)" if lagging
           else f"{len(shown)} files and {len(shown_plates)} plates match the print table, the layouts and the G-code")
     import make_tracker
-    with open(make_tracker.PATH, "rb") as fh:
-        text = fh.read().decode("utf-8")
-    current = make_tracker.render(text, list(shown.values()), list(shown_plates.values())) == text
-    check("tracker.md lists every print file and plate with its copies, mass and time (make_tracker.py)", current,
-          f"{len(shown)} files, {len(shown_plates)} plates" if current
-          else "stale: run python scripts/make_tracker.py")
+    want = make_tracker.expected(make_tracker.read_text(make_tracker.PATH), list(shown.values()),
+                                 list(shown_plates.values()))
+    stale = [os.path.relpath(p, G.ROOT) for p, text in want.items() if make_tracker.read_text(p) != text]
+    check("tracker.md and the print schedule chart list every print file and plate with its mass and time "
+          "(make_tracker.py)", not stale,
+          f"stale: {', '.join(stale)} (run python scripts/make_tracker.py)" if stale
+          else f"{len(shown)} files, {len(shown_plates)} plates")
     tallest = max(z_top, key=z_top.get) if z_top else None
     check("G-code stays inside the printer's height, end-of-print lift included", not too_tall,
           "; ".join(too_tall) or (f"highest move Z {z_top[tallest]:.1f} ({tallest}); "

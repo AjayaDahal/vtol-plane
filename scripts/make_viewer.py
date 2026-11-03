@@ -20,6 +20,10 @@ import plates as PT
 from make_print_ready import PARTS
 
 LOOSE = {"servo_hatch", "hatch_block", "control_horn"}   # modelled at the origin; hatches placed as instances
+# Parts sealed inside the airframe, left out of the exterior model (renders/vtol_plane.stl): GitHub's
+# 3-D viewer draws one opaque colour, so they would only add size (it shows files up to 10 MB).
+INSIDE = {"battery_tray", "boom_cup_l", "boom_cup_r", "coupler_240", "coupler_370", "coupler_610", "fc_shelf",
+          "frame_main", "frame_rear", "pod_collar", "rib_tip_l", "rib_tip_r", "vtail_tip_cap_l", "vtail_tip_cap_r"}
 LWPLA = ("wing_", "aileron_", "fuse_", "vtail_l", "vtail_r", "ruddervator_", "tip_fairing_", "vtail_tip_fairing_")
 BED = {"s1": 250.0, "x": 260.0}
 
@@ -204,6 +208,56 @@ def tube(name, a, b, od, idd=0.0, ex=(0.0, 0.0, 0.0)):
                 burst=[float(v) for v in ex])
 
 
+def _cylinder(a, b, r, n=24):
+    """Closed cylinder from a to b, faces wound outward."""
+    a, b = np.asarray(a, float), np.asarray(b, float)
+    w = (b - a) / np.linalg.norm(b - a)
+    u = np.cross(w, [1.0, 0.0, 0.0] if abs(w[0]) < 0.9 else [0.0, 1.0, 0.0])
+    u /= np.linalg.norm(u)
+    v = np.cross(w, u)
+    t = np.linspace(0.0, 2 * math.pi, n, endpoint=False)
+    ring = r * (np.cos(t)[:, None] * u + np.sin(t)[:, None] * v)
+    p, q = a + ring, b + ring
+    out = []
+    for i in range(n):
+        j = (i + 1) % n
+        out += [[p[i], p[j], q[j]], [p[i], q[j], q[i]], [a, p[j], p[i]], [b, q[i], q[j]]]
+    return np.array(out)
+
+
+def _box(c, axes, half):
+    """Box centred on c along right-handed unit axes, half-sizes `half`, faces wound outward."""
+    c = np.asarray(c, float)
+    e = [np.asarray(x, float) * h for x, h in zip(axes, half)]
+    out = []
+    for k in range(3):
+        i, j = (k + 1) % 3, (k + 2) % 3
+        for s in (1, -1):
+            f = [c + s * e[k] - e[i] - e[j], c + s * e[k] + e[i] - e[j], c + s * e[k] + e[i] + e[j],
+                 c + s * e[k] - e[i] + e[j]]
+            out += [[f[0], f[1], f[2]], [f[0], f[2], f[3]]] if s > 0 else [[f[0], f[2], f[1]], [f[0], f[3], f[2]]]
+    return np.array(out)
+
+
+def exterior_model(motors, tubes):
+    """The outside of the assembled aircraft in hover, as one mesh: every part that shows, the tail
+    boom, and the motors and two-blade props drawn simply. README.md links it: GitHub shows
+    renders/vtol_plane.stl in its 3-D viewer."""
+    tris = [G.read_stl(os.path.join(G.ASSEMBLY, f)).reshape(-1, 3, 3) for f in sorted(os.listdir(G.ASSEMBLY))
+            if f.endswith(".stl") and f[:-4] not in LOOSE | INSIDE]
+    boom = next(t for t in tubes if t["name"] == "tail_boom")
+    tris.append(_cylinder(boom["a"], boom["b"], boom["od"] / 2, 32))
+    z, r = np.array([0.0, 0.0, 1.0]), P.PROP_D / 2
+    for m in motors:
+        b, h = np.asarray(m["base"], float), m["prop_z"]
+        tris += [_cylinder(b, b + 6 * z, 14), _cylinder(b + 6 * z, b + 30 * z, 17),
+                 _cylinder(b + 30 * z, b + (h + 3.5) * z, 2.5, 12), _cylinder(b + (h - 3.5) * z, b + (h + 3.5) * z, 6)]
+        d = np.array([math.cos(math.radians(30)), math.sin(math.radians(30)), 0.0])
+        for s in (1, -1):
+            tris.append(_box(b + h * z + s * d * (r + 4) / 2, (d, np.cross(z, d), z), ((r - 4) / 2, 7.0, 0.8)))
+    return np.concatenate(tris)
+
+
 def gcode_stats(name):
     """Sliced filament mass (g) and print time (min) from a part's or a plate's G-code, if it exists."""
     if name in PT.PLATES:
@@ -311,6 +365,10 @@ def main():
     print(f"wrote {path}: {len(parts)} parts, {len(out['instances'])} hatch parts placed, {len(tubes)} tubes, "
           f"{len(motors)} motors, {len(equipment)} equipment items, {len(routes)} cable runs, "
           f"{len(out['prints'])} print files, {len(out['plates'])} PETG plates")
+    model = exterior_model(motors, tubes)
+    path = os.path.join(G.ROOT, "renders", "vtol_plane.stl")
+    G.write_stl(path, model)
+    print(f"wrote {path}: {len(model)} triangles, {os.path.getsize(path) / 1e6:.1f} MB (GitHub shows up to 10 MB)")
 
 
 if __name__ == "__main__":

@@ -2,20 +2,22 @@
 file with its material, printer, copies and sliced mass and time, every PETG plate with what is
 on it, and each printer's total with the PETG printed as plates. The Status column and any note
 after a name are kept; a file without G-code shows "not sliced", and becomes "sliced" once it
-has some.
+has some. Also draws the two printers' queues as renders/print_schedule.svg (README.md).
 
 build_all.py and slice_all.py run this after make_viewer.py; check_parts.py fails if
-tracker.md is stale.
+tracker.md or the chart is stale.
 Usage: python make_tracker.py
 """
 import json
 import os
 import re
 from collections import Counter
+from xml.sax.saxutils import escape
 
 import geom as G
 
 PATH = os.path.join(G.ROOT, "tracker.md")
+SVG = os.path.join(G.ROOT, "renders", "print_schedule.svg")
 MAT = {"lwpla": "LW-PLA vase", "petg": "PETG"}
 PRN = {"s1": "S1", "x": "X"}
 ORDER = [("lwpla", "s1"), ("lwpla", "x"), ("petg", "s1"), ("petg", "x")]
@@ -129,14 +131,98 @@ def load_manifest():
     return man["prints"], man.get("plates", [])
 
 
+# The suggested order (tracker.md): the test prints first, then each printer's LW-PLA, then plates.
+FIRST = ["wing_tip_r", "petg_1_fit_tests", "tip_fairing_r", "wing_mid_r", "wing_tip_l"]
+PRINTERS = {"s1": "Kobra S1", "x": "Kobra X"}
+
+
+def queues(prints, plates):
+    """Each printer's jobs in order: (name, copies, minutes each, kind), kind lwpla/petg/plate."""
+    plated = Counter()
+    for q in plates:
+        for n, c in q["contents"]:
+            plated[n] += c
+    jobs = [(p["name"], p["printer"], p["qty"] - (plated[p["name"]] if p["material"] == "petg" else 0),
+             p["minutes"] or 0.0, p["material"]) for p in prints]
+    jobs = [j for j in jobs if j[2] > 0] + [(q["name"], q["printer"], 1, q["minutes"] or 0.0, "plate") for q in plates]
+    rank = {n: i for i, n in enumerate(FIRST)}
+    jobs.sort(key=lambda j: (rank.get(j[0], len(FIRST)), j[4] == "plate", j[0]))
+    return {pr: [(n, c, m, k) for n, p, c, m, k in jobs if p == pr] for pr in PRINTERS}
+
+
+def schedule_svg(prints, plates):
+    """Both printers' queues as a Gantt chart, one row per job, each printer starting at 0 h."""
+    qs = queues(prints, plates)
+    span = max(sum(c * m for _, c, m, _ in q) for q in qs.values()) / 60
+    hmax = max(4, 4 * -(-span // 4))
+    left, width, row, head = 190, 600, 19, 30
+    x = lambda h: left + width * h / hmax
+    rows = sum(len(q) for q in qs.values())
+    top = 80
+    height = top + len(qs) * head + rows * row + 58
+    out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="900" height="{height}" viewBox="0 0 900 {height}" '
+           f'font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12">',
+           '<rect width="900" height="100%" rx="8" fill="#f6f8fa"/>',
+           '<text x="24" y="28" font-size="16" font-weight="600" fill="#1f2328">Print queue, both printers '
+           'running at once</text>',
+           '<text x="24" y="46" fill="#59636e">Sliced times (Anycubic Slicer Next). Test prints first: check '
+           'them before the rest (tracker.md).</text>']
+    for h in range(0, int(hmax) + 1, 4):
+        out.append(f'<line x1="{x(h):.1f}" y1="{top - 4}" x2="{x(h):.1f}" y2="{height - 48}" stroke="#d1d9e0"/>')
+        out.append(f'<text x="{x(h):.1f}" y="{top - 8}" text-anchor="middle" fill="#59636e">{h} h</text>')
+    y = top
+    for pr, q in qs.items():
+        total = sum(c * m for _, c, m, _ in q)
+        out.append(f'<text x="24" y="{y + 20}" font-weight="600" fill="#1f2328">{PRINTERS[pr]}</text>')
+        out.append(f'<text x="{left}" y="{y + 20}" fill="#59636e">{sum(c for _, c, _, _ in q)} jobs, '
+                   f'{total / 60:.1f} h</text>')
+        y += head
+        t = 0.0
+        for name, copies, minutes, kind in q:
+            fill, stroke = ("#2f6db5", "#1f4f8a") if kind != "lwpla" else ("#e6dfcc", "#a59c84")
+            label = escape(name + (f" ×{copies}" if copies > 1 else ""))
+            dur = copies * minutes
+            test = name in FIRST
+            out.append(f'<text x="40" y="{y + 13}" fill="{"#bc4c00" if test else "#1f2328"}">{label}</text>')
+            out.append(f'<rect x="{x(t / 60):.1f}" y="{y + 3}" width="{max(1.5, x(dur / 60) - left):.1f}" height="13" '
+                       f'rx="2" fill="{fill}" stroke="{"#e36209" if test else stroke}" '
+                       f'stroke-width="{2 if test else 1}"/>')
+            out.append(f'<text x="{x((t + dur) / 60) + 5:.1f}" y="{y + 13}" fill="#59636e">'
+                       f'{f"{round(dur)} min" if dur < 59.5 else hours(dur)}</text>')
+            t += dur
+            y += row
+    y += 22
+    for i, (fill, stroke, text) in enumerate([("#e6dfcc", "#a59c84", "LW-PLA, vase mode, one part per job"),
+                                              ("#2f6db5", "#1f4f8a", "PETG plate"),
+                                              ("#ffffff", "#e36209", "test print: check it first")]):
+        lx = 24 + 290 * i
+        out.append(f'<rect x="{lx}" y="{y - 10}" width="22" height="12" rx="2" fill="{fill}" stroke="{stroke}" '
+                   f'stroke-width="{2 if i == 2 else 1}"/>')
+        out.append(f'<text x="{lx + 30}" y="{y}" fill="#1f2328">{text}</text>')
+    out.append("</svg>")
+    return "\n".join(out) + "\n"
+
+
+def expected(text, prints, plates):
+    """What tracker.md and the schedule chart should hold, by path."""
+    return {PATH: render(text, prints, plates), SVG: schedule_svg(prints, plates)}
+
+
+def read_text(path):
+    if not os.path.exists(path):
+        return None
+    with open(path, "rb") as fh:
+        return fh.read().decode("utf-8")
+
+
 def main():
-    with open(PATH, "rb") as fh:
-        text = fh.read().decode("utf-8")
-    new = render(text, *load_manifest())
-    if new != text:
-        with open(PATH, "wb") as fh:
-            fh.write(new.encode("utf-8"))
-    print(f"tracker.md: {'updated' if new != text else 'already current'}")
+    want = expected(read_text(PATH), *load_manifest())
+    for path, new in want.items():
+        old = read_text(path)
+        if new != old:
+            with open(path, "wb") as fh:
+                fh.write(new.encode("utf-8"))
+        print(f"{os.path.relpath(path, G.ROOT)}: {'updated' if new != old else 'already current'}")
 
 
 if __name__ == "__main__":

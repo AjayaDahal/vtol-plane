@@ -61,7 +61,8 @@ rest of the right wing and PETG plates 2–6; plate 7 (pods and yokes) once the 
 been measured. X: `wing_tip_l` first (its flow test: weigh it), then the left wing, the
 fuselage and the V-tail, in any order. To see every print file and plate on its bed with its mass and time, open the 3D
 viewer (`python scripts/serve_viewer.py`) and press "Show the print files", or look at
-`renders/35_print_files_all.png` and `renders/47_print_plates_s1_petg.png`.
+`renders/35_print_files_all.png` and `renders/47_print_plates_s1_petg.png`. Both printers'
+queues in this order, with their sliced times: `renders/print_schedule.svg`.
 
 ## Plates (PETG, Kobra S1)
 

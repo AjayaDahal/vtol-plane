@@ -514,12 +514,18 @@ with its mass and print time, and 47 the seven PETG plates. 39–42 show servici
 yokes lifted off, a tilt servo out beside its plug pocket, the battery straps' path and a cut
 through an aileron hatch. 43–46 show the wing and V-tail tip fairings. `00_all_sides.png`,
 `00_wing_smoothness.png`, `00_inside_and_burst.png`, `00_servicing.png` and `00_tips.png` put
-the main views on one page each. To orbit the model yourself:
+the main views on one page each. The README's animations are `anim_turntable.gif`,
+`anim_transition.gif` (hover to cruise), `anim_burst.gif`, `anim_nose_battery.gif` and
+`anim_service.gif`. `vtol_plane.stl` is the outside of the aircraft as one mesh, for GitHub's
+3-D viewer, and `print_schedule.svg` both printers' queues. To orbit the model yourself:
 
 ```
 python scripts/make_viewer.py     # writes viewer/manifest.json (build_all.py runs it too)
 python scripts/serve_viewer.py    # then open http://127.0.0.1:28765/viewer/
 ```
+
+The same viewer runs from GitHub Pages (<https://ajayadahal.github.io/vtol-plane/>), served
+from the repository: it needs no server of its own.
 
 The viewer has the preset views, colours as printed, one colour, reflection stripes or by part,
 x-ray skins, a grazing light and the tilt slider. Also:
@@ -539,7 +545,8 @@ x-ray skins, a grazing light and the tilt slider. Also:
   hover a part for its name.
 - Hover any part for its name and role; double-click it to zoom in.
 
-Opening `http://127.0.0.1:28765/viewer/?capture=1` re-renders every image in `renders/`.
+Opening `http://127.0.0.1:28765/viewer/?capture=1` re-renders every image in `renders/` and the
+animations; `?capture=gif` only the animations (Pillow writes them).
 
 ## Open questions, to confirm in flight test
 

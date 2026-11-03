@@ -75,11 +75,11 @@ prints, and `petg_7_pods_yokes` waits until the tilt servos have been measured.
 
 Numbers in the preset JSONs are strings ("1", "0.2", "0%"); integer overrides are rejected.
 
-`filament_lwpla.json` is for **active-foaming** LW-PLA (colorFabb LW-PLA, eSUN PLA-LW), which
-swells in the nozzle: hence 55 % flow at 235 °C. Pre-foamed lightweight PLA (Polymaker PolyLite
-LW-PLA, SUNLU LW-PLA, Overture Air PLA) does not swell. It needs its own profile at about full
-flow and 190–210 °C, and its skins weigh ~32 % more (0.9 against ~0.68 g/cm³), so it also
-changes the mass balance (`BOM.md`, "Filament").
+`filament_lwpla.json` is for **active-foaming** LW-PLA (colorFabb LW-PLA, SainSmart LW-PLA, Bambu
+Lab PLA Aero, eSUN PLA-LW), which swells in the nozzle: hence 55 % flow at 235 °C. Pre-foamed
+lightweight PLA (Polymaker PolyLite LW-PLA, SUNLU LW-PLA, Overture Air PLA) does not swell. It
+needs its own profile at about full flow and 190–210 °C, and its skins weigh ~32 % more (0.9
+against ~0.68 g/cm³), so it also changes the mass balance (`BOM.md`, "Filament").
 
 LW-PLA foams more the slower it is extruded. The stock settings (200 mm/s walls, 8 s minimum
 layer time) made every vase layer take 8 s, so wall speed followed the perimeter: 10 mm/s on the

@@ -38,7 +38,7 @@ part goes and how it is assembled is in `DESIGN.md`. This list is for the
 
 | Filament | Printer | Needed (from the G-code) | Buy |
 |---|---|---|---|
-| LW-PLA, **active-foaming**, 1.75 mm | Kobra X: every skin | 266 g | one spool, e.g. colorFabb LW-PLA, 750 g |
+| LW-PLA, **active-foaming**, 1.75 mm | Kobra X: every skin | 266 g | one spool: SainSmart LW-PLA 1 kg (free delivery on Amazon), Bambu Lab PLA Aero 1 kg or colorFabb LW-PLA 750 g |
 | PETG, 1.75 mm | Kobra S1: every PETG part, as plates | 474 g | one 1 kg spool, any brand |
 
 One spool of each covers the parts, the test prints and a few reprints: each printer runs
@@ -48,10 +48,18 @@ one material. No part needs supports.
 flights. LW-PLA, like any PLA, softens at 55–60 °C (Polymaker's data sheet: heat deflection
 54 °C), and dark skins in summer sun get that hot.
 
-**The LW-PLA must be the kind that foams in the nozzle:** colorFabb LW-PLA, or eSUN PLA-LW.
-It swells in the hot nozzle (colorFabb: nearly 3× at 250 °C, where it prints at 45 % flow), so
-the profile feeds 55 % at 235 °C and the walls come out at ~0.68 g/cm³. The flow test print
-(`wing_tip_r`, 14.7 g) tunes the flow for the spool you have.
+**The LW-PLA must be the kind that foams in the nozzle.** It swells in the hot nozzle
+(colorFabb: nearly 3× at 250 °C, where it prints at 45 % flow), so the profile feeds 55 % at
+235 °C and the walls come out at ~0.68 g/cm³. The flow test print (`wing_tip_r`, 14.7 g)
+tunes the flow for the spool you have. Checked against the profile (Nov 2026, US prices):
+
+| LW-PLA | Spool | Price | Shipping | Notes |
+|---|---|---|---|---|
+| SainSmart LW-PLA, white | 1 kg | $47.49, Amazon | free, no Prime needed | foams above 210 °C, down to 0.54 g/cm³ |
+| Bambu Lab PLA Aero, white or light grey | 1 kg with spool | $26.99, Bambu US store | $6.99 under $59; free over $59 or with 4 filaments | Bambu's foaming table gives a minimum flow of ~0.53 at 235 °C, against the profile's 0.55: the walls fill at ~0.67 g/cm³. Order the PETG with it |
+| colorFabb LW-PLA | 750 g | $40.50, Amazon | $11 | the reference: up to ~3× at 250 °C |
+| eSUN PLA-LW | 1 kg | | | foams up to 2.2× |
+| Creality Lightweight PLA | 1 kg | $51.43, Amazon | free | foams less (about 0.8 g/cm³ in Creality's own figures), so heavier skins: not recommended |
 
 **Pre-foamed lightweight PLA does not fit these files.** Polymaker PolyLite LW-PLA (0.9 g/cm³),
 SUNLU LW-PLA and Overture Air PLA come foamed on the spool and print like normal PLA, at full

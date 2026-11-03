@@ -49,7 +49,7 @@ Airframe,EVA foam strip,1,BUY,"5-10 mm thick, ~250 x 40 mm",belly landing pad,,,
 Airframe,Heat shrink / braid,1,BUY,,wherever wires cross carbon (carbon conducts),,,
 Airframe,Fish tape and pull cord,1,BUY,"1 mm stiff wire ~1 m, thin nylon cord ~1 m",pull the leads through the boom; lay the GPS cable through fuse_3,,,
 Airframe,Nylon mesh (optional),1,BUY,scrap,inside the nose-tip air inlet,,,
-Filament,"LW-PLA, ACTIVE-FOAMING, 1.75 mm",1,BUY,"colorFabb LW-PLA, 750 g spool, light colour (natural, white or yellow)","the Kobra X prints every skin: 266 g, plus the test prints and reprints. NOT pre-foamed LW-PLA (Polymaker PolyLite LW-PLA, SUNLU LW-PLA, Overture Air PLA): these files would under-extrude it. Light colour: LW-PLA softens at 55-60 C and dark skins get that hot in summer sun",40.50,40.50,https://www.amazon.com/dp/B0CFRHQPFX
+Filament,"LW-PLA, ACTIVE-FOAMING, 1.75 mm",1,BUY,"SainSmart LW-PLA (active foaming), White, 1 kg","the Kobra X prints every skin: 266 g, plus the test prints and reprints. Free delivery on Amazon, no Prime needed. Foams above 210 C, down to 0.54 g/cm3. Cheaper: Bambu Lab PLA Aero, 1 kg, white or grey, $26.99 at us.store.bambulab.com ($6.99 shipping under $59; with the PETG in the same order both cost ~$48 delivered). NOT pre-foamed LW-PLA (Polymaker PolyLite LW-PLA, SUNLU LW-PLA, Overture Air PLA): these files would under-extrude it. Light colour: LW-PLA softens at 55-60 C and dark skins get that hot in summer sun",47.49,47.49,https://www.amazon.com/dp/B0B1PS6MMP
 Filament,"PETG, 1.75 mm",1,BUY,"any brand, 1 kg spool","the Kobra S1 prints every PETG part as 7 plates: 474 g. Normal PETG, not a foaming PETG",,,
 Printed,LW-PLA skins,22,PRINT,21 files on the Kobra X (22 prints),"266 g, ~51 h: wings, ailerons, tip fairings, fuselage, V-tail, ruddervators (tracker.md)",,,
 Printed,PETG parts,53,PRINT,7 plates on the Kobra S1,"474 g, ~18 h. Hold plates 6 and 7 until the 3S changes are built in (PLAN_3S.md)",,,
@@ -63,4 +63,4 @@ Your parts not used,Motors,2,NOT USED,Your Readytosky RS2212 920KV,about 1 kg at
 Your parts not used,Motor,1,NOT USED,Your 4108 380KV,made for 15 in props on 4-6S; a 15 in prop does not fit,,,
 Your parts not used,Power distribution board,1,NOT USED,Your blue multirotor PDB,a 1-to-3 harness is lighter and fits where the ESC block is,,,
 Not needed for 3S,4S design items,0,DO NOT BUY,"Emax ECOII 2807 1700KV motors, 50 A DShot ESCs, Pixhawk 6C, 4S 5000 mAh pack, M10 GPS, PM02, 7x4.5 props",BOM.md lists them for the 4S design; the 3S build uses the motors above and your parts,,,
-Total,Priced rows only,,,"motors, props, LW-PLA",the other BUY rows are not priced here: check prices when ordering,,204.29,
+Total,Priced rows only,,,"motors, props, LW-PLA",the other BUY rows are not priced here: check prices when ordering,,211.28,

@@ -44,6 +44,10 @@ part goes and how it is assembled is in `DESIGN.md`. This list is for the
 One spool of each covers the parts, the test prints and a few reprints: each printer runs
 one material. No part needs supports.
 
+**Pick a light colour** (natural, white or yellow) and keep the plane in the shade between
+flights. LW-PLA, like any PLA, softens at 55–60 °C (Polymaker's data sheet: heat deflection
+54 °C), and dark skins in summer sun get that hot.
+
 **The LW-PLA must be the kind that foams in the nozzle:** colorFabb LW-PLA, or eSUN PLA-LW.
 It swells in the hot nozzle (colorFabb: nearly 3× at 250 °C, where it prints at 45 % flow), so
 the profile feeds 55 % at 235 °C and the walls come out at ~0.68 g/cm³. The flow test print

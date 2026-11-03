@@ -194,11 +194,18 @@ the field box: if it is lost the nose can depart in flight, and the CG jumps aft
    `hatch_block`s (and the tip ring for step 4). Your 9 g servo's
    tabs must screw to the posts (holes 28 mm apart) with its body (up to 23 × 12.2 mm) between
    them, and the horn must stay within 15 mm of the cover's centre, short of the ledges.
-3. **LW-PLA test:** print `wing_tip_r` on the X, which prints every LW-PLA part. It should
-   weigh 14.7 g ±15 % and survive a gentle flex. If it is off, change the flow in
-   `filament_lwpla.json` and re-slice. Every vase part prints at 17–30 mm/s, so this one test
-   covers them all. The files are for active-foaming LW-PLA only (`BOM.md`, "Filament"): a
-   pre-foamed one comes out about half-filled with them.
+3. **LW-PLA test:** print `wing_tip_r` on the X, which prints every LW-PLA part. Check two
+   things: it should weigh 14.7 g ±15 %, and its wall must be closed and even (no gaps between
+   the layers, no light through it). Then flex it gently.
+   - Weight off: the extruder feeds the wrong amount. Change the flow in `filament_lwpla.json`
+     and re-slice.
+   - Weight right but the wall gappy: the filament foams less than the profile expects. Raise
+     the flow a little at a time.
+   - About 27 % light (~10.7 g): the spool is pre-foamed (`BOM.md`, "Filament"). Do not raise
+     the flow to make the weight: the part would weigh right with about a quarter of the plastic
+     missing from its walls. These files are for active-foaming LW-PLA only.
+
+   Every vase part prints at 17–30 mm/s, so this one test covers them all.
 4. **Fit test:** slide `rib_tip_r` (the tip ring, from the same plate) into that tip skin. It should go in with
    light hand force. If it is tight, sand the ring; never force a skin. Then print
    `tip_fairing_r` and slide it onto the ring's outboard half: it must meet the skin's end edge

@@ -49,7 +49,7 @@ Airframe,EVA foam strip,1,BUY,"5-10 mm thick, ~250 x 40 mm",belly landing pad,,,
 Airframe,Heat shrink / braid,1,BUY,,wherever wires cross carbon (carbon conducts),,,
 Airframe,Fish tape and pull cord,1,BUY,"1 mm stiff wire ~1 m, thin nylon cord ~1 m",pull the leads through the boom; lay the GPS cable through fuse_3,,,
 Airframe,Nylon mesh (optional),1,BUY,scrap,inside the nose-tip air inlet,,,
-Filament,"LW-PLA, ACTIVE-FOAMING, 1.75 mm",1,BUY,"colorFabb LW-PLA, 750 g spool","the Kobra X prints every skin: 266 g, plus the test prints and reprints. NOT pre-foamed LW-PLA (Polymaker PolyLite LW-PLA, SUNLU LW-PLA, Overture Air PLA): these files would under-extrude it",40.50,40.50,https://www.amazon.com/dp/B0CFRHQPFX
+Filament,"LW-PLA, ACTIVE-FOAMING, 1.75 mm",1,BUY,"colorFabb LW-PLA, 750 g spool, light colour (natural, white or yellow)","the Kobra X prints every skin: 266 g, plus the test prints and reprints. NOT pre-foamed LW-PLA (Polymaker PolyLite LW-PLA, SUNLU LW-PLA, Overture Air PLA): these files would under-extrude it. Light colour: LW-PLA softens at 55-60 C and dark skins get that hot in summer sun",40.50,40.50,https://www.amazon.com/dp/B0CFRHQPFX
 Filament,"PETG, 1.75 mm",1,BUY,"any brand, 1 kg spool","the Kobra S1 prints every PETG part as 7 plates: 474 g. Normal PETG, not a foaming PETG",,,
 Printed,LW-PLA skins,22,PRINT,21 files on the Kobra X (22 prints),"266 g, ~51 h: wings, ailerons, tip fairings, fuselage, V-tail, ruddervators (tracker.md)",,,
 Printed,PETG parts,53,PRINT,7 plates on the Kobra S1,"474 g, ~18 h. Hold plates 6 and 7 until the 3S changes are built in (PLAN_3S.md)",,,

@@ -17,7 +17,9 @@ reprinted from its own. Mass and time are the slicer's estimates (Anycubic Slice
 1.3.3.3). The tables and totals below are written from the sliced files by
 `scripts/make_tracker.py`; only the Status column and the notes in brackets are edited by hand.
 Weigh every part as it comes off the bed. An LW-PLA part more than ~15 % off the mass below
-means the flow is wrong; recalibrate before printing more. Where each part goes: `DESIGN.md`.
+means the flow is wrong; recalibrate before printing more. One exception: about 27 % light
+means a pre-foamed spool (see the reminders), which no flow setting fixes. Where each part goes:
+`DESIGN.md`.
 
 ## Reminders for print time (agents: raise these with the user when printing starts)
 
@@ -33,10 +35,13 @@ means the flow is wrong; recalibrate before printing more. Where each part goes:
   profile feeds only 55 % (flow 0.55 at 235 °C). Pre-foamed LW-PLA (Polymaker's, 0.9 g/cm³)
   does not swell. Printed from these files it gets about half the plastic it needs: thin,
   gappy, weak walls. Check what is on the spool before the first print (`BOM.md`, "Filament").
+  The flow test also shows it: from a pre-foamed spool `wing_tip_r` weighs ~10.7 g instead of
+  14.7 g. Do not raise the flow until it weighs 14.7 g: the part would weigh right with about a
+  quarter of the plastic missing from its walls.
 - [ ] **Print quality is unverified.** G-code checks cannot show it. The LW-PLA flow of 0.55 and
   the vase-mode walls need a real test print before the full set is printed: `wing_tip_r` on
-  the X (target 14.7 g). Every LW-PLA part prints on the X at 17–30 mm/s, so this one test
-  covers them all.
+  the X (target 14.7 g, with a closed, even wall: no gaps between the layers, no light through
+  it). Every LW-PLA part prints on the X at 17–30 mm/s, so this one test covers them all.
 - [ ] **Spigot fit.** Plate `petg_1_fit_tests` carries `rib_tip_r` (the hidden tip ring): slide
   its inboard half into that `wing_tip_r` before printing the other PETG plates. It should go
   in with light hand force; sand the ring if it is tight.

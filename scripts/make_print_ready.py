@@ -17,8 +17,8 @@ def _p(material, printer, rot, qty=1, src=None):
 
 
 PARTS = {
-    # LW-PLA skins: the right wing on the S1, which also prints all the PETG (as plates, plates.py);
-    # the left wing, the fuselage and the V-tail on the X. Each printer has about 35 h of work.
+    # One material per printer: every LW-PLA skin on the X (one spool, one flow calibration), all
+    # the PETG on the enclosed S1 (as plates, plates.py).
     "fuse_1": _p(LW, "x", [("y", 90)]),
     "fuse_2": _p(LW, "x", [("y", -90)]),
     "fuse_3": _p(LW, "x", [("y", -90)]),
@@ -71,7 +71,7 @@ PARTS = {
     "control_horn": _p(PETG, "s1", [], qty=6),
 }
 for _sec in ("wing_root", "wing_mid", "wing_tip", "aileron_mid", "aileron_tip", "tip_fairing"):
-    PARTS[_sec + "_r"] = _p(LW, "s1", [("x", 90)])
+    PARTS[_sec + "_r"] = _p(LW, "x", [("x", 90)])
     PARTS[_sec + "_l"] = _p(LW, "x", [("x", -90)])
 
 

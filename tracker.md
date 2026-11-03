@@ -1,11 +1,13 @@
 # VTOL Plane — Print Tracker (v0.2)
 
-Two printers: **S1** = Anycubic Kobra S1 (250³ mm, enclosed),
-**X** = Anycubic Kobra X (260³ mm, open frame).
-Rule: the **S1** prints the right wing (skins, ailerons, tip fairing) and all the PETG, as seven
-plates; the **X** prints the left wing, the four fuselage sections and the V-tail (panels,
-ruddervators, tip fairings). That gives each printer about 35 h, so run both at once. No part
-needs supports.
+Two printers, one material each:
+- **X** = Anycubic Kobra X (260³ mm, open frame) prints every LW-PLA skin: both wings, the
+  fuselage and the V-tail. One printer means one LW-PLA spool and one flow calibration.
+- **S1** = Anycubic Kobra S1 (250³ mm, enclosed) prints all the PETG, as seven plates. PETG
+  warps on the open-frame X.
+
+The X has the long queue (about 51 h, against 18 h for the S1). Run both at once when you can.
+No part needs supports.
 
 G-code: the PETG plates are in `gcode/s1_petg_plates/<plate>.gcode`, each part on them its own
 object (cancel a failed one from the printer's screen and let the rest finish). Every part also
@@ -26,11 +28,15 @@ means the flow is wrong; recalibrate before printing more. Where each part goes:
   measured. Everything else prints as it is now, every LW-PLA part included. Plate 6's
   unchanged parts (`battery_tray`, `gps_mount`, `pod_collar`, `tail_block`) may print early
   from their single files; mark them printed here.
+- [ ] **LW-PLA type: active-foaming only.** The LW-PLA files are sliced for filament that
+  foams in the hot nozzle (colorFabb-style LW-PLA): it swells to about twice its volume, so the
+  profile feeds only 55 % (flow 0.55 at 235 °C). Pre-foamed LW-PLA (Polymaker's, 0.9 g/cm³)
+  does not swell. Printed from these files it gets about half the plastic it needs: thin,
+  gappy, weak walls. Check what is on the spool before the first print (`BOM.md`, "Filament").
 - [ ] **Print quality is unverified.** G-code checks cannot show it. The LW-PLA flow of 0.55 and
-  the vase-mode walls need a real test print on each printer before the full set is printed:
-  `wing_tip_r` on the S1 and its mirror `wing_tip_l` on the X (target 14.7 g each). The two
-  printers' extruders differ, so one printer's result does not prove the other's. All vase parts
-  print at 17–30 mm/s, so one test per printer covers all its parts.
+  the vase-mode walls need a real test print before the full set is printed: `wing_tip_r` on
+  the X (target 14.7 g). Every LW-PLA part prints on the X at 17–30 mm/s, so this one test
+  covers them all.
 - [ ] **Spigot fit.** Plate `petg_1_fit_tests` carries `rib_tip_r` (the hidden tip ring): slide
   its inboard half into that `wing_tip_r` before printing the other PETG plates. It should go
   in with light hand force; sand the ring if it is tight.
@@ -62,11 +68,15 @@ means the flow is wrong; recalibrate before printing more. Where each part goes:
 
 Tick a box once the user confirms it is done.
 
-Suggested order. S1: `wing_tip_r` (flow test), then plate `petg_1_fit_tests` (tip-ring and
-servo-hatch fit) and `tip_fairing_r` (closing-tip test), then `wing_mid_r` (web check), then the
-rest of the right wing and PETG plates 2–5. Plates 6 and 7 wait for the 3S changes
-(`PLAN_3S.md`); plate 7 (pods and yokes) also waits for the tilt servos to be measured. X: `wing_tip_l` first (its flow test: weigh it), then the left wing, the
-fuselage and the V-tail, in any order. To see every print file and plate on its bed with its mass and time, open the 3D
+Suggested order:
+- **X:** `wing_tip_r` (flow test: weigh it), `tip_fairing_r` (closing-tip test), `wing_mid_r`
+  (web check), then the other skins in any order.
+- **S1, alongside:** plate `petg_1_fit_tests` (tip-ring and servo-hatch fit: try the ring in
+  that `wing_tip_r`), then plates 2–5.
+- **Held:** plates 6 and 7 wait for the 3S changes (`PLAN_3S.md`). Plate 7 (pods and yokes) also
+  waits for the tilt servos to be measured.
+
+To see every print file and plate on its bed with its mass and time, open the 3D
 viewer (`python scripts/serve_viewer.py`) and press "Show the print files", or look at
 `renders/35_print_files_all.png` and `renders/47_print_plates_s1_petg.png`. Both printers'
 queues in this order, with their sliced times: `renders/print_schedule.svg`.
@@ -90,14 +100,10 @@ for reprinting one part.
 
 | Part | Material | Printer | Qty | Mass each (g) | Time each | Status |
 |---|---|---|---|---|---|---|
-| `aileron_mid_r` | LW-PLA vase | S1 | 1 | 5.1 | 1h 11m | sliced |
-| `aileron_tip_r` | LW-PLA vase | S1 | 1 | 4.8 | 1h 16m | sliced |
-| `tip_fairing_r` | LW-PLA vase | S1 | 1 | 2.6 | 0h 30m | sliced |
-| `wing_mid_r` | LW-PLA vase | S1 | 1 | 20.7 | 3h 46m | sliced |
-| `wing_root_r` | LW-PLA vase | S1 | 1 | 33.5 | 6h 05m | sliced |
-| `wing_tip_r` | LW-PLA vase | S1 | 1 | 14.7 | 2h 41m | sliced |
 | `aileron_mid_l` | LW-PLA vase | X | 1 | 5.1 | 1h 11m | sliced |
+| `aileron_mid_r` | LW-PLA vase | X | 1 | 5.1 | 1h 11m | sliced |
 | `aileron_tip_l` | LW-PLA vase | X | 1 | 4.8 | 1h 16m | sliced |
+| `aileron_tip_r` | LW-PLA vase | X | 1 | 4.8 | 1h 16m | sliced |
 | `fuse_1` (removable nose) | LW-PLA vase | X | 1 | 18.2 | 3h 22m | sliced |
 | `fuse_2` | LW-PLA vase | X | 1 | 13.9 | 2h 32m | sliced |
 | `fuse_3` | LW-PLA vase | X | 1 | 22.5 | 4h 04m | sliced |
@@ -105,12 +111,16 @@ for reprinting one part.
 | `ruddervator_l` | LW-PLA vase | X | 1 | 5.4 | 1h 23m | sliced |
 | `ruddervator_r` | LW-PLA vase | X | 1 | 5.4 | 1h 23m | sliced |
 | `tip_fairing_l` | LW-PLA vase | X | 1 | 2.6 | 0h 30m | sliced |
+| `tip_fairing_r` | LW-PLA vase | X | 1 | 2.6 | 0h 30m | sliced |
 | `vtail_l` | LW-PLA vase | X | 1 | 13.7 | 2h 31m | sliced |
 | `vtail_r` | LW-PLA vase | X | 1 | 13.7 | 2h 31m | sliced |
 | `vtail_tip_fairing` (one file, both sides) | LW-PLA vase | X | 2 | 1.3 | 0h 16m | sliced |
 | `wing_mid_l` | LW-PLA vase | X | 1 | 20.7 | 3h 48m | sliced |
+| `wing_mid_r` | LW-PLA vase | X | 1 | 20.7 | 3h 48m | sliced |
 | `wing_root_l` | LW-PLA vase | X | 1 | 33.5 | 6h 06m | sliced |
+| `wing_root_r` | LW-PLA vase | X | 1 | 33.5 | 6h 06m | sliced |
 | `wing_tip_l` | LW-PLA vase | X | 1 | 14.7 | 2h 42m | sliced |
+| `wing_tip_r` | LW-PLA vase | X | 1 | 14.7 | 2h 42m | sliced |
 | `battery_tray` | PETG | S1 | 1 | 20.4 | 0h 55m | sliced |
 | `boom_cup_l` | PETG | S1 | 1 | 9.2 | 0h 23m | sliced |
 | `boom_cup_r` | PETG | S1 | 1 | 9.2 | 0h 23m | sliced |
@@ -146,10 +156,8 @@ Totals, quantities included, printed as above (LW-PLA one part per job, PETG as 
 
 | Printer | What | Jobs | Mass | Time |
 |---|---|---|---|---|
-| S1 | LW-PLA vase, one part per job | 6 | 81 g | 15.5 h |
 | S1 | PETG, 7 plates | 7 | 474 g | 17.5 h |
-| S1 | total | 13 | 555 g | 33.0 h |
-| X | LW-PLA vase, one part per job | 16 | 185 g | 35.4 h |
+| X | LW-PLA vase, one part per job | 22 | 266 g | 50.9 h |
 | S1 | for comparison: the same PETG as single files (reprints) | 53 | 475 g | 22.6 h |
 
 Notes:
@@ -168,7 +176,7 @@ Notes:
   plates hold every PETG print exactly once, that the G-code puts each part where the layout
   does, and that no brim is cut off at the bed's edge.
 - **240 mm parts on the X.** `fuse_1`, `fuse_3` and both V-tail panels are 240 mm tall; they
-  print on the X (260 mm). Nothing on the S1 is taller than 217 mm.
+  print on the X (260 mm). The S1 prints only PETG, the tallest being `tail_block` (80 mm).
 
 Status values: not sliced / sliced / printing / printed / fitted / failed. Superseded v0.1 parts and their
 G-code (nacelles, brackets, sleeves, pivot blocks, socket rear mount) were deleted; do not

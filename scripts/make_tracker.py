@@ -132,7 +132,7 @@ def load_manifest():
 
 
 # The suggested order (tracker.md): the test prints first, then each printer's LW-PLA, then plates.
-FIRST = ["wing_tip_r", "petg_1_fit_tests", "tip_fairing_r", "wing_mid_r", "wing_tip_l"]
+FIRST = ["wing_tip_r", "petg_1_fit_tests", "tip_fairing_r", "wing_mid_r"]
 PRINTERS = {"s1": "Kobra S1", "x": "Kobra X"}
 
 

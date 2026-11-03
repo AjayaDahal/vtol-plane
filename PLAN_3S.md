@@ -11,9 +11,10 @@
 - **Keep and use:** the Zeee 3S 8000 mAh hard-case pack (main) and the IPO 3S 6200 (second
   pack), the Cube Black, the Hex Power Brick Mini, the 3DR uBlox GPS + compass and the
   Readytosky 40 A ESCs.
-- **Buy:** three SunnySky X2814 **900KV** motors (about $30 each, against ~$50 for the T-Motor
-  AT2814) and APC 12 × 6 props (see [Motor](#motor)). Also XT60 plugs for the Zeee pack and a
-  DF13 → JST-GH cable for the GPS.
+- **Buy:** three SunnySky X2814 **900KV** motors ($29.99 each at SunnySky USA, against $49.99
+  for the T-Motor AT2814) and APC 12 × 6 props (see [Motor](#motor)). Also XT60 plugs for the
+  Zeee pack and a DF13 → JST-GH cable for the GPS. The whole list, your parts against what to
+  buy: [`BOM_3S.csv`](BOM_3S.csv).
 - **Leave out:** the Emax 2807 1700KV motors the 4S design calls for; your RS2212 920KV
   motors (too weak) and your 4108 380KV (made for 15 in props on 4–6S); the blue PDB (a
   wiring harness is lighter); the bare PX4FMU v2.4.8 board. The cased Pixhawk 1 is the spare
@@ -48,12 +49,12 @@ None of the motors you have can do it:
 
 ## Motor
 
-**Buy the SunnySky X2814 900KV.** It is the same size as the T-Motor AT2814 (28 × 14 mm
-stator, 106 g) and runs the same APC 12 × 6 prop, at about $30 instead of ~$50.
-UnmannedTechShop (UK) sells the 1100KV V3 for £24.90 (Nov 2026). The 900KV is the same motor
-with a different winding, so check its price where you buy. On SunnySky's own test table it is
-slightly stronger than the AT2814: 1880 g at 11.0 V and 26.4 A on a 12 × 6, against
-1720 g at 11.05 V and 27.0 A.
+**Buy the SunnySky X2814 900KV**, the standard version: **$29.99** at SunnySky USA
+(<https://sunnyskyusa.com/products/sunnysky-x2814-brushless-motors>, in stock in Nov 2026). The
+V3 costs $39.99, and the T-Motor AT2814 KV900 $49.99 direct from T-Motor (more from Amazon
+resellers). It is the same size as the AT2814: 28 × 14 mm stator, 108 g, 4 mm shaft. It runs
+the same APC 12 × 6 prop. On SunnySky's own test table it is slightly stronger than the
+AT2814: 1880 g at 11.0 V and 26.4 A on a 12 × 6, against 1720 g at 11.05 V and 27.0 A.
 
 - **It must be the 900KV winding.** On a 12 × 6 the 1000KV draws 35 A at 11 V and the
   1100KV 44 A, so ~42 and ~52 A on a full pack (12.0 V): too much for the 40 A ESCs. The 900KV
@@ -64,15 +65,16 @@ slightly stronger than the AT2814: 1880 g at 11.0 V and 26.4 A on a 12 × 6, aga
   counted: where the 4S design is today. So test one motor's thrust as soon as it arrives
   ([Order of work](#order-of-work), step 2). To risk less money, buy one first and test it
   before ordering the rest.
-- **In the box (V3):** an X-mount, a prop collet and screws. The yokes and the rear mount get
-  the motor's own base holes, measured.
+- **In the box** (from the listing's photos): an X-mount, a prop adapter with its nut, and
+  screws. The hole pattern is not published, so the yokes and the rear mount get the motor's
+  own base holes, measured.
 - **Prop height:** with a 12 in prop the disc must sit at least **38 mm** above the motor's
   mounting face. That leaves 10.4 mm around the rear prop; the gate wants 10. At 42 mm the
-  clearances are 15.8 mm at the front and 14.4 mm at the rear. If the motor with its collet
-  comes out lower, the mount plates move up (`YOKE_PLATE_Z0`, `REAR_PLATE_Z`).
+  clearances are 15.8 mm at the front and 14.4 mm at the rear. If the motor with its prop
+  adapter comes out lower, the mount plates move up (`YOKE_PLATE_Z0`, `REAR_PLATE_Z`).
 - **The reverse-rotation motor:** the front right motor spins clockwise seen from above, which
-  tends to undo the collet's right-hand nut. Use a nyloc nut or medium thread-lock there, and
-  check all three nuts before every flight.
+  tends to undo the prop adapter's right-hand nut. Use a nyloc nut or medium thread-lock there,
+  and check all three nuts before every flight.
 
 All the motors compared, each run through the same model and checks with the Cube Black, the
 Readytosky ESCs and the Zeee pack. Currents are scaled by V² to a full pack (12.0 V) and
@@ -80,18 +82,18 @@ compared with the 40 A ESCs:
 
 | Motor | Price each | Mass | Prop | Thrust data (source) | Full-throttle current, full pack | Front motor at hover (limit 60 %) | Pure hover | Hover current | Verdict |
 |---|---|---|---|---|---|---|---|---|---|
-| **SunnySky X2814 900KV** | ~$30 | 106 g | APC 12 × 6 | 1880 g at 11.0 V, 26.4 A (SunnySky) | ~31 A | **47.9 %** | **17.8 min** | **21.6 A** | **buy** |
-| T-Motor AT2814 KV900 | ~$50 | 108 g | APC 12 × 6 | 1720 g at 11.05 V, 27.0 A (T-Motor) | ~32 A | 52.7 % | 16.4 min | 23.4 A | works, costs more |
+| **SunnySky X2814 900KV** | $29.99 | 108 g | APC 12 × 6 | 1880 g at 11.0 V, 26.4 A (SunnySky) | ~31 A | **47.9 %** | **17.8 min** | **21.6 A** | **buy** |
+| T-Motor AT2814 KV900 | $49.99 | 108 g | APC 12 × 6 | 1720 g at 11.05 V, 27.0 A (T-Motor) | ~32 A | 52.7 % | 16.4 min | 23.4 A | works, costs more |
 | Racerstar BR3536 950KV | $16 | 115 g | APC 10 × 6 | 1580 g at 11.1 V, 35 A (seller) | ~41 A | 58.1 % | 10.4 min | 36.8 A | over the ESCs, no hover margin |
 | Propdrive v2 3536 1400KV | ~$31–37 | 121 g | 8 × 6 | 1470 g at ~10.5 V, 30 A (maker) | ~39 A | 55.7 % | 11.6 min | 33.2 A | no better, often out of stock |
 | Turnigy 2836 1000KV | ? | 80 g | 10 × 4.7 | 1643 g at 11.6 V, 36 A (independent test) | ~39 A | 58.3 % | 11.5 min | 33.5 A | availability unconfirmed |
-| SunnySky X2814 1000 / 1100KV | ~$30 | 106–113 g | 12 × 6 | 2100 / 2300 g at 11 V (SunnySky) | ~42 / ~52 A | – | – | – | over the ESCs |
+| SunnySky X2814 1000 / 1100KV | $29.99 | 108–113 g | 12 × 6 | 2100 / 2300 g at 11 V (SunnySky) | ~42 / ~52 A | – | – | – | over the ESCs |
 
 The Racerstar BR3536 is the cheapest, at $16, but it fails twice. On a full pack it draws
 ~41 A, over the 40 A ESCs. On its seller's figures it also leaves no hover margin: 58 %
 against the 60 % limit before the propwash on the wing (risk 1 below) is counted, and over it
 if its table is optimistic. In hover it draws ~37 A, above the Power Brick Mini's 30 A rating,
-and it hovers for 10 min instead of 18. It would save ~$40 over three X2814s. Not worth it.
+and it hovers for 10 min instead of 18. It would save ~$42 over three X2814s. Not worth it.
 
 ## Results
 
@@ -250,8 +252,8 @@ least 30 mm outside them.
 
 ## Order of work
 
-1. **Now:** print everything except plates 6 and 7 (`tracker.md`, flow tests first). Order
-   the motors, props, XT60 plugs and the GPS cable.
+1. **Now:** print everything except plates 6 and 7 (`tracker.md`, the `wing_tip_r` flow test
+   first, on active-foaming LW-PLA). Order the motors, props, XT60 plugs and the GPS cable.
 2. **When the parts arrive:**
    - **Thrust-test one motor** before anything else. Use a 12 × 6 prop, a freshly charged
      Zeee pack and a watt meter in line, on a thrust stand or a kitchen-scale rig. Nothing may
@@ -276,15 +278,18 @@ least 30 mm outside them.
 
 ## What to buy
 
+The items the 3S build adds or changes. The complete list, every item marked as one of your
+parts or to buy, is [`BOM_3S.csv`](BOM_3S.csv) (opens in Excel).
+
 | Item | Qty | About | Notes |
 |---|---|---|---|
-| SunnySky X2814 **900KV** (V3) | 3 + 1 spare | ~$30 each | not the 1000 or 1100KV (see [Motor](#motor)); comes with an X-mount and a prop collet |
-| APC 12x6E (LP12060E) | 2 + 4 spares | ~$5 each | front left and rear: counter-clockwise seen from above |
-| APC 12x6EP (LP12060EP), reverse rotation | 1 + 2 spares | $4.87 each | front right: clockwise seen from above. Use the APC adapter ring that fits the collet |
+| SunnySky X2814 **900KV**, standard version | 3 + 1 spare | $29.99 each (SunnySky USA) | not the 1000 or 1100KV (see [Motor](#motor)); comes with an X-mount and a prop adapter |
+| APC 12x6E (LP12060E) | 2 + 4 spares | $4.87 each | front left and rear: counter-clockwise seen from above |
+| APC 12x6EP (LP12060EP), reverse rotation | 1 + 2 spares | $4.87 each | front right: clockwise seen from above. Use the APC adapter ring that fits the motor's prop adapter |
 | XT60 plugs | 2 pairs | | re-terminate the Zeee pack (it ships with EC5) |
 | DF13 → JST-GH GPS adapter (6-pin GPS + 4-pin I2C into the Cube's 8-pin GPS1) | 1 | | the 3DR GPS to the Cube; check the pinout against the Cube's carrier before plugging in |
-| Nyloc nut for the collet's thread, or medium thread-lock | 1 | | the front right motor |
+| Nyloc nut for the prop adapter's thread, or medium thread-lock | 1 | | the front right motor |
 | Optional: three 35–45 A DShot ESCs | 3 | | 69 g lighter than the Readytosky 40 A |
 
 Everything else in `BOM.md` (airspeed sensor and pitot, servos, servo BEC, receiver, carbon,
-hardware) is unchanged.
+hardware, filament) is unchanged.

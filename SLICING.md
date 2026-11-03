@@ -1,11 +1,11 @@
 # Slicing (v0.2)
 
 Slicer: **Anycubic Slicer Next 1.3.3.3** (OrcaSlicer based), driven from the command line.
-Printers: **S1** = Anycubic Kobra S1 (250 x 250 x 250 mm, enclosed), **X** = Anycubic Kobra X
-(260 x 260 x 260 mm, open frame). The S1 prints the right wing's LW-PLA skins and every PETG
-part, the PETG as seven plates; the X prints the left wing, the fuselage and the V-tail. Each
-has about 35 h of work. `tracker.md` lists each part and plate with its printer, mass and print
-time.
+Printers, one material each: **X** = Anycubic Kobra X (260 x 260 x 260 mm, open frame) prints
+every LW-PLA skin, from one spool with one flow calibration (22 jobs, about 51 h). **S1** =
+Anycubic Kobra S1 (250 x 250 x 250 mm, enclosed) prints every PETG part as seven plates (about
+18 h): PETG warps on the open X. `tracker.md` lists each part and plate with its printer, mass
+and print time.
 
 ## Pipeline
 
@@ -67,13 +67,19 @@ prints, and `petg_7_pods_yokes` waits until the tilt servos have been measured.
 | File | Use |
 |---|---|
 | `machine_kobra_s1.json`, `machine_kobra_x.json` | printer definitions |
-| `process_lwpla_vase.json` (S1), `process_lwpla_vase_x.json` (X) | spiral mode, 1 wall, 0.2 mm, 8 mm outer brim, wall speed capped at 30 mm/s, `slice_closing_radius` 0.01, `detect_thin_wall` 0. Each printer needs its own variant: a process derived from one printer is rejected by the other |
+| `process_lwpla_vase.json` (S1), `process_lwpla_vase_x.json` (X) | spiral mode, 1 wall, 0.2 mm, 8 mm outer brim, wall speed capped at 30 mm/s, `slice_closing_radius` 0.01, `detect_thin_wall` 0. Each printer needs its own variant: a process derived from one printer is rejected by the other. Every LW-PLA part prints on the X now; the S1 variant is kept for one-off prints |
 | `process_petg.json` | 3 walls, 15 % crosshatch infill, 5 top / 3 bottom layers, 5 mm auto brim, no supports. Every PETG part uses it |
 | `process_petg_support.json` | same, with tree supports. No part uses it any more; kept for one-off prints |
 | `filament_lwpla.json` | 235 C (220 C first layer), flow 0.55, fan 100 %, 4 s minimum layer time |
 | `filament_petg.json` | 255 C, flow 0.95, fan 40 % |
 
 Numbers in the preset JSONs are strings ("1", "0.2", "0%"); integer overrides are rejected.
+
+`filament_lwpla.json` is for **active-foaming** LW-PLA (colorFabb LW-PLA, eSUN PLA-LW), which
+swells in the nozzle: hence 55 % flow at 235 °C. Pre-foamed lightweight PLA (Polymaker PolyLite
+LW-PLA, SUNLU LW-PLA, Overture Air PLA) does not swell. It needs its own profile at about full
+flow and 190–210 °C, and its skins weigh ~32 % more (0.9 against ~0.68 g/cm³), so it also
+changes the mass balance (`BOM.md`, "Filament").
 
 LW-PLA foams more the slower it is extruded. The stock settings (200 mm/s walls, 8 s minimum
 layer time) made every vase layer take 8 s, so wall speed followed the perimeter: 10 mm/s on the
@@ -109,8 +115,7 @@ plates) on every run:
   250 mm, X 260 mm), and every extrusion, brims included, stays at least 1 mm inside the bed's
   edge, so no brim is cut off there. The tallest parts,
   the 240 mm fuselage sections and V-tail panels, print on the X; its highest move is 240 mm,
-  against 260 mm. Nothing on the S1 is taller than 217 mm, under even its 240 mm
-  `extruder_clearance_height_to_lid`, which only applies to by-object printing anyway.
+  against 260 mm. The S1 prints only PETG, the tallest being `tail_block` at 80 mm.
 - Plates: they hold every PETG print exactly once, and their layouts keep parts at least 4.5 mm
   apart and 15 mm inside the bed. In every file, plate or single part, each part is its own
   object (`EXCLUDE_OBJECT_DEFINE`) whose outline matches the footprint where the script placed
@@ -133,14 +138,14 @@ plates) on every run:
   turns back once per web and each turn lands within 0.22 mm of the top-skin line (it fuses
   below one line width, 0.42 mm). Checked on all four webbed skins, left and right.
 - Every part fits its bed, brim included. The largest is `wing_root`, 234 x 40 mm on the
-  250 mm S1 bed; the tallest are `fuse_1`/`fuse_3`/`vtail_l`/`vtail_r` at 240 mm against the
+  X's 260 mm bed; the tallest are `fuse_1`/`fuse_3`/`vtail_l`/`vtail_r` at 240 mm against the
   X's 260 mm.
 - LW-PLA files: `spiral_mode = 1`, 235 C, bed 35 C. PETG files: 255 C, bed 60 C, 3 walls.
 - Masses and times in `tracker.md` and the viewer equal the slicer's footer (`total filament
   used [g]`, `print_time`): `build_all.py` writes the viewer's manifest and the tracker's table
   (`make_tracker.py`) after slicing, and the gate checks both against every file.
-  Totals as printed: S1 15.5 h of LW-PLA (81 g) and 17.5 h of PETG plates (474 g), 33.0 h; X
-  35.4 h of LW-PLA (185 g). The PETG as single files would take 22.6 h (475 g).
+  Totals as printed: X 50.9 h of LW-PLA (266 g, 22 jobs); S1 17.5 h of PETG plates (474 g,
+  7 jobs). The PETG as single files would take 22.6 h (475 g).
 - Re-slicing an unchanged STL does not always give the same file, even at the same place on the
   bed: `boom_pod_r` came out at 27.66 g and 27.94 g in two slices. Treat each mass as good to
   ~0.3 g, and expect a full re-slice to move a few tracker entries by a few tenths. The mass

@@ -93,8 +93,7 @@
     <select id="gfilter">
       <option value="all">all print files</option>
       <option value="s1_plates">Kobra S1, PETG plates</option>
-      <option value="s1_lwpla">Kobra S1, LW-PLA (right wing)</option>
-      <option value="x_lwpla">Kobra X, LW-PLA (left wing, fuselage, V-tail)</option>
+      <option value="x_lwpla">Kobra X, LW-PLA (every skin)</option>
       <option value="s1_petg">Kobra S1, PETG one part per file (reprints)</option>
     </select>
   </div>
@@ -775,8 +774,7 @@ renderer.domElement.addEventListener('dblclick', e => {
 let gallery = null, galleryOn = false, galleryFilter = 'all';
 const galleryItems = [];
 const PITCH_X = 300, PITCH_Y = 360, COLS = 8;
-const GROUPS = [['s1', 'lwpla', 'Kobra S1 · LW-PLA, right wing'],
-                ['x', 'lwpla', 'Kobra X · LW-PLA, left wing, fuselage and V-tail'],
+const GROUPS = [['x', 'lwpla', 'Kobra X · LW-PLA, every skin'],
                 ['s1', 'petg', 'Kobra S1 · PETG, one part per file (for reprints)']];
 async function buildGallery() {
   const gm = { petg: new THREE.MeshStandardMaterial({ color: COL.petg, roughness: 0.45 }),
@@ -990,7 +988,6 @@ if (capture) {
     S('34_cut_wing_root_webs_and_spars', 'sec_wing', { section: 'wing', equip: false }),
     S('35_print_files_all', 'gallery', { gallery: 'all', labels: true }),
     S('36_print_files_s1_petg', 'gallery', { gallery: 's1_petg', labels: true }),
-    S('37_print_files_s1_lwpla', 'gallery', { gallery: 's1_lwpla', labels: true }),
     S('38_print_files_x_lwpla', 'gallery', { gallery: 'x_lwpla', labels: true }),
     S('39_service_hatches_open_yokes_off', 'service_under', { service: 1, labels: true }),
     S('40_service_tilt_servo_and_plug_pocket', 'pod_service', { service: 1, labels: true }),

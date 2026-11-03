@@ -3,7 +3,9 @@
 Quantities for one airframe. Prices intentionally left out — verify at
 purchase time; nothing here is ordered yet. Every printed part is listed
 with its printer, mass, print time and status in `tracker.md`; where each
-part goes and how it is assembled is in `DESIGN.md`.
+part goes and how it is assembled is in `DESIGN.md`. This list is for the
+4S design. For the planned 3S build with the owner's parts (`PLAN_3S.md`),
+`BOM_3S.csv` lists every item, from his parts or to buy.
 
 ## Printed parts
 
@@ -32,8 +34,32 @@ part goes and how it is assembled is in `DESIGN.md`.
 | Hatch block | 12 | PETG | two per hatch, epoxied inside the skin; the hatch screws go into them |
 | Control horn | 6 | PETG | 4 ailerons + 2 ruddervators |
 
-Filament (from the sliced G-code, see `tracker.md`): LW-PLA ~265 g,
-PETG ~475 g. No part needs supports.
+## Filament
+
+| Filament | Printer | Needed (from the G-code) | Buy |
+|---|---|---|---|
+| LW-PLA, **active-foaming**, 1.75 mm | Kobra X: every skin | 266 g | one spool, e.g. colorFabb LW-PLA, 750 g |
+| PETG, 1.75 mm | Kobra S1: every PETG part, as plates | 474 g | one 1 kg spool, any brand |
+
+One spool of each covers the parts, the test prints and a few reprints: each printer runs
+one material. No part needs supports.
+
+**The LW-PLA must be the kind that foams in the nozzle:** colorFabb LW-PLA, or eSUN PLA-LW.
+It swells in the hot nozzle (colorFabb: nearly 3× at 250 °C, where it prints at 45 % flow), so
+the profile feeds 55 % at 235 °C and the walls come out at ~0.68 g/cm³. The flow test print
+(`wing_tip_r`, 14.7 g) tunes the flow for the spool you have.
+
+**Pre-foamed lightweight PLA does not fit these files.** Polymaker PolyLite LW-PLA (0.9 g/cm³),
+SUNLU LW-PLA and Overture Air PLA come foamed on the spool and print like normal PLA, at full
+flow and 190–210 °C. Printed from these files they get about half the plastic they need: thin,
+weak walls. With a profile of their own they would print well, but the skins come out ~85 g
+heavier. The 4S design's hover margin cannot carry that, and the 3S plan would lose its
+margin in its pessimistic case (`REPORT.md` 10.1).
+
+**Use normal PETG.** A foaming PETG exists (eSUN PETG-LW: 40–60 % flow at 240–270 °C), but the
+PETG parts carry the loads: the motor yokes and mounts, the ribs around the spars, the couplers
+and frames, the screws and heat-set inserts. Their fits are sized for solid PETG. Foamed walls
+are weaker and their size varies with the foaming.
 
 ## Electronics
 

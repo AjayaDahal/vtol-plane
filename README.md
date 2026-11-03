@@ -43,7 +43,7 @@ margin and the G-code itself) before any filament is used. The gate runs on ever
 | **Speeds** | cruise ~18 m/s, stall 10–11.5 m/s (estimates) |
 | **Hover** | ~7 min pure hover (estimate); front motors kept under 60 % of their thrust |
 | **Airframe** | LW-PLA vase-mode skins with fused internal webs, PETG structure, carbon tubes |
-| **Printers** | Anycubic Kobra S1 + Kobra X, about 35 h with both running |
+| **Printers** | Kobra X: every LW-PLA skin (~51 h, one spool) · Kobra S1: the PETG as 7 plates (~18 h) |
 
 Exact numbers (from `scripts/mass_balance.py`): [`DESIGN.md`](DESIGN.md#key-numbers).
 
@@ -179,14 +179,15 @@ The results and the reasoning behind every check: [`REPORT.md`](REPORT.md).
 
 ## Printing it
 
-<img src="renders/print_schedule.svg" alt="Print queue: the Kobra S1 prints the right wing and seven PETG plates, the Kobra X the left wing, the fuselage and the V-tail">
+<img src="renders/print_schedule.svg" alt="Print queue: the Kobra X prints every LW-PLA skin, the Kobra S1 seven PETG plates">
 
-The **Kobra S1** prints the right wing and all the PETG, laid out as seven plates in build order.
-The **Kobra X** prints the left wing, the fuselage and the V-tail. The vase skins print one per
-job: vase-mode parts can share a bed only by printing one after another, and the skins stand
-taller than the print head's gantry clearance. Start with the test prints (orange above).
-`wing_tip_r` and `wing_tip_l` check the LW-PLA flow on each printer, and plate `petg_1_fit_tests`
-checks the spigot and servo-hatch fits. Then work down [`tracker.md`](tracker.md), which also
+One material per printer. The **Kobra X** prints every LW-PLA skin, from one spool with one flow
+calibration. The skins print one per job: vase-mode parts can share a bed only by printing one
+after another, and the skins stand taller than the print head's gantry clearance. The
+**Kobra S1** prints all the PETG, laid out as seven plates in build order. Start with the test
+prints (orange above): `wing_tip_r` checks the LW-PLA flow, and plate `petg_1_fit_tests` checks
+the spigot and servo-hatch fits. The files are sliced for **active-foaming** LW-PLA
+([`BOM.md`](BOM.md#filament)). Then work down [`tracker.md`](tracker.md), which also
 carries the [reminders](tracker.md#reminders-for-print-time-agents-raise-these-with-the-user-when-printing-starts)
 to tick off along the way. The chart is redrawn from the sliced files on every build.
 
@@ -252,7 +253,7 @@ scripts/            Python: generators, slicing pipeline, mass balance and the g
   serve_viewer.py     local server for the viewer and its capture mode
 parts/assembly/     every part where it sits in the aircraft (STL)
 parts/print_ready/  every part as it lies on the bed (STL)
-gcode/              s1_lwpla, x_lwpla, s1_petg (one part per file), s1_petg_plates
+gcode/              x_lwpla, s1_petg (one part per file), s1_petg_plates
 slicer_profiles/    printer, process and filament profiles
 viewer/             the three.js viewer and its manifest
 renders/            pictures, animations, the exterior model and the print schedule
@@ -263,8 +264,7 @@ renders/            pictures, animations, the exterior model and the print sched
 **v0.2: designed, sliced and verified; the test prints are next.** On the way to first flight
 ([`REPORT.md`](REPORT.md#current-status-v02-nov-2-2026)):
 
-1. Test prints: LW-PLA flow on each printer, spigot and servo-hatch fit, the closing tips, the
-   wing webs.
+1. Test prints: LW-PLA flow, spigot and servo-hatch fit, the closing tips, the wing webs.
 2. Measure the tilt servos against the pod bay before printing the pods and yokes.
 3. Weigh the real parts and re-run the mass balance. The hover margin is thin.
 4. Balance at the design CG, then glide-test.
@@ -285,5 +285,6 @@ props. Modelled, the front motors hover at about half their thrust instead of ~5
 | [`SLICING.md`](SLICING.md) | slicer profiles, the pipeline and the G-code checks |
 | [`PX4_GUIDE.md`](PX4_GUIDE.md) | PX4 setup: geometry, outputs, tilt calibration, airspeeds, first flight |
 | [`PLAN_3S.md`](PLAN_3S.md) | the planned 3S build with the owner's parts: motor choice, changes, what to buy |
+| [`BOM_3S.csv`](BOM_3S.csv) | the 3S build's shopping list: every item, from the owner's parts or to buy (opens in Excel) |
 | [`REPORT.md`](REPORT.md) | every design review and premortem, and the current status |
 | [`AGENTS.md`](AGENTS.md) | working notes for AI coding agents on this repository |

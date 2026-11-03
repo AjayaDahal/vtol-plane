@@ -58,9 +58,10 @@ prints as it is.
   stamp), inside the printer's height, one vase speed band, and every wing
   web printed fused to the skin.
 - 58 G-code files: 51 single parts and 7 PETG plates, no supports
-  anywhere. The S1 prints the right wing and the PETG as plates (13 jobs,
-  33.0 h), the X the left wing, the fuselage and the V-tail (16 jobs,
-  35.4 h): about 35 h with both running, 29 jobs in all.
+  anywhere. One material per printer (round 10): the X prints every
+  LW-PLA skin (22 jobs, 50.9 h, 266 g: one spool, one flow
+  calibration), the S1 the PETG as seven plates (7 jobs, 17.5 h,
+  474 g). The LW-PLA must be the active-foaming kind (10.1).
 - AUW ~2.01 kg, CG target 433 mm from the nose (28.5 % MAC; the stop pin
   at x = 380 gives 434.6 mm, 29.2 %), hover split 37/37/26 %, front motors
   at 59.2 % of their near-empty maximum (limit 60 %: the margin is thin),
@@ -97,6 +98,17 @@ prints as it is.
    of the front thrust (`PLAN_3S.md`, risk 1). The 7 in props'
    slipstream barely reaches the wing.
 7. Transition tuning: at altitude, into wind, back-transition ready.
+
+## Round 10 — one material per printer, and the LW-PLA type (v0.2, Nov 3, 2026)
+
+Question from the owner: will Polymaker's LW-PLA do, and can one printer print all the LW-PLA
+so one spool is enough? Method: the LW-PLA profile was compared with the filament, and the six
+right-wing skins were re-sliced on the X and checked by the gate.
+
+| # | Severity | Finding | Fix | Status |
+|---|---|---|---|---|
+| 10.1 | P1 print | **Pre-foamed LW-PLA would be badly under-extruded.** The profile feeds 55 % (flow 0.55 at 235 °C) because active-foaming LW-PLA swells to about twice its volume in the nozzle; its walls come out at ~0.68 g/cm³ (0.55 × 1.24). The owner was about to buy Polymaker's LW-PLA, which is pre-foamed (0.9 g/cm³ on the spool) and does not swell: with these files its walls would get about half the plastic they need. Printed right (its own profile, about full flow), it would add ~85 g to the 266 g of skins. The 4S design cannot carry that (59.2 % → ~62 % of its near-empty thrust). | `BOM.md` ("Filament"), `SLICING.md`, `DESIGN.md` and a `tracker.md` reminder: buy active-foaming LW-PLA only (colorFabb LW-PLA, 750 g). The flow test print (`wing_tip_r`, 14.7 g) would also show a wrong spool before the full set. Pre-foamed is not an option for either build as it stands. It would need its own profile and a re-slice, and its ~85 g leaves even the 3S plan without margin in its pessimistic case (front motors ~61–63 % if SunnySky's table is 15 % optimistic, propwash counted). | fixed (docs) |
+| 10.2 | P2 cost | **Each printer needed its own LW-PLA spool and flow test.** The right wing printed on the S1, the left wing, fuselage and V-tail on the X. | One material per printer: every LW-PLA skin prints on the X (22 jobs, 50.9 h, 266 g), all the PETG on the enclosed S1 (7 plates, 17.5 h, 474 g; PETG warps on the open X). One spool of each covers the build, the test prints and some reprints, and one flow test (`wing_tip_r`) covers every skin. The six right-wing skins were re-sliced on the X with the same masses; the S1's old LW-PLA files are gone. The X's queue is the long one; the owner accepts the S1 standing idle after ~18 h. | fixed, gated |
 
 ## Round 9 — print plates and the printer split (v0.2, Nov 2, 2026)
 

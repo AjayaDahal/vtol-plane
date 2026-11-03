@@ -194,11 +194,11 @@ the field box: if it is lost the nose can depart in flight, and the CG jumps aft
    `hatch_block`s (and the tip ring for step 4). Your 9 g servo's
    tabs must screw to the posts (holes 28 mm apart) with its body (up to 23 × 12.2 mm) between
    them, and the horn must stay within 15 mm of the cover's centre, short of the ledges.
-3. **LW-PLA test:** print `wing_tip_r` on the S1 and `wing_tip_l` on the X. Each should weigh
-   14.7 g ±15 % and survive a gentle flex. If both are off the same way, change the flow in
-   `filament_lwpla.json` and re-slice. Both printers use that file, so if only one is off, give
-   that printer its own LW-PLA filament profile (`make_slicer_profiles.py`, `slice_all.py`)
-   instead. Every vase part prints at 17–30 mm/s, so one test per printer covers all its parts.
+3. **LW-PLA test:** print `wing_tip_r` on the X, which prints every LW-PLA part. It should
+   weigh 14.7 g ±15 % and survive a gentle flex. If it is off, change the flow in
+   `filament_lwpla.json` and re-slice. Every vase part prints at 17–30 mm/s, so this one test
+   covers them all. The files are for active-foaming LW-PLA only (`BOM.md`, "Filament"): a
+   pre-foamed one comes out about half-filled with them.
 4. **Fit test:** slide `rib_tip_r` (the tip ring, from the same plate) into that tip skin. It should go in with
    light hand force. If it is tight, sand the ring; never force a skin. Then print
    `tip_fairing_r` and slide it onto the ring's outboard half: it must meet the skin's end edge
@@ -206,10 +206,10 @@ the field box: if it is lost the nose can depart in flight, and the CG jumps aft
    `WING_TIP_CLOSE` and `VT_TIP_CLOSE` in `scripts/params.py` (less lean) and rebuild.
 5. **Web check:** print `wing_mid_r` and look into its open ends. Every web must run from the
    bottom skin to the top skin and be joined to it ("Inside the wing").
-6. Then print the rest (`tracker.md`), both printers at once: the S1 prints the right wing and
-   the PETG as seven plates, the X the left wing, the fuselage and the V-tail, about 35 h each.
-   Nothing needs supports. Hold PETG plates 6 and 7 until the 3S changes are built in
-   (`PLAN_3S.md`): they carry the motor mounts and the FC shelf.
+6. Then print the rest (`tracker.md`), both printers at once: the X prints every LW-PLA skin
+   (about 51 h), the S1 the PETG as seven plates (about 18 h). Nothing needs supports. Hold
+   PETG plates 6 and 7 until the 3S changes are built in (`PLAN_3S.md`): they carry the motor
+   mounts and the FC shelf.
 
 ## Assembly
 
@@ -510,8 +510,9 @@ join, and runs straight on for 6 mm before it closes:
 tilt, an x-ray of the structure and the finished one-colour look. 27–34 show the inside: the
 burst view, the nose off with the battery sliding out, cuts along the centreline, at the
 Pixhawk and at the ESC block, an x-ray with the equipment and cables, and a cut through the
-wing root bay showing the webs and spars. 35–38 show every print file on its printer's bed,
-with its mass and print time, and 47 the seven PETG plates. 39–42 show servicing: every servo hatch out with its servo, the
+wing root bay showing the webs and spars. 35, 36 and 38 show every print file on its printer's
+bed (all of them, the PETG single files on the S1, the LW-PLA skins on the X), with its mass and
+print time, and 47 the seven PETG plates. 39–42 show servicing: every servo hatch out with its servo, the
 yokes lifted off, a tilt servo out beside its plug pocket, the battery straps' path and a cut
 through an aileron hatch. 43–46 show the wing and V-tail tip fairings. `00_all_sides.png`,
 `00_wing_smoothness.png`, `00_inside_and_burst.png`, `00_servicing.png` and `00_tips.png` put
@@ -541,9 +542,9 @@ x-ray skins, a grazing light and the tilt slider. Also:
 - **Cut** slices the airframe along the centreline, across the battery strap, the Pixhawk or the
   ESC block, through the right wing root bay, or through the right mid aileron hatch. Faces seen
   from inside are drawn darker.
-- **Show the print files** lays out all 51 files and the 7 PETG plates as they sit on the S1
-  and X beds, filtered by printer and material, each with its sliced mass and time. On a plate,
-  hover a part for its name.
+- **Show the print files** lays out all 51 files and the 7 PETG plates as they sit on the X
+  (LW-PLA) and S1 (PETG) beds, filtered by printer and material, each with its sliced mass and
+  time. On a plate, hover a part for its name.
 - Hover any part for its name and role; double-click it to zoom in.
 
 Opening `http://127.0.0.1:28765/viewer/?capture=1` re-renders every image in `renders/` and the

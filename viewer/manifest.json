@@ -29,7 +29,7 @@
     -35.0
    ],
    "role": "aileron",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1
   },
   {
@@ -61,7 +61,7 @@
     -35.0
    ],
    "role": "aileron",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1
   },
   {
@@ -557,7 +557,7 @@
     0.0
    ],
    "role": "wing tip fairing: the top surface comes down to the flat bottom (Hoerner tip)",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1
   },
   {
@@ -717,7 +717,7 @@
     0.0
    ],
    "role": "wing skin with internal webs",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1
   },
   {
@@ -749,7 +749,7 @@
     0.0
    ],
    "role": "wing skin with internal webs",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1
   },
   {
@@ -781,7 +781,7 @@
     0.0
    ],
    "role": "wing skin with internal webs",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1
   },
   {
@@ -2912,17 +2912,17 @@
    "name": "aileron_mid_r",
    "url": "../parts/print_ready/aileron_mid_r.stl",
    "material": "lwpla",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1,
    "supports": false,
-   "bed": 250.0,
+   "bed": 260.0,
    "size": [
     64.4,
     12.2,
     199.0
    ],
    "grams": 5.12,
-   "minutes": 71.2,
+   "minutes": 71.3,
    "role": "aileron"
   },
   {
@@ -2946,17 +2946,17 @@
    "name": "aileron_tip_r",
    "url": "../parts/print_ready/aileron_tip_r.stl",
    "material": "lwpla",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1,
    "supports": false,
-   "bed": 250.0,
+   "bed": 260.0,
    "size": [
     60.0,
     10.8,
     213.0
    ],
    "grams": 4.76,
-   "minutes": 75.7,
+   "minutes": 75.8,
    "role": "aileron"
   },
   {
@@ -3524,10 +3524,10 @@
    "name": "tip_fairing_r",
    "url": "../parts/print_ready/tip_fairing_r.stl",
    "material": "lwpla",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1,
    "supports": false,
-   "bed": 250.0,
+   "bed": 260.0,
    "size": [
     150.3,
     17.6,
@@ -3643,17 +3643,17 @@
    "name": "wing_mid_r",
    "url": "../parts/print_ready/wing_mid_r.stl",
    "material": "lwpla",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1,
    "supports": false,
-   "bed": 250.0,
+   "bed": 260.0,
    "size": [
     147.0,
     22.9,
     204.0
    ],
    "grams": 20.66,
-   "minutes": 226.3,
+   "minutes": 227.6,
    "role": "wing skin with internal webs"
   },
   {
@@ -3677,17 +3677,17 @@
    "name": "wing_root_r",
    "url": "../parts/print_ready/wing_root_r.stl",
    "material": "lwpla",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1,
    "supports": false,
-   "bed": 250.0,
+   "bed": 260.0,
    "size": [
     219.7,
     25.7,
     214.0
    ],
    "grams": 33.49,
-   "minutes": 364.6,
+   "minutes": 366.5,
    "role": "wing skin with internal webs"
   },
   {
@@ -3711,17 +3711,17 @@
    "name": "wing_tip_r",
    "url": "../parts/print_ready/wing_tip_r.stl",
    "material": "lwpla",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1,
    "supports": false,
-   "bed": 250.0,
+   "bed": 260.0,
    "size": [
     130.3,
     20.3,
     217.0
    ],
    "grams": 14.7,
-   "minutes": 161.3,
+   "minutes": 161.5,
    "role": "wing skin with internal webs"
   },
   {

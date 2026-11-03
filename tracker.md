@@ -20,8 +20,10 @@ means the flow is wrong; recalibrate before printing more. Where each part goes:
 ## Reminders for print time (agents: raise these with the user when printing starts)
 
 - [ ] **Print quality is unverified.** G-code checks cannot show it. The LW-PLA flow of 0.55 and
-  the vase-mode walls need a real test print, such as `wing_tip_r` (target 14.7 g), before the
-  full set is printed. All vase parts print at 17–30 mm/s, so one calibration covers them all.
+  the vase-mode walls need a real test print on each printer before the full set is printed:
+  `wing_tip_r` on the S1 and its mirror `wing_tip_l` on the X (target 14.7 g each). The two
+  printers' extruders differ, so one printer's result does not prove the other's. All vase parts
+  print at 17–30 mm/s, so one test per printer covers all its parts.
 - [ ] **Spigot fit.** Plate `petg_1_fit_tests` carries `rib_tip_r` (the hidden tip ring): slide
   its inboard half into that `wing_tip_r` before printing the other PETG plates. It should go
   in with light hand force; sand the ring if it is tight.
@@ -56,8 +58,8 @@ Tick a box once the user confirms it is done.
 Suggested order. S1: `wing_tip_r` (flow test), then plate `petg_1_fit_tests` (tip-ring and
 servo-hatch fit) and `tip_fairing_r` (closing-tip test), then `wing_mid_r` (web check), then the
 rest of the right wing and PETG plates 2–6; plate 7 (pods and yokes) once the tilt servos have
-been measured. X, once the S1's flow test is good: the left wing, the fuselage and the V-tail,
-in any order. To see every print file and plate on its bed with its mass and time, open the 3D
+been measured. X: `wing_tip_l` first (its flow test: weigh it), then the left wing, the
+fuselage and the V-tail, in any order. To see every print file and plate on its bed with its mass and time, open the 3D
 viewer (`python scripts/serve_viewer.py`) and press "Show the print files", or look at
 `renders/35_print_files_all.png` and `renders/47_print_plates_s1_petg.png`.
 

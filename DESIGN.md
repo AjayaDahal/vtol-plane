@@ -194,9 +194,11 @@ the field box: if it is lost the nose can depart in flight, and the CG jumps aft
    `hatch_block`s (and the tip ring for step 4). Your 9 g servo's
    tabs must screw to the posts (holes 28 mm apart) with its body (up to 23 × 12.2 mm) between
    them, and the horn must stay within 15 mm of the cover's centre, short of the ledges.
-3. **LW-PLA test:** print `wing_tip_r` on the S1. It should weigh 14.7 g ±15 % and survive a
-   gentle flex. If not, change the flow in `filament_lwpla.json` and re-slice. Every vase part
-   prints at 17–30 mm/s, so one calibration covers them all.
+3. **LW-PLA test:** print `wing_tip_r` on the S1 and `wing_tip_l` on the X. Each should weigh
+   14.7 g ±15 % and survive a gentle flex. If both are off the same way, change the flow in
+   `filament_lwpla.json` and re-slice. Both printers use that file, so if only one is off, give
+   that printer its own LW-PLA filament profile (`make_slicer_profiles.py`, `slice_all.py`)
+   instead. Every vase part prints at 17–30 mm/s, so one test per printer covers all its parts.
 4. **Fit test:** slide `rib_tip_r` (the tip ring, from the same plate) into that tip skin. It should go in with
    light hand force. If it is tight, sand the ring; never force a skin. Then print
    `tip_fairing_r` and slide it onto the ring's outboard half: it must meet the skin's end edge

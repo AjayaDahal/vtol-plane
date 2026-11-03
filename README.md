@@ -68,7 +68,7 @@ Exact numbers (from `scripts/mass_balance.py`): [`DESIGN.md`](DESIGN.md#key-numb
 
 | | |
 |---|---|
-| 🛩️ **[Live viewer](https://ajayadahal.github.io/vtol-plane/)** | The full three.js viewer in your browser: orbit, burst view, battery and service animations, tilt slider, x-ray, section cuts, reflection stripes for checking smoothness, and every print file and PETG plate on its printer's bed with its sliced mass and time. |
+| ✈️ **[Live viewer](https://ajayadahal.github.io/vtol-plane/)** | The full three.js viewer in your browser: orbit, burst view, battery and service animations, tilt slider, x-ray, section cuts, reflection stripes for checking smoothness, and every print file and PETG plate on its printer's bed with its sliced mass and time. |
 | 🧊 **[`renders/vtol_plane.stl`](renders/vtol_plane.stl)** | The outside of the whole aircraft in GitHub's own 3-D viewer: drag to spin, scroll to zoom. |
 | 💻 **`python scripts/serve_viewer.py`** | The same viewer from your clone, at <http://127.0.0.1:28765/viewer/>. |
 

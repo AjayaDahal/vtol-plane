@@ -10,6 +10,11 @@
   (`scripts/make_tracker.py`, run by `build_all.py` and `slice_all.py` after slicing). Edit only
   the Status column, the notes in brackets after a part's name and the text around the tables;
   the gate fails when the table is stale.
+- PETG prints as plates on the S1 (`scripts/plates.py`): every PETG copy must sit on exactly one
+  plate, so a new or changed PETG part (or `qty`) needs its plate entry too; the gate checks
+  this and the layouts. LW-PLA vase parts cannot share a bed. Printer split: the S1 prints the
+  right wing and the PETG, the X the left wing, the fuselage and the V-tail (about 35 h each);
+  keep them balanced when moving parts (`tracker.md` totals).
 - When a finding is fixed or a new one is found, update its status in `REPORT.md` (the
   "Current status" section and the round tables) in the same commit. Never leave a fixed
   finding marked open, or an open one marked fixed.

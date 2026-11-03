@@ -92,9 +92,10 @@
     <button id="back" class="big" style="display:none">Back to the aircraft</button>
     <select id="gfilter">
       <option value="all">all print files</option>
-      <option value="s1_petg">Kobra S1, PETG</option>
-      <option value="s1_lwpla">Kobra S1, LW-PLA (right-hand set)</option>
-      <option value="x_lwpla">Kobra X, LW-PLA (left-hand set)</option>
+      <option value="s1_plates">Kobra S1, PETG plates</option>
+      <option value="s1_lwpla">Kobra S1, LW-PLA (right wing)</option>
+      <option value="x_lwpla">Kobra X, LW-PLA (left wing, fuselage, V-tail)</option>
+      <option value="s1_petg">Kobra S1, PETG one part per file (reprints)</option>
     </select>
   </div>
   <div class="row note">Hover a part for its name; double-click to zoom to it.</div>
@@ -644,7 +645,7 @@ function labelList(w, h) {
       if (!sub.visible) continue;
       add(V(-PITCH_X / 2, PITCH_Y / 2 + 40, 0).applyMatrix4(sub.matrixWorld), sub.userData.title, 'title');
       for (const m of sub.children)
-        if (m.userData.kind === 'print')
+        if (m.userData.kind === 'print' || m.userData.kind === 'plate')
           add(m.userData.anchor.clone().applyMatrix4(sub.matrixWorld), m.userData.label, 'print', m.userData.bed / 2);
     }
   } else if (eqGroup.visible && shown(eqGroup) && (anim.b > 0.3 || anim.n > 0.3 || anim.s > 0.3 || sectionOn || xray)) {
@@ -719,6 +720,13 @@ function describe(u) {
     return `${u.name}${u.qty > 1 ? ' ×' + u.qty : ''} — ${MAT[u.material]} on the Kobra ${u.printer.toUpperCase()}` +
            `${u.supports ? ', tree supports' : ''}\n${u.size.join(' × ')} mm as printed · ` +
            `${u.grams != null ? u.grams.toFixed(1) + ' g' : '? g'} · ${fmtMin(u.minutes)} each${u.role ? '\n' + u.role : ''}`;
+  if (u.kind === 'plate')
+    return `${u.name} — PETG plate on the Kobra ${u.printer.toUpperCase()}: ${u.count} prints · ` +
+           `${u.grams != null ? u.grams.toFixed(1) + ' g' : '? g'} · ${fmtMin(u.minutes)}\n` +
+           u.contents.map(([n, c]) => c > 1 ? `${n} ×${c}` : n).join(', ');
+  if (u.kind === 'platepart')
+    return `${u.name}${u.copies > 1 ? ` (${u.copy} of ${u.copies})` : ''} on plate ${u.plate}\n` +
+           `PETG · ${u.grams != null ? u.grams.toFixed(1) + ' g' : '? g'}${u.role ? '\n' + u.role : ''}`;
   if (u.kind === 'tube') return TUBE[u.name.replace(/_[rl]$/, '')] || u.name;
   if (u.kind === 'motor') return u.name === 'motor_rear' ? 'rear lift motor, Emax ECOII 2807, 7 in prop'
     : `front ${u.name.endsWith('r') ? 'right' : 'left'} tilting motor, Emax ECOII 2807, 7 in prop`;
@@ -767,8 +775,9 @@ renderer.domElement.addEventListener('dblclick', e => {
 let gallery = null, galleryOn = false, galleryFilter = 'all';
 const galleryItems = [];
 const PITCH_X = 300, PITCH_Y = 360, COLS = 8;
-const GROUPS = [['s1', 'petg', 'Kobra S1 · PETG'], ['s1', 'lwpla', 'Kobra S1 · LW-PLA, right-hand set'],
-                ['x', 'lwpla', 'Kobra X · LW-PLA, left-hand set']];
+const GROUPS = [['s1', 'lwpla', 'Kobra S1 · LW-PLA, right wing'],
+                ['x', 'lwpla', 'Kobra X · LW-PLA, left wing, fuselage and V-tail'],
+                ['s1', 'petg', 'Kobra S1 · PETG, one part per file (for reprints)']];
 async function buildGallery() {
   const gm = { petg: new THREE.MeshStandardMaterial({ color: COL.petg, roughness: 0.45 }),
                lwpla: new THREE.MeshStandardMaterial({ color: COL.lwpla, roughness: 0.8 }) };
@@ -781,19 +790,54 @@ async function buildGallery() {
     return BGU.toCreasedNormals(g, THREE.MathUtils.degToRad(30));
   }));
   const grp = new THREE.Group(); grp.visible = false; scene.add(grp);
+  const bedAt = (sub, cx, cy, size) => {
+    const plate = new THREE.PlaneGeometry(size, size);
+    const bed = new THREE.Mesh(plate, bedMat); bed.position.set(cx, cy, -0.5);
+    const edge = new THREE.LineSegments(new THREE.EdgesGeometry(plate), bedEdge); edge.position.copy(bed.position);
+    sub.add(bed, edge);
+    return bed;
+  };
+  // The PETG plates: each part where plates.py lays it out (bed corner at 0,0), turned about z.
+  // Four to a row, so a plate is large enough to see its parts.
+  if (man.plates && man.plates.length) {
+    const sub = new THREE.Group();
+    const byName = Object.fromEntries(man.prints.map((p, i) => [p.name, [p, geos[i]]]));
+    const cols = 4;
+    let grams = 0, minutes = 0, copies = 0;
+    man.plates.forEach((q, i) => {
+      const cx = (i % cols) * PITCH_X, cy = -Math.floor(i / cols) * PITCH_Y;
+      const bed = bedAt(sub, cx, cy, q.bed);
+      const n = q.parts.length;
+      bed.userData = { ...q, kind: 'plate', count: n, anchor: V(cx, cy - q.bed / 2 - 2, 0),
+                       label: `${q.name}\n${q.grams != null ? q.grams.toFixed(1) + ' g · ' : ''}${fmtMin(q.minutes)}` };
+      galleryItems.push(bed);
+      const per = Object.fromEntries(q.contents);
+      for (const it of q.parts) {
+        const [p, g] = byName[it.part];
+        const m = new THREE.Mesh(g, gm.petg);
+        m.position.set(cx - q.bed / 2 + it.x, cy - q.bed / 2 + it.y, 0);
+        m.rotation.z = THREE.MathUtils.degToRad(it.angle);
+        m.userData = { kind: 'platepart', name: it.part, copy: it.copy, copies: per[it.part], plate: q.name,
+                       grams: p.grams, role: p.role };
+        sub.add(m); galleryItems.push(m);
+      }
+      grams += q.grams || 0; minutes += q.minutes || 0; copies += n;
+    });
+    sub.userData = { key: 's1_plates', rows: Math.ceil(man.plates.length / cols),
+                     title: `Kobra S1 · PETG plates: ${man.plates.length} plates, ${copies} prints, ${Math.round(grams)} g, ${fmtMin(minutes)}` };
+    grp.add(sub);
+  }
   for (const [pr, mt, title] of GROUPS) {
     const sub = new THREE.Group();
     const items = man.prints.map((p, i) => [p, geos[i]]).filter(([p]) => p.printer === pr && p.material === mt);
     let grams = 0, minutes = 0, copies = 0;
     items.forEach(([p, g], i) => {
       const cx = (i % COLS) * PITCH_X, cy = -Math.floor(i / COLS) * PITCH_Y;
-      const plate = new THREE.PlaneGeometry(p.bed, p.bed);
-      const bed = new THREE.Mesh(plate, bedMat); bed.position.set(cx, cy, -0.5);
-      const edge = new THREE.LineSegments(new THREE.EdgesGeometry(plate), bedEdge); edge.position.copy(bed.position);
+      bedAt(sub, cx, cy, p.bed);
       const m = new THREE.Mesh(g, gm[p.material]); m.position.set(cx, cy, 0);
       m.userData = { ...p, kind: 'print', anchor: V(cx, cy - p.bed / 2 - 2, 0),
                      label: `${p.name}${p.qty > 1 ? ' ×' + p.qty : ''}\n${p.grams != null ? p.grams.toFixed(1) + ' g · ' : ''}${fmtMin(p.minutes)}` };
-      sub.add(bed, edge, m); galleryItems.push(m);
+      sub.add(m); galleryItems.push(m);
       grams += (p.grams || 0) * p.qty; minutes += (p.minutes || 0) * p.qty; copies += p.qty;
     });
     sub.userData = { key: `${pr}_${mt}`, rows: Math.ceil(items.length / COLS),
@@ -802,7 +846,7 @@ async function buildGallery() {
   }
   gallery = grp;
   layoutGallery();
-  status.textContent = `${man.prints.length} print files on their beds — hover one for its mass and print time, double-click to zoom`;
+  status.textContent = `${man.prints.length} print files and ${(man.plates || []).length} PETG plates on their beds — hover one for its mass and print time, double-click to zoom`;
   if (!capture) setTimeout(() => { status.textContent = ''; }, 9000);
 }
 function layoutGallery() {
@@ -817,7 +861,10 @@ function layoutGallery() {
 async function showGallery(on) {
   if (on && !gallery) await buildGallery();
   galleryOn = on;
-  if (gallery) gallery.visible = on;
+  if (gallery) {
+    gallery.visible = on;
+    if (on) layoutGallery();   // the filter may have changed while the aircraft was shown
+  }
   root.visible = !on;
   $('back').style.display = on ? '' : 'none';
   $('gallery').style.display = on ? 'none' : '';
@@ -851,7 +898,7 @@ pose();
 syncUI();
 updateLegend();
 frameView('iso_front', camera.aspect);
-$('gfilter').options[0].text = `all ${man.prints.length} print files`;
+$('gfilter').options[0].text = `all ${man.prints.length} print files and ${(man.plates || []).length} plates`;
 
 document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => frameView(b.dataset.view, camera.aspect));
 document.querySelectorAll('input[name=mode]').forEach(r => r.onchange = () => { mode = r.value; applyLook(); });
@@ -940,8 +987,8 @@ if (capture) {
     S('34_cut_wing_root_webs_and_spars', 'sec_wing', { section: 'wing', equip: false }),
     S('35_print_files_all', 'gallery', { gallery: 'all', labels: true }),
     S('36_print_files_s1_petg', 'gallery', { gallery: 's1_petg', labels: true }),
-    S('37_print_files_s1_lwpla_right_set', 'gallery', { gallery: 's1_lwpla', labels: true }),
-    S('38_print_files_x_lwpla_left_set', 'gallery', { gallery: 'x_lwpla', labels: true }),
+    S('37_print_files_s1_lwpla', 'gallery', { gallery: 's1_lwpla', labels: true }),
+    S('38_print_files_x_lwpla', 'gallery', { gallery: 'x_lwpla', labels: true }),
     S('39_service_hatches_open_yokes_off', 'service_under', { service: 1, labels: true }),
     S('40_service_tilt_servo_and_plug_pocket', 'pod_service', { service: 1, labels: true }),
     S('41_cut_at_battery_strap', 'sec_x280', { section: 'x280', cables: true, labels: true }),
@@ -950,6 +997,7 @@ if (capture) {
     S('44_wing_tip_fairing_rear_below', 'tip_rear', paint),
     S('45_wing_tip_fairing_reflection_stripes', 'tip_front', { mode: 'zebra', extras: false }),
     S('46_vtail_tip_fairing', 'vt_tip', paint),
+    S('47_print_plates_s1_petg', 'gallery', { gallery: 's1_plates', labels: true }),
   ];
   const shot = new Map();
   async function post(name, blob) {

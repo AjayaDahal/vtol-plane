@@ -17,16 +17,18 @@ def _p(material, printer, rot, qty=1, src=None):
 
 
 PARTS = {
-    # LW-PLA skins: right-hand set on the S1, left-hand set on the X.
-    "fuse_1": _p(LW, "s1", [("y", 90)]),
+    # LW-PLA skins: the right wing on the S1, which also prints all the PETG (as plates, plates.py);
+    # the left wing, the fuselage and the V-tail on the X. Each printer has about 35 h of work.
+    "fuse_1": _p(LW, "x", [("y", 90)]),
     "fuse_2": _p(LW, "x", [("y", -90)]),
-    "fuse_3": _p(LW, "s1", [("y", -90)]),
+    "fuse_3": _p(LW, "x", [("y", -90)]),
     "fuse_4": _p(LW, "x", [("y", -90)]),
-    "vtail_r": _p(LW, "s1", [("x", 55)]),
+    "vtail_r": _p(LW, "x", [("x", 55)]),
     "vtail_l": _p(LW, "x", [("x", -55)]),
-    "ruddervator_r": _p(LW, "s1", [("x", 55)]),
+    "ruddervator_r": _p(LW, "x", [("x", 55)]),
     "ruddervator_l": _p(LW, "x", [("x", -55)]),
-    # PETG structure: all on the enclosed S1. Ribs lie on a flange or ring end so the
+    # PETG structure: all on the enclosed S1, printed as plates (plates.py); the single-part files
+    # are for reprints. Ribs lie on a flange or ring end so the
     # spigot rings print as vertical walls (upright they would be 10 mm overhangs).
     "rib_root_r": _p(PETG, "s1", [("x", 90)]),
     "rib_root_l": _p(PETG, "s1", [("x", -90)]),

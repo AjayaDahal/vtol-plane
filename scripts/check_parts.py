@@ -520,20 +520,30 @@ def gcode_path(name):
 
 
 def check_gcode():
-    """The sliced files: present, sliced from the current STL, shown as sliced in the viewer
-    manifest and tracker.md, inside the printer's height (end-of-print lift included), no
-    support extrusions, one vase speed band."""
+    """The sliced files, single parts and PETG plates: present, sliced from the current STL (a
+    plate: its parts' STLs and layout), shown as sliced in the viewer manifest and tracker.md,
+    every extrusion on the bed and every move inside the printer's height (end-of-print lift
+    included), no support extrusions, one vase speed band, and each plate's parts as separate
+    objects where its layout puts them."""
     import json
     import re
+    import plates as PT
     from slice_all import MACHINE, PROFILES, STAMP, stl_hash
-    height = {}
+    height, bed = {}, {}
     for printer, fname in MACHINE.items():
         with open(os.path.join(PROFILES, fname)) as fh:
-            height[printer] = float(json.load(fh)["printable_height"])
-    missing, stale, with_support, too_tall, vase = [], [], [], [], {}
-    z_top = {}
-    for name, spec in sorted(PARTS.items()):
-        path = gcode_path(name)
+            prof = json.load(fh)
+        height[printer] = float(prof["printable_height"])
+        area = np.array([[float(c) for c in corner.split("x")] for corner in prof["printable_area"]])
+        bed[printer] = (area.min(0), area.max(0))
+    files = [(name, gcode_path(name), spec["printer"], spec["material"], lambda name=name: stl_hash(name))
+             for name, spec in sorted(PARTS.items())]
+    files += [(plate, PT.gcode_path(plate), PT.PRINTER, "petg", lambda plate=plate: PT.plate_hash(plate))
+              for plate in PT.PLATES]
+    missing, stale, with_support, too_tall, off_bed, vase = [], [], [], [], [], {}
+    z_top, edge, objects = {}, {}, {}
+    obj_re = re.compile(r"EXCLUDE_OBJECT_DEFINE NAME=(\S+) CENTER=(-?[\d.]+),(-?[\d.]+) POLYGON=(\[\[.*\]\])")
+    for name, path, printer, material, want in files:
         if not os.path.exists(path):
             missing.append(name)
             continue
@@ -541,14 +551,20 @@ def check_gcode():
             fh.seek(max(0, os.path.getsize(path) - 400))
             tail = fh.read().decode("ascii", "replace")
         stamp = re.search(re.escape(STAMP) + r"([0-9a-f]{64})", tail)
-        if not stamp or stamp.group(1) != stl_hash(name):
+        if not stamp or stamp.group(1) != want():
             stale.append(name)
         typ, f, x, y, z_max = "", 0.0, 0.0, 0.0, 0.0
-        n_sup, speeds, lens = 0, [], []
+        n_sup, speeds, lens, objs = 0, [], [], []
+        ext_lo, ext_hi = np.full(2, np.inf), np.full(2, -np.inf)
         with open(path, errors="ignore") as fh:
             for line in fh:
                 if line.startswith(";TYPE:"):
                     typ = line[6:].strip()
+                    continue
+                if line.startswith("EXCLUDE_OBJECT_DEFINE"):
+                    m = obj_re.match(line)
+                    if m:
+                        objs.append((m.group(1), np.array(json.loads(m.group(4)), float)))
                     continue
                 if not (line.startswith("G1") or line.startswith("G0")):
                     continue
@@ -563,6 +579,8 @@ def check_gcode():
                 nx = float(mx.group(1)) if mx else x
                 ny = float(my.group(1)) if my else y
                 if me and float(me.group(1)) > 0 and (mx or my):
+                    ext_lo = np.minimum(ext_lo, (min(x, nx), min(y, ny)))
+                    ext_hi = np.maximum(ext_hi, (max(x, nx), max(y, ny)))
                     if "upport" in typ:
                         n_sup += 1
                     elif typ == "Outer wall":
@@ -570,24 +588,67 @@ def check_gcode():
                         lens.append(math.hypot(nx - x, ny - y))
                 x, y = nx, ny
         z_top[name] = z_max
-        if z_max > height[spec["printer"]]:
-            too_tall.append(f"{name} Z {z_max:.1f} > {height[spec['printer']]:.0f}")
+        objects[name] = objs
+        if z_max > height[printer]:
+            too_tall.append(f"{name} Z {z_max:.1f} > {height[printer]:.0f}")
+        lo, hi = bed[printer]
+        edge[name] = float(min((ext_lo - lo).min(), (hi - ext_hi).min()))
+        if edge[name] < 1.0:
+            off_bed.append(f"{name} x {ext_lo[0]:.1f}..{ext_hi[0]:.1f} y {ext_lo[1]:.1f}..{ext_hi[1]:.1f}")
         if n_sup:
             with_support.append(f"{name} ({n_sup} moves)")
-        if spec["material"] == "lwpla_vase" and speeds:
+        if material == "lwpla_vase" and speeds:
             s, w = np.array(speeds), np.array(lens)
             order = np.argsort(s)
             cw = np.cumsum(w[order]) / w.sum()
             vase[name] = (float(np.interp(0.05, cw, s[order])), float(np.interp(0.95, cw, s[order])))
-    check("G-code present for every part", not missing, ", ".join(missing) or f"{len(PARTS)} files")
-    check("G-code sliced from the current print-ready STL (hash stamp)", not stale,
-          ", ".join(stale) or "all current")
+    check("G-code present for every part and plate", not missing,
+          ", ".join(missing) or f"{len(PARTS)} part files, {len(PT.PLATES)} plates")
+    from slice_all import expected_gcode
+    import glob
+    keep = expected_gcode()
+    stray = sorted(os.path.relpath(p, G.ROOT) for p in glob.glob(os.path.join(G.ROOT, "gcode", "*", "*.gcode"))
+                   if os.path.normcase(os.path.abspath(p)) not in keep)
+    check("no stray G-code files (a part that moved printer leaves none behind)", not stray,
+          ", ".join(stray) or f"{len(keep)} files, all current parts and plates")
+    check("G-code sliced from the current print-ready STLs (hash stamp; a plate's also covers its layout)",
+          not stale, ", ".join(stale) or "all current")
+    # Every part is its own object where the script put it, turned as it meant: the slicer was told
+    # --arrange 0, and each object's outline (EXCLUDE_OBJECT_DEFINE POLYGON) must match the placed
+    # footprint. A part on a plate can then be cancelled on the printer without stopping the rest.
+    from slice_all import bed_centre
+    wrong, worst, count = [], 0.0, 0
+    for name, path, printer, material, _ in files:
+        if name not in objects:
+            continue
+        if name in PT.PLATES:
+            copies = dict(PT.PLATES[name])
+            want = {PT.stl_name(n, k, copies[n]) + ".stl": PT.placed_hull(n, x, y, a)
+                    for n, k, x, y, a in PT.layout(name)}
+        else:
+            want = {name + ".stl": PT.placed_hull(name, *bed_centre(printer), 0.0)}
+        got = {}
+        for obj, poly in objects[name]:
+            got[re.sub(r"_id_\d+_copy_\d+$", "", obj)] = poly
+        if sorted(got) != sorted(want) or len(objects[name]) != len(want):
+            wrong.append(f"{name}: objects {sorted(set(got) ^ set(want)) or len(objects[name])}")
+            continue
+        for k in want:
+            dev = PT.outline_dev(got[k], want[k])
+            worst, count = max(worst, dev), count + 1
+            if dev > 0.5:
+                wrong.append(f"{name}: {k} {dev:.1f} mm off its place")
+    check("every part is its own object, outline where the script placed it (G-code, plates too)", not wrong,
+          "; ".join(wrong) or f"{count} objects in {len(objects)} files, outlines within {worst:.3f} mm")
     # The viewer's print panel and tracker.md are made from the manifest: it must list exactly the
-    # print table's files, with their printer, material and copies, and must not lag a slice.
+    # print table's files and the plates, with their printer, material and copies (a plate: its
+    # contents and layout), and must not lag a slice.
     from make_viewer import gcode_stats
     with open(os.path.join(G.ROOT, "viewer", "manifest.json")) as fh:
-        shown = {p["name"]: p for p in json.load(fh)["prints"]}
-    lagging = sorted(set(shown) - set(PARTS))
+        man = json.load(fh)
+    shown = {p["name"]: p for p in man["prints"]}
+    shown_plates = {q["name"]: q for q in man.get("plates", [])}
+    lagging = sorted(set(shown) - set(PARTS)) + sorted(set(shown_plates) - set(PT.PLATES))
     for name, spec in sorted(PARTS.items()):
         grams, minutes = gcode_stats(name)
         want = dict(printer=spec["printer"], material="lwpla" if spec["material"].startswith("lwpla") else "petg",
@@ -595,19 +656,31 @@ def check_gcode():
         p = shown.get(name)
         if p is None or any(p.get(k) != v for k, v in want.items()):
             lagging.append(name)
-    check("viewer manifest lists every print file with its printer, copies and sliced mass and time", not lagging,
-          f"stale: {', '.join(lagging)} (run python scripts/make_viewer.py)" if lagging
-          else f"{len(shown)} files match the print table and their G-code")
+    for plate, items in PT.PLATES.items():
+        grams, minutes = gcode_stats(plate)
+        want = dict(printer=PT.PRINTER, grams=grams, minutes=None if minutes is None else round(minutes, 1),
+                    contents=[[n, c] for n, c in items],
+                    parts=[dict(part=n, copy=k, x=x, y=y, angle=a) for n, k, x, y, a in PT.layout(plate)])
+        q = shown_plates.get(plate)
+        if q is None or any(q.get(k) != v for k, v in want.items()):
+            lagging.append(plate)
+    check("viewer manifest lists every print file and plate with its printer, copies and sliced mass and time",
+          not lagging, f"stale: {', '.join(lagging)} (run python scripts/make_viewer.py)" if lagging
+          else f"{len(shown)} files and {len(shown_plates)} plates match the print table, the layouts and the G-code")
     import make_tracker
     with open(make_tracker.PATH, "rb") as fh:
         text = fh.read().decode("utf-8")
-    current = make_tracker.render(text, list(shown.values())) == text
-    check("tracker.md lists every print file with its copies, mass and time (make_tracker.py)", current,
-          f"{len(shown)} files" if current else "stale: run python scripts/make_tracker.py")
+    current = make_tracker.render(text, list(shown.values()), list(shown_plates.values())) == text
+    check("tracker.md lists every print file and plate with its copies, mass and time (make_tracker.py)", current,
+          f"{len(shown)} files, {len(shown_plates)} plates" if current
+          else "stale: run python scripts/make_tracker.py")
     tallest = max(z_top, key=z_top.get) if z_top else None
     check("G-code stays inside the printer's height, end-of-print lift included", not too_tall,
           "; ".join(too_tall) or (f"highest move Z {z_top[tallest]:.1f} ({tallest}); "
                                   + ", ".join(f"{k} {v:.0f} mm" for k, v in height.items())))
+    nearest = min(edge, key=edge.get) if edge else None
+    check("every extrusion >= 1 mm inside the bed edge, so no brim is cut off there", not off_bed,
+          "; ".join(off_bed) or f"closest {edge[nearest]:.1f} mm from an edge ({nearest})")
     check("G-code has no support extrusions (profile sanity)", not with_support,
           "; ".join(with_support) or "0 support moves")
     if vase:
@@ -617,6 +690,37 @@ def check_gcode():
         fast = max(vase, key=lambda k: vase[k][1])
         check("LW-PLA vase walls print in one speed band (one flow calibration)", hi <= 2.0 * lo,
               f"{lo:.0f} mm/s ({slow}) to {hi:.0f} mm/s ({fast}), want max <= 2x min")
+
+
+def check_plates():
+    """The PETG plates (plates.py): every PETG print on exactly one plate, only PETG parts of the
+    S1 on them, each footprint inside the bed's margin and clear of its neighbours."""
+    from collections import Counter
+    import plates as PT
+    held, wrong = Counter(), []
+    for plate, items in PT.PLATES.items():
+        for name, copies in items:
+            held[name] += copies
+            spec = PARTS.get(name)
+            if spec is None or spec["material"] != "petg" or spec["printer"] != PT.PRINTER:
+                wrong.append(f"{name} on {plate}")
+    petg = {n: s["qty"] for n, s in PARTS.items() if s["material"] == "petg"}
+    off = [f"{n}: {held[n]} of {q} on plates" for n, q in sorted(petg.items()) if held[n] != q]
+    check("PETG plates hold every PETG print exactly once (plates.py)", not wrong and not off,
+          "; ".join(wrong + off) or f"{sum(held.values())} prints on {len(PT.PLATES)} plates")
+    out, tight = [], (np.inf, "")
+    for plate in PT.PLATES:
+        hulls = [(f"{n} {k}", PT.placed_hull(n, x, y, a)) for n, k, x, y, a in PT.layout(plate)]
+        for label, h in hulls:
+            if h.min() < PT.MARGIN - 1e-6 or h.max() > PT.BED - PT.MARGIN + 1e-6:
+                out.append(f"{plate}: {label} within {PT.MARGIN:.0f} mm of the edge")
+        for i in range(len(hulls)):
+            for j in range(i + 1, len(hulls)):
+                d = PT.hull_gap(hulls[i][1], hulls[j][1])
+                if d < tight[0]:
+                    tight = (d, f"{plate}: {hulls[i][0]} / {hulls[j][0]}")
+    check(f"plate layouts keep parts >= 4.5 mm apart and >= {PT.MARGIN:.0f} mm inside the bed (room for brims)",
+          not out and tight[0] >= 4.5, "; ".join(out) or f"closest {tight[0]:.2f} mm ({tight[1]})")
 
 
 def _mesh_dist(pts, tris):
@@ -1246,6 +1350,7 @@ if __name__ == "__main__":
     check_pod_plug()
     check_tray_straps()
     check_tips()
+    check_plates()
     if "--no-gcode" not in sys.argv:
         check_gcode()
         check_web_gcode()

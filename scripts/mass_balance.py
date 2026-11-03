@@ -15,11 +15,15 @@ import payload as PL
 from make_print_ready import PARTS
 
 G0 = 9.81
-# Fraction of MAC. 28.5 % (not 27) so the stop pin goes one hole further aft: the front motors
-# carry less in hover (the limit is 60 % of their near-empty thrust) and the static margin stays
-# near 19 %, inside the 25-30 % CG band.
+# Fraction of MAC: the balance point the build aims for (DESIGN.md step 6.2), inside the 25-30 %
+# band. The stop pin (below) may leave the CG a little aft of it.
 CG_TARGET = 0.285
 CG_BAND = (0.25, 0.30)
+# The stop pin goes in the aftmost tray hole that keeps the CG at most this far aft: the front
+# motors carry less in hover the further aft the CG (their limit is 60 % of near-empty thrust),
+# and 0.5 % MAC (~0.9 mm) inside the band's aft edge leaves the static margin near 18 %. Unlike
+# "the hole nearest the target", it does not flip on a few tenths of a gram of slicer noise.
+CG_PIN_MAX = 0.295
 # PX4 airspeed suggestions assume the built aircraft comes out this much over the estimate.
 MASS_MARGIN = 1.10
 BATTERY = dict(name="4S 5000 mAh LiPo", mass=520.0, length=155.0)
@@ -138,10 +142,13 @@ def compute(verbose=True):
     auw = m0 + mb
     x_b = (x_cg_target * auw - mx_fw) / mb
     rear_end = x_b + BATTERY["length"] / 2
-    # The battery's rear end rests on a 3 mm stop pin in one of the tray's holes: use the hole that
-    # brings the CG nearest the target. The hover numbers use the CG that this actually gives.
+    # The battery's rear end rests on a 3 mm stop pin in one of the tray's holes: the aftmost hole
+    # that keeps the CG at most CG_PIN_MAX (the most forward hole if none does; the band check then
+    # fails). The hover numbers use the CG that this actually gives.
     holes = np.arange(*P.TRAY_PIN_X)
-    pin = float(holes[np.argmin(np.abs(holes - P.TRAY_PIN_R - BATTERY["length"] / 2 - x_b))])
+    cg_holes = (mx_fw + mb * (holes - P.TRAY_PIN_R - BATTERY["length"] / 2)) / auw
+    ok = np.flatnonzero(cg_holes <= P.X_LE + CG_PIN_MAX * mac)
+    pin = float(holes[ok[-1]] if ok.size else holes[0])
     x_b_pin = pin - P.TRAY_PIN_R - BATTERY["length"] / 2
     x_cg_pin = (mx_fw + mb * x_b_pin) / auw
     x_cg_h = (mx_h + mb * x_b_pin) / auw

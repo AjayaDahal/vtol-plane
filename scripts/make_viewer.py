@@ -16,6 +16,7 @@ import numpy as np
 import geom as G
 import params as P
 import payload as PL
+import plates as PT
 from make_print_ready import PARTS
 
 LOOSE = {"servo_hatch", "hatch_block", "control_horn"}   # modelled at the origin; hatches placed as instances
@@ -204,10 +205,13 @@ def tube(name, a, b, od, idd=0.0, ex=(0.0, 0.0, 0.0)):
 
 
 def gcode_stats(name):
-    """Sliced filament mass (g) and print time (min) from a part's G-code, if it exists."""
-    spec = PARTS[name]
-    folder = f"{spec['printer']}_{'lwpla' if spec['material'].startswith('lwpla') else 'petg'}"
-    path = os.path.join(G.ROOT, "gcode", folder, name + ".gcode")
+    """Sliced filament mass (g) and print time (min) from a part's or a plate's G-code, if it exists."""
+    if name in PT.PLATES:
+        path = PT.gcode_path(name)
+    else:
+        spec = PARTS[name]
+        folder = f"{spec['printer']}_{'lwpla' if spec['material'].startswith('lwpla') else 'petg'}"
+        path = os.path.join(G.ROOT, "gcode", folder, name + ".gcode")
     if not os.path.exists(path):
         return None, None
     with open(path, "r", errors="replace") as f:
@@ -233,6 +237,18 @@ def prints():
                         size=[round(float(e), 1) for e in v.max(0) - v.min(0)], grams=grams,
                         minutes=None if minutes is None else round(minutes, 1),
                         role=ROLE.get(split(name)[0], ROLE.get(name, ""))))
+    return out
+
+
+def plates():
+    """The PETG plates: each placed copy (bed coordinates, turn about z) and the sliced totals."""
+    out = []
+    for plate, items in PT.PLATES.items():
+        grams, minutes = gcode_stats(plate)
+        out.append(dict(name=plate, printer=PT.PRINTER, material="petg", bed=BED[PT.PRINTER],
+                        contents=[[name, copies] for name, copies in items],
+                        parts=[dict(part=name, copy=k, x=x, y=y, angle=a) for name, k, x, y, a in PT.layout(plate)],
+                        grams=grams, minutes=None if minutes is None else round(minutes, 1)))
     return out
 
 
@@ -284,7 +300,7 @@ def main():
     nose = {"fuse_1": dict(v=[-260.0, 0.0, 0.0], stage=[0.0, 0.55]),
             "battery": dict(v=[-215.0, 0.0, 0.0], stage=[0.45, 1.0])}
     out = dict(parts=parts, tubes=tubes, motors=motors, prop_d=P.PROP_D, equipment=equipment, routes=routes,
-               nose=nose, instances=hatch_instances(), service=service_moves(), prints=prints(),
+               nose=nose, instances=hatch_instances(), service=service_moves(), prints=prints(), plates=plates(),
                tilt_range=[P.TILT_MIN_DEG, P.TILT_MAX_DEG], x_le=P.X_LE, y_tip=P.Y_TIP,
                joints_y=[P.Y_ROOT_SEC[0], P.Y_BOOM_RIB[0], P.Y_BOOM_RIB[1], P.Y_MIDTIP_RIB[0],
                          P.Y_MIDTIP_RIB[1], P.Y_TIP_SEC[1]])
@@ -294,7 +310,7 @@ def main():
         json.dump(out, f, indent=1)
     print(f"wrote {path}: {len(parts)} parts, {len(out['instances'])} hatch parts placed, {len(tubes)} tubes, "
           f"{len(motors)} motors, {len(equipment)} equipment items, {len(routes)} cable runs, "
-          f"{len(out['prints'])} print files")
+          f"{len(out['prints'])} print files, {len(out['plates'])} PETG plates")
 
 
 if __name__ == "__main__":

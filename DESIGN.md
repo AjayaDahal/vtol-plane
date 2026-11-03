@@ -24,9 +24,9 @@ disagree, the scripts win.
 | V-tail | 2 fixed panels, NACA 0012, 240 mm span plus a 20 mm tip fairing, chord 180 → 110 mm, 35° from horizontal (110° included); ruddervators hinged at 70 % chord |
 | All-up weight | ~2.01 kg: printed parts ~742 g, 4S battery 520 g, everything else ~750 g |
 | CG | **433 mm aft of the nose tip** (28.5 % MAC); 25–30 % band = 427–436 mm |
-| Hover | front motors 746 g each (37 % of AUW), rear 519 g (26 %); front motor at 48–60 % of its maximum (the design limit is 60 %); ~7.2 min pure hover (estimate) |
+| Hover | front motors 741 g each (37 % of AUW), rear 530 g (26 %); front motor at 48–59 % of its maximum (the design limit is 60 %); ~7.2 min pure hover (estimate) |
 | Stall | 10.0–11.5 m/s (CL 1.2 at sea level to CL 1.0 at 35 °C) |
-| Static margin | ~19 % MAC |
+| Static margin | ~18 % MAC |
 | Motors / props | 3× Emax ECOII 2807 **1700KV** (the 4S winding), 7×4.5: front right CW, front left CCW, rear CCW |
 | ESCs / battery | 3× 50 A DShot; 4S 5000 mAh LiPo |
 | Servos | 2× tilt (Kingmax KM1203MD class, 12 mm mini, metal gear, direct drive); 4× 9 g ailerons; 2× 9 g ruddervators |
@@ -190,20 +190,23 @@ the field box: if it is lost the nose can depart in flight, and the CG jumps aft
    are 28 mm apart, the output spline is 6 mm from the front of the body, and the tab face is
    ~11 mm below the top of the spline. If yours differ, change `SERVO_*` in `params.py` and run
    `build_all.py` before printing the pods and yokes.
-2. **Test-fit a servo hatch:** print one `servo_hatch` and two `hatch_block`s. Your 9 g servo's
+2. **Test-fit a servo hatch:** PETG plate `petg_1_fit_tests` carries one `servo_hatch` and two
+   `hatch_block`s (and the tip ring for step 4). Your 9 g servo's
    tabs must screw to the posts (holes 28 mm apart) with its body (up to 23 × 12.2 mm) between
    them, and the horn must stay within 15 mm of the cover's centre, short of the ledges.
 3. **LW-PLA test:** print `wing_tip_r` on the S1. It should weigh 14.7 g ±15 % and survive a
    gentle flex. If not, change the flow in `filament_lwpla.json` and re-slice. Every vase part
    prints at 17–30 mm/s, so one calibration covers them all.
-4. **Fit test:** print `rib_tip_r` (the tip ring) and slide it into that tip skin. It should go in with
+4. **Fit test:** slide `rib_tip_r` (the tip ring, from the same plate) into that tip skin. It should go in with
    light hand force. If it is tight, sand the ring; never force a skin. Then print
    `tip_fairing_r` and slide it onto the ring's outboard half: it must meet the skin's end edge
    to edge. Its top closes as a thin fused fin; if the top loops sag instead, lengthen
    `WING_TIP_CLOSE` and `VT_TIP_CLOSE` in `scripts/params.py` (less lean) and rebuild.
 5. **Web check:** print `wing_mid_r` and look into its open ends. Every web must run from the
    bottom skin to the top skin and be joined to it ("Inside the wing").
-6. Then print the rest (`tracker.md`). Nothing needs supports.
+6. Then print the rest (`tracker.md`), both printers at once: the S1 prints the right wing and
+   the PETG as seven plates, the X the left wing, the fuselage and the V-tail, about 35 h each.
+   Nothing needs supports.
 
 ## Assembly
 
@@ -413,8 +416,9 @@ clears the printed parts. `renders/29–33` show it inside the fuselage.
    joiner with the M2.5 nylon pin.
 2. Tilt both motors fully forward and balance on your fingertips **433 mm aft of the nose tip**.
    The estimate puts the battery centre at x = 296 mm; anywhere in 271–306 mm keeps the CG in
-   the 25–30 % band. The 3 mm stop pin in the tray hole at x = 370 holds the battery at 291 mm
-   (CG 432 mm). The holes run from x = 250 to 390: move the pin aft if the real CG comes out
+   the 25–30 % band. The 3 mm stop pin goes in the aftmost tray hole that keeps the CG within
+   29.5 % MAC: the hole at x = 380, which holds the battery at 301 mm (CG 435 mm, 29.2 %). The
+   holes run from x = 250 to 390: move the pin aft if the real CG comes out
    forward, forward if it comes out aft. The hover margin wants the CG as far aft as the band
    allows: each hole forward puts ~0.5 % more of the hover load on the front motors, and at
    x = 360 they would already need more than 60 % of their thrust.
@@ -504,7 +508,7 @@ tilt, an x-ray of the structure and the finished one-colour look. 27–34 show t
 burst view, the nose off with the battery sliding out, cuts along the centreline, at the
 Pixhawk and at the ESC block, an x-ray with the equipment and cables, and a cut through the
 wing root bay showing the webs and spars. 35–38 show every print file on its printer's bed,
-with its mass and print time. 39–42 show servicing: every servo hatch out with its servo, the
+with its mass and print time, and 47 the seven PETG plates. 39–42 show servicing: every servo hatch out with its servo, the
 yokes lifted off, a tilt servo out beside its plug pocket, the battery straps' path and a cut
 through an aileron hatch. 43–46 show the wing and V-tail tip fairings. `00_all_sides.png`,
 `00_wing_smoothness.png`, `00_inside_and_burst.png`, `00_servicing.png` and `00_tips.png` put
@@ -528,8 +532,9 @@ x-ray skins, a grazing light and the tilt slider. Also:
 - **Cut** slices the airframe along the centreline, across the battery strap, the Pixhawk or the
   ESC block, through the right wing root bay, or through the right mid aileron hatch. Faces seen
   from inside are drawn darker.
-- **Show the print files** lays out all 51 files as they sit on the S1 and X beds, filtered by
-  printer and material, each with its sliced mass and time.
+- **Show the print files** lays out all 51 files and the 7 PETG plates as they sit on the S1
+  and X beds, filtered by printer and material, each with its sliced mass and time. On a plate,
+  hover a part for its name.
 - Hover any part for its name and role; double-click it to zoom in.
 
 Opening `http://127.0.0.1:28765/viewer/?capture=1` re-renders every image in `renders/`.

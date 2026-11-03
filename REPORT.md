@@ -13,11 +13,11 @@ the plane flies. That needs the physical checks listed under "Open".
 ## Current status (v0.2, Nov 2, 2026)
 
 **Ready to print, starting with the test prints.** Print `wing_tip_r`
-(flow), `rib_tip_r` and `tip_fairing_r` (fit and closing tip), `wing_mid_r`
-(web check) and one `servo_hatch` with two `hatch_block`s (servo fit)
-first, then the rest (`tracker.md`).
+(flow) and PETG plate `petg_1_fit_tests` (tip ring, one servo hatch, two
+hatch blocks), then `tip_fairing_r` (closing tip) and `wing_mid_r` (web
+check), then the rest on both printers at once (`tracker.md`).
 
-- Verification gate: `python scripts/check_parts.py` passes **109/109**.
+- Verification gate: `python scripts/check_parts.py` passes **114/114**.
   It covers mesh integrity, mirrored L/R parts, bed fit, every spigot,
   coupler and frame fit, flush glued skin joints (wing, V-tail and
   fuselage) with crease-free rib flanges, spar, joiner, boom and wire paths, motor holes
@@ -35,16 +35,22 @@ first, then the rest (`tracker.md`).
   rings and fairings (fit, flush, taper, root closed behind the hinge,
   control-surface end gaps, the closing edge), the rear motor's clamp and
   lead hole, and that the viewer's manifest and `tracker.md` show each
-  file's sliced mass and time. It
+  file's sliced mass and time. Since round 9 it checks the PETG plates
+  (every PETG print on exactly one plate, the layouts' spacing), that in
+  every file each part is its own object with its outline where the script
+  placed it, that no stray G-code is left behind, and that every extrusion
+  stays at least 1 mm inside the bed's edge (no brim cut off). It
   also checks the G-code: present, sliced from the current STL (hash
   stamp), inside the printer's height, one vase speed band, and every wing
   web printed fused to the skin.
-- 51 G-code files, no supports anywhere. S1 LW-PLA 141 g / 26.8 h,
-  X LW-PLA 125 g / 24.0 h, S1 PETG 476 g / 22.6 h.
+- 58 G-code files: 51 single parts and 7 PETG plates, no supports
+  anywhere. The S1 prints the right wing and the PETG as plates (13 jobs,
+  33.0 h), the X the left wing, the fuselage and the V-tail (16 jobs,
+  35.4 h): about 35 h with both running, 29 jobs in all.
 - AUW ~2.01 kg, CG target 433 mm from the nose (28.5 % MAC; the stop pin
-  at x = 370 gives 432 mm), hover split 37/37/26 %, front motors at 59.7 %
-  of their near-empty maximum (limit 60 %: the margin is thin), static
-  margin ~19 %.
+  at x = 380 gives 434.6 mm, 29.2 %), hover split 37/37/26 %, front motors
+  at 59.2 % of their near-empty maximum (limit 60 %: the margin is thin),
+  static margin ~18 %.
 - Span 1478 mm: the wing and V-tail tips close in vase-mode fairings over
   hidden rings, with no flat end or spar end showing (`DESIGN.md`, "Tips").
 - Serviceable: battery out through the nose in a minute; every aileron and
@@ -53,9 +59,9 @@ first, then the rest (`tracker.md`).
 - Docs match the files: `DESIGN.md` (design and assembly), `BOM.md`,
   `PX4_GUIDE.md`, `SLICING.md`, `tracker.md`.
 - Renders of the whole aircraft, every wing joint, the burst view, cuts
-  through the fuselage and wing, the service view, the tip fairings and
-  every print file on its bed are in `renders/` (3-D viewer: `DESIGN.md`,
-  "Renders and the 3-D viewer").
+  through the fuselage and wing, the service view, the tip fairings,
+  every print file and the PETG plates on their beds are in `renders/`
+  (3-D viewer: `DESIGN.md`, "Renders and the 3-D viewer").
 
 **Open, can only be closed by building and flying** (in order):
 
@@ -64,7 +70,7 @@ first, then the rest (`tracker.md`).
 2. Tilt servo dimensions against the pod bay, before printing pods and
    yokes.
 3. Real masses: weigh the parts and re-run `mass_balance.py`. The hover
-   margin is thin; if the real AUW comes out above ~2.02 kg, the front
+   margin is thin; if the real AUW comes out above ~2.03 kg, the front
    motors exceed 60 % of their near-empty thrust.
 4. CG: balance at 433 mm, then glide-test.
 5. Bench: motor order and direction, tilt calibration (−20…90°),
@@ -72,6 +78,26 @@ first, then the rest (`tracker.md`).
 6. First hover: vibration and compass interference in the logs, and
    the temperature of the ESC block and battery afterwards.
 7. Transition tuning: at altitude, into wind, back-transition ready.
+
+## Round 9 — print plates and the printer split (v0.2, Nov 2, 2026)
+
+Question: can several parts be sliced onto one plate, so the set is done sooner? Method: the
+slicer's handling of several objects was tried on both materials, with its own arrange and with
+a layout it is told to keep (`--arrange 0`, verified by the object outlines it writes); the
+plates were sliced and timed, and the work was totalled per printer. A code review then
+measured the brims and the placement check. Result: the PETG prints as seven plates
+(`scripts/plates.py`, `gcode/s1_petg_plates/`), the LW-PLA skins cannot be plated, and four
+LW-PLA parts moved to the X so both printers finish together (renders 47 and 35–38).
+
+| # | Severity | Finding | Fix | Status |
+|---|---|---|---|---|
+| 9.1 | P2 process | **Every PETG part was its own print job:** 53 prints from 30 files, 22.6 h, each started, levelled and cleared on its own. Small parts were also held back by the minimum layer time: the 21 hatch parts take 3 h 53 min as single files and 1 h 13 min sharing one bed. | Seven plates in build order, 474 g and 17.5 h: `petg_1_fit_tests` (tip ring, one servo hatch, two blocks) goes with the LW-PLA test prints, and `petg_7_pods_yokes` waits until the tilt servos are measured. `plates.py` lays them out (print orientation kept, turned about z only, 6 mm apart, 15 mm inside the bed; deterministic), and `slice_all.py` slices each with `--arrange 0`, every placed copy as its own STL: each part keeps its own brim and stays its own object, which the S1's Klipper firmware can cancel alone. The single-part files stay for reprints. New checks: every PETG print on exactly one plate (53 on 7); layouts ≥ 4.5 mm apart (5.0 at the tightest) and 15 mm in. | fixed, gated |
+| 9.2 | P2 process | **LW-PLA cannot share a bed.** In vase mode the slicer takes several objects only one after another, and then every object but the last has to pass under the print head's gantry: 48 mm on the S1, 30 mm on the X. The skins are 130–240 mm tall; only the 20–32 mm tip fairings would fit under, and pairing one with a skin saves a single 17–30 min job. | The skins stay one per job; `SLICING.md` says why. | by design |
+| 9.3 | P1 schedule | **The S1 had twice the X's work:** 26.8 h of LW-PLA plus 22.6 h of PETG, against 24.0 h on the X. With both running, the X would stand idle for a day. | `fuse_1`, `fuse_3`, `vtail_r` and `ruddervator_r` print on the X. The S1 now prints the right wing and the PETG plates (13 jobs, 33.0 h), the X the left wing, the fuselage and the V-tail (16 jobs, 35.4 h): about 35 h for the whole set instead of 49, in 29 jobs instead of 75. Every 240 mm part now prints on the X (260 mm), which also retires 5.24's lid question; the S1's tallest is 217 mm. | fixed, gated |
+| 9.4 | P2 process | **A part that moves printer would leave its old G-code behind,** ready to be printed by mistake (this round: four files in `gcode/s1_lwpla/`), and the gate never checked the G-code's X and Y. | A full `slice_all.py` deletes G-code no current part or plate produces. New checks: no stray G-code files; every extrusion at least 1 mm inside the bed's edge (closest now 2.3 mm). | fixed, gated |
+| 9.5 | P1 print | **Brims cut off at the bed's edge** (found in review). The first plate layout kept 8 mm from the edge, sized for a ~7 mm brim, but the PETG profile's auto brim reaches 13.6 mm on the fuselage couplers, 10 mm on the boom ribs. On the rings plate the slicer cut both couplers' brims off at the edge, where the tall thin rings need them most. The single `boom_rib_l` file had the same: the slicer's own arrange had turned the 45° rib along x, 4.7 mm from the edge. The "on the bed" check could not see either, since the slicer trims a brim to the bed. | Plate margin 15 mm; the V-tail ribs and tip rings moved to the boom-rib plate to make room on `petg_6`. Single parts are now centred by `slice_all.py` and sliced with `--arrange 0` too, so the slicer no longer turns them. The edge check now asks for 1 mm of clearance, which a trimmed brim (0.2 mm) fails. Neighbours' brims may still meet and print joined: cut them apart. | fixed, gated |
+| 9.6 | P2 gate | **The placement check compared only object centres** (found in review), which a part turned 90° or 180°, or turned the wrong way, keeps. | Each object's outline (`EXCLUDE_OBJECT_DEFINE` polygon) is compared with the footprint where the script placed it, in every file, plates and single parts: 104 objects in 58 files, within 0.001 mm. | fixed, gated |
+| 9.7 | P1 flight | **The stop-pin hole hinged on a fraction of a gram.** Re-slicing moved three PETG masses by 0.2–0.3 g (the slicer is not repeatable even at a fixed position: `boom_pod_r` came out at 27.66 and 27.94 g), the battery's target crossed the midpoint between two holes, and the "nearest hole" rule flipped the pin from x = 370 to 380, changing the documented CG, hover load and PX4 values. | The pin goes in the aftmost hole that keeps the CG within 29.5 % MAC (`CG_PIN_MAX`), 0.5 % inside the band, which also gives the front motors the most margin: x = 380, CG 434.6 mm (29.2 %), front motors 59.2 % (59.7 % at 370, 60.1 % at 360), static margin 18 %. The rule has 0.6 mm of CG to spare against the noise. PX4: hover CG 437 mm, `CA_ROTOR2_PX` −0.34. | fixed, gated |
 
 ## Round 8 — wing and V-tail tips (v0.2, Nov 2, 2026)
 

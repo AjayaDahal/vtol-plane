@@ -285,7 +285,7 @@
     0.0
    ],
    "role": "removable nose, one M3 nylon screw: the access opening",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1
   },
   {
@@ -317,7 +317,7 @@
     0.0
    ],
    "role": "wing section of the fuselage",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1
   },
   {
@@ -509,7 +509,7 @@
     57.36
    ],
    "role": "ruddervator",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1
   },
   {
@@ -589,7 +589,7 @@
     57.36
    ],
    "role": "V-tail panel",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1
   },
   {
@@ -1033,7 +1033,7 @@
    "label": "4S 5000 mAh LiPo",
    "kind": "box",
    "pos": [
-    290.9,
+    300.9,
     0.0,
     -33.5
    ],
@@ -1652,17 +1652,17 @@
    "color": "#c0392b",
    "pts": [
     [
-     213.39999999999998,
+     223.39999999999998,
      0.0,
      -27.0
     ],
     [
-     201.39999999999998,
+     211.39999999999998,
      0.0,
      -22.0
     ],
     [
-     201.39999999999998,
+     211.39999999999998,
      -8.0,
      0.0
     ],
@@ -2905,7 +2905,7 @@
     199.0
    ],
    "grams": 5.12,
-   "minutes": 70.9,
+   "minutes": 71.3,
    "role": "aileron"
   },
   {
@@ -2939,7 +2939,7 @@
     213.0
    ],
    "grams": 4.76,
-   "minutes": 75.4,
+   "minutes": 75.8,
    "role": "aileron"
   },
   {
@@ -2990,7 +2990,7 @@
     10.0
    ],
    "grams": 9.16,
-   "minutes": 22.6,
+   "minutes": 22.8,
    "role": "spigot ring on the boom rib's inboard face"
   },
   {
@@ -3024,7 +3024,7 @@
     28.5
    ],
    "grams": 27.94,
-   "minutes": 62.8,
+   "minutes": 62.7,
    "role": "tilt-servo pod and axle boss"
   },
   {
@@ -3040,8 +3040,8 @@
     41.0,
     28.5
    ],
-   "grams": 27.94,
-   "minutes": 63.1,
+   "grams": 27.66,
+   "minutes": 62.2,
    "role": "tilt-servo pod and axle boss"
   },
   {
@@ -3057,8 +3057,8 @@
     170.3,
     16.0
    ],
-   "grams": 22.65,
-   "minutes": 52.4,
+   "grams": 22.44,
+   "minutes": 50.7,
    "role": "boom rib with the pod tongue"
   },
   {
@@ -3074,8 +3074,8 @@
     188.5,
     16.0
    ],
-   "grams": 22.38,
-   "minutes": 50.6,
+   "grams": 22.45,
+   "minutes": 50.8,
    "role": "boom rib with the pod tongue"
   },
   {
@@ -3108,8 +3108,8 @@
     118.3,
     40.0
    ],
-   "grams": 20.51,
-   "minutes": 40.0,
+   "grams": 20.52,
+   "minutes": 40.5,
    "role": "nose joint, heat-set insert for the nose screw"
   },
   {
@@ -3142,7 +3142,7 @@
     95.2,
     40.0
    ],
-   "grams": 22.39,
+   "grams": 22.37,
    "minutes": 52.6,
    "role": "joins fuse_3 and fuse_4, boom web"
   },
@@ -3159,7 +3159,7 @@
     104.4,
     2.5
    ],
-   "grams": 24.27,
+   "grams": 24.23,
    "minutes": 52.8,
    "role": "Pixhawk on top; the ESC block and small boards hang underneath"
   },
@@ -3176,8 +3176,8 @@
     112.9,
     11.5
    ],
-   "grams": 20.26,
-   "minutes": 49.4,
+   "grams": 20.28,
+   "minutes": 49.5,
    "role": "main joiner sleeve and boom bore"
   },
   {
@@ -3201,10 +3201,10 @@
    "name": "fuse_1",
    "url": "../parts/print_ready/fuse_1.stl",
    "material": "lwpla",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1,
    "supports": false,
-   "bed": 250.0,
+   "bed": 260.0,
    "size": [
     140.0,
     120.0,
@@ -3235,10 +3235,10 @@
    "name": "fuse_3",
    "url": "../parts/print_ready/fuse_3.stl",
    "material": "lwpla",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1,
    "supports": false,
-   "bed": 250.0,
+   "bed": 260.0,
    "size": [
     134.3,
     119.9,
@@ -3312,8 +3312,8 @@
     32.2,
     15.0
    ],
-   "grams": 4.69,
-   "minutes": 16.3,
+   "grams": 4.68,
+   "minutes": 16.2,
    "role": "boom exit collar"
   },
   {
@@ -3329,8 +3329,8 @@
     36.0,
     36.0
    ],
-   "grams": 18.14,
-   "minutes": 42.6,
+   "grams": 18.15,
+   "minutes": 43.0,
    "role": "rear motor clamp on the boom"
   },
   {
@@ -3346,8 +3346,8 @@
     20.4,
     23.0
    ],
-   "grams": 15.03,
-   "minutes": 35.2,
+   "grams": 15.01,
+   "minutes": 35.6,
    "role": "mid/tip joint rib"
   },
   {
@@ -3381,7 +3381,7 @@
     13.0
    ],
    "grams": 16.1,
-   "minutes": 37.1,
+   "minutes": 37.3,
    "role": "root rib: spars, wire hole, joiner lock pin"
   },
   {
@@ -3415,7 +3415,7 @@
     15.0
    ],
    "grams": 7.14,
-   "minutes": 19.5,
+   "minutes": 20.1,
    "role": "hidden tip ring: the spar ends; the tip skin and the tip fairing butt over it"
   },
   {
@@ -3456,17 +3456,17 @@
    "name": "ruddervator_r",
    "url": "../parts/print_ready/ruddervator_r.stl",
    "material": "lwpla",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1,
    "supports": false,
-   "bed": 250.0,
+   "bed": 260.0,
    "size": [
     100.5,
     12.2,
     233.0
    ],
    "grams": 5.43,
-   "minutes": 82.5,
+   "minutes": 82.7,
    "role": "ruddervator"
   },
   {
@@ -3499,7 +3499,7 @@
     38.0,
     80.0
    ],
-   "grams": 28.16,
+   "grams": 27.87,
    "minutes": 69.8,
    "role": "V-tail mount on the end of the boom"
   },
@@ -3558,17 +3558,17 @@
    "name": "vtail_r",
    "url": "../parts/print_ready/vtail_r.stl",
    "material": "lwpla",
-   "printer": "s1",
+   "printer": "x",
    "qty": 1,
    "supports": false,
-   "bed": 250.0,
+   "bed": 260.0,
    "size": [
     126.0,
     21.6,
     240.0
    ],
    "grams": 13.7,
-   "minutes": 150.6,
+   "minutes": 150.8,
    "role": "V-tail panel"
   },
   {
@@ -3584,8 +3584,8 @@
     21.7,
     13.0
    ],
-   "grams": 9.33,
-   "minutes": 23.3,
+   "grams": 9.31,
+   "minutes": 23.5,
    "role": "V-tail root rib (carbon pin into the tail block)"
   },
   {
@@ -3601,7 +3601,7 @@
     11.5,
     11.0
    ],
-   "grams": 2.7,
+   "grams": 2.69,
    "minutes": 12.1,
    "role": "hidden V-tail tip ring: the panel and its tip fairing butt over it"
   },
@@ -3670,7 +3670,7 @@
     214.0
    ],
    "grams": 33.49,
-   "minutes": 366.5,
+   "minutes": 366.4,
    "role": "wing skin with internal webs"
   },
   {
@@ -3757,6 +3757,591 @@
    "grams": 12.61,
    "minutes": 44.4,
    "role": "tilting motor mount"
+  }
+ ],
+ "plates": [
+  {
+   "name": "petg_1_fit_tests",
+   "printer": "s1",
+   "material": "petg",
+   "bed": 250.0,
+   "contents": [
+    [
+     "rib_tip_r",
+     1
+    ],
+    [
+     "servo_hatch",
+     1
+    ],
+    [
+     "hatch_block",
+     2
+    ]
+   ],
+   "parts": [
+    {
+     "part": "hatch_block",
+     "copy": 1,
+     "x": 172.319,
+     "y": 120.0,
+     "angle": 0.0
+    },
+    {
+     "part": "hatch_block",
+     "copy": 2,
+     "x": 148.319,
+     "y": 126.0,
+     "angle": 0.0
+    },
+    {
+     "part": "rib_tip_r",
+     "copy": 1,
+     "x": 93.319,
+     "y": 116.0,
+     "angle": 0.0
+    },
+    {
+     "part": "servo_hatch",
+     "copy": 1,
+     "x": 207.319,
+     "y": 125.0,
+     "angle": 90.0
+    }
+   ],
+   "grams": 11.66,
+   "minutes": 31.9
+  },
+  {
+   "name": "petg_2_wing",
+   "printer": "s1",
+   "material": "petg",
+   "bed": 250.0,
+   "contents": [
+    [
+     "rib_root_l",
+     1
+    ],
+    [
+     "rib_root_r",
+     1
+    ],
+    [
+     "rib_midtip_l",
+     1
+    ],
+    [
+     "rib_midtip_r",
+     1
+    ],
+    [
+     "rib_tip_l",
+     1
+    ],
+    [
+     "boom_cup_l",
+     1
+    ],
+    [
+     "boom_cup_r",
+     1
+    ],
+    [
+     "servo_hatch",
+     5
+    ],
+    [
+     "hatch_block",
+     10
+    ],
+    [
+     "control_horn",
+     6
+    ]
+   ],
+   "parts": [
+    {
+     "part": "boom_cup_l",
+     "copy": 1,
+     "x": 156.0,
+     "y": 114.933,
+     "angle": 0.0
+    },
+    {
+     "part": "boom_cup_r",
+     "copy": 1,
+     "x": 94.0,
+     "y": 90.933,
+     "angle": 0.0
+    },
+    {
+     "part": "control_horn",
+     "copy": 1,
+     "x": 168.0,
+     "y": 203.933,
+     "angle": 0.0
+    },
+    {
+     "part": "control_horn",
+     "copy": 2,
+     "x": 192.0,
+     "y": 203.933,
+     "angle": 0.0
+    },
+    {
+     "part": "control_horn",
+     "copy": 3,
+     "x": 216.0,
+     "y": 203.933,
+     "angle": 0.0
+    },
+    {
+     "part": "control_horn",
+     "copy": 4,
+     "x": 168.0,
+     "y": 217.933,
+     "angle": 0.0
+    },
+    {
+     "part": "control_horn",
+     "copy": 5,
+     "x": 192.0,
+     "y": 217.933,
+     "angle": 0.0
+    },
+    {
+     "part": "control_horn",
+     "copy": 6,
+     "x": 216.0,
+     "y": 217.933,
+     "angle": 0.0
+    },
+    {
+     "part": "hatch_block",
+     "copy": 1,
+     "x": 225.0,
+     "y": 32.933,
+     "angle": 0.0
+    },
+    {
+     "part": "hatch_block",
+     "copy": 2,
+     "x": 200.0,
+     "y": 38.933,
+     "angle": 0.0
+    },
+    {
+     "part": "hatch_block",
+     "copy": 3,
+     "x": 177.0,
+     "y": 43.933,
+     "angle": 0.0
+    },
+    {
+     "part": "hatch_block",
+     "copy": 4,
+     "x": 222.0,
+     "y": 50.933,
+     "angle": 0.0
+    },
+    {
+     "part": "hatch_block",
+     "copy": 5,
+     "x": 186.0,
+     "y": 85.933,
+     "angle": 0.0
+    },
+    {
+     "part": "hatch_block",
+     "copy": 6,
+     "x": 208.0,
+     "y": 85.933,
+     "angle": 0.0
+    },
+    {
+     "part": "hatch_block",
+     "copy": 7,
+     "x": 228.0,
+     "y": 87.933,
+     "angle": 90.0
+    },
+    {
+     "part": "hatch_block",
+     "copy": 8,
+     "x": 23.0,
+     "y": 108.933,
+     "angle": 0.0
+    },
+    {
+     "part": "hatch_block",
+     "copy": 9,
+     "x": 45.0,
+     "y": 112.933,
+     "angle": 0.0
+    },
+    {
+     "part": "hatch_block",
+     "copy": 10,
+     "x": 65.0,
+     "y": 115.933,
+     "angle": 90.0
+    },
+    {
+     "part": "rib_midtip_l",
+     "copy": 1,
+     "x": 81.0,
+     "y": 165.933,
+     "angle": 0.0
+    },
+    {
+     "part": "rib_midtip_r",
+     "copy": 1,
+     "x": 81.0,
+     "y": 139.933,
+     "angle": 0.0
+    },
+    {
+     "part": "rib_root_l",
+     "copy": 1,
+     "x": 125.0,
+     "y": 28.933,
+     "angle": 0.0
+    },
+    {
+     "part": "rib_root_r",
+     "copy": 1,
+     "x": 125.0,
+     "y": 60.933,
+     "angle": 0.0
+    },
+    {
+     "part": "rib_tip_l",
+     "copy": 1,
+     "x": 157.0,
+     "y": 185.933,
+     "angle": 0.0
+    },
+    {
+     "part": "servo_hatch",
+     "copy": 1,
+     "x": 173.0,
+     "y": 148.933,
+     "angle": 90.0
+    },
+    {
+     "part": "servo_hatch",
+     "copy": 2,
+     "x": 217.0,
+     "y": 152.933,
+     "angle": 180.0
+    },
+    {
+     "part": "servo_hatch",
+     "copy": 3,
+     "x": 36.0,
+     "y": 198.933,
+     "angle": 90.0
+    },
+    {
+     "part": "servo_hatch",
+     "copy": 4,
+     "x": 84.0,
+     "y": 216.933,
+     "angle": 90.0
+    },
+    {
+     "part": "servo_hatch",
+     "copy": 5,
+     "x": 132.0,
+     "y": 216.933,
+     "angle": 90.0
+    }
+   ],
+   "grams": 113.58,
+   "minutes": 257.8
+  },
+  {
+   "name": "petg_3_boom_vtail_ribs",
+   "printer": "s1",
+   "material": "petg",
+   "bed": 250.0,
+   "contents": [
+    [
+     "boom_rib_l",
+     1
+    ],
+    [
+     "boom_rib_r",
+     1
+    ],
+    [
+     "vtail_root_rib",
+     2
+    ],
+    [
+     "vtail_tip_cap",
+     2
+    ]
+   ],
+   "parts": [
+    {
+     "part": "boom_rib_l",
+     "copy": 1,
+     "x": 128.036,
+     "y": 125.292,
+     "angle": 269.999983
+    },
+    {
+     "part": "boom_rib_r",
+     "copy": 1,
+     "x": 110.036,
+     "y": 116.292,
+     "angle": 270.000017
+    },
+    {
+     "part": "vtail_root_rib",
+     "copy": 1,
+     "x": 79.036,
+     "y": 41.292,
+     "angle": 0.0
+    },
+    {
+     "part": "vtail_root_rib",
+     "copy": 2,
+     "x": 67.036,
+     "y": 102.292,
+     "angle": 135.0
+    },
+    {
+     "part": "vtail_tip_cap",
+     "copy": 1,
+     "x": 198.036,
+     "y": 84.292,
+     "angle": 135.0
+    },
+    {
+     "part": "vtail_tip_cap",
+     "copy": 2,
+     "x": 198.036,
+     "y": 109.292,
+     "angle": 135.0
+    }
+   ],
+   "grams": 68.0,
+   "minutes": 145.5
+  },
+  {
+   "name": "petg_4_fuselage_rings",
+   "printer": "s1",
+   "material": "petg",
+   "bed": 250.0,
+   "contents": [
+    [
+     "coupler_240",
+     1
+    ],
+    [
+     "coupler_370",
+     1
+    ]
+   ],
+   "parts": [
+    {
+     "part": "coupler_240",
+     "copy": 1,
+     "x": 84.997,
+     "y": 74.997,
+     "angle": 0.0
+    },
+    {
+     "part": "coupler_370",
+     "copy": 1,
+     "x": 170.997,
+     "y": 170.997,
+     "angle": 135.0
+    }
+   ],
+   "grams": 39.42,
+   "minutes": 74.8
+  },
+  {
+   "name": "petg_5_fuselage_frames",
+   "printer": "s1",
+   "material": "petg",
+   "bed": 250.0,
+   "contents": [
+    [
+     "coupler_610",
+     1
+    ],
+    [
+     "frame_main",
+     1
+    ],
+    [
+     "frame_rear",
+     1
+    ]
+   ],
+   "parts": [
+    {
+     "part": "coupler_610",
+     "copy": 1,
+     "x": 68.078,
+     "y": 184.439,
+     "angle": 0.0
+    },
+    {
+     "part": "frame_main",
+     "copy": 1,
+     "x": 78.078,
+     "y": 74.439,
+     "angle": 0.0
+    },
+    {
+     "part": "frame_rear",
+     "copy": 1,
+     "x": 178.078,
+     "y": 141.439,
+     "angle": 135.0
+    }
+   ],
+   "grams": 57.36,
+   "minutes": 129.2
+  },
+  {
+   "name": "petg_6_fuselage_tail",
+   "printer": "s1",
+   "material": "petg",
+   "bed": 250.0,
+   "contents": [
+    [
+     "fc_shelf",
+     1
+    ],
+    [
+     "battery_tray",
+     1
+    ],
+    [
+     "gps_mount",
+     1
+    ],
+    [
+     "pod_collar",
+     1
+    ],
+    [
+     "tail_block",
+     1
+    ],
+    [
+     "rear_motor_mount",
+     1
+    ]
+   ],
+   "parts": [
+    {
+     "part": "battery_tray",
+     "copy": 1,
+     "x": 91.486,
+     "y": 178.974,
+     "angle": 0.0
+    },
+    {
+     "part": "fc_shelf",
+     "copy": 1,
+     "x": 95.486,
+     "y": 90.974,
+     "angle": 0.0
+    },
+    {
+     "part": "gps_mount",
+     "copy": 1,
+     "x": 207.486,
+     "y": 63.974,
+     "angle": 0.0
+    },
+    {
+     "part": "pod_collar",
+     "copy": 1,
+     "x": 189.486,
+     "y": 195.974,
+     "angle": 90.0
+    },
+    {
+     "part": "rear_motor_mount",
+     "copy": 1,
+     "x": 199.486,
+     "y": 123.974,
+     "angle": 90.0
+    },
+    {
+     "part": "tail_block",
+     "copy": 1,
+     "x": 222.486,
+     "y": 169.974,
+     "angle": 127.04701
+    }
+   ],
+   "grams": 102.62,
+   "minutes": 229.3
+  },
+  {
+   "name": "petg_7_pods_yokes",
+   "printer": "s1",
+   "material": "petg",
+   "bed": 250.0,
+   "contents": [
+    [
+     "boom_pod_l",
+     1
+    ],
+    [
+     "boom_pod_r",
+     1
+    ],
+    [
+     "yoke_l",
+     1
+    ],
+    [
+     "yoke_r",
+     1
+    ]
+   ],
+   "parts": [
+    {
+     "part": "boom_pod_l",
+     "copy": 1,
+     "x": 60.25,
+     "y": 103.75,
+     "angle": 0.0
+    },
+    {
+     "part": "boom_pod_r",
+     "copy": 1,
+     "x": 148.25,
+     "y": 103.75,
+     "angle": 0.0
+    },
+    {
+     "part": "yoke_l",
+     "copy": 1,
+     "x": 213.25,
+     "y": 114.75,
+     "angle": 180.0
+    },
+    {
+     "part": "yoke_r",
+     "copy": 1,
+     "x": 50.25,
+     "y": 148.75,
+     "angle": 90.0
+    }
+   ],
+   "grams": 81.07,
+   "minutes": 183.4
   }
  ],
  "tilt_range": [

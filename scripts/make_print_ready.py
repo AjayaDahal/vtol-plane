@@ -10,10 +10,13 @@ import numpy as np
 import geom as G
 
 LW, PETG, PETG_SUP = "lwpla_vase", "petg", "petg_support"
+BRIM = 5   # mm, outer brim of the PETG parts that get one
 
 
-def _p(material, printer, rot, qty=1, src=None):
-    return dict(material=material, printer=printer, rot=rot, qty=qty, src=src)
+def _p(material, printer, rot, qty=1, src=None, brim=0):
+    """brim: mm of outer brim for this part alone (slice_all.py sets it on the part's own object, on
+    a plate too); the PETG profile prints none, the LW-PLA vase profile 8 mm on every skin."""
+    return dict(material=material, printer=printer, rot=rot, qty=qty, src=src, brim=brim)
 
 
 PARTS = {
@@ -28,12 +31,14 @@ PARTS = {
     "ruddervator_r": _p(LW, "x", [("x", 55)]),
     "ruddervator_l": _p(LW, "x", [("x", -55)]),
     # PETG structure: all on the enclosed S1, printed as plates (plates.py); the single-part files
-    # are for reprints. Ribs lie on a flange or ring end so the
-    # spigot rings print as vertical walls (upright they would be 10 mm overhangs).
+    # are for reprints. The PETG profile prints no brim; a part standing taller than the square
+    # root of its first-layer contact area, a lever the nozzle can pry off the bed, gets a BRIM
+    # (check_parts.py measures both in the G-code and checks this list). Ribs lie on a flange or
+    # ring end so the spigot rings print as vertical walls (upright they would be 10 mm overhangs).
     "rib_root_r": _p(PETG, "s1", [("x", 90)]),
     "rib_root_l": _p(PETG, "s1", [("x", -90)]),
-    "rib_midtip_r": _p(PETG, "s1", [("x", 90)]),
-    "rib_midtip_l": _p(PETG, "s1", [("x", -90)]),
+    "rib_midtip_r": _p(PETG, "s1", [("x", 90)], brim=BRIM),
+    "rib_midtip_l": _p(PETG, "s1", [("x", -90)], brim=BRIM),
     # The tip rib is a hidden ring: it stands on its fairing end, the full-chord side.
     "rib_tip_r": _p(PETG, "s1", [("x", -90)]),
     "rib_tip_l": _p(PETG, "s1", [("x", 90)]),
@@ -47,8 +52,8 @@ PARTS = {
     "boom_pod_l": _p(PETG, "s1", []),
     "yoke_r": _p(PETG, "s1", [("x", 180)]),
     "yoke_l": _p(PETG, "s1", [("x", 180)]),
-    "coupler_240": _p(PETG, "s1", [("y", -90)]),
-    "coupler_370": _p(PETG, "s1", [("y", -90)]),
+    "coupler_240": _p(PETG, "s1", [("y", -90)], brim=BRIM),
+    "coupler_370": _p(PETG, "s1", [("y", -90)], brim=BRIM),
     "coupler_610": _p(PETG, "s1", [("y", -90)]),
     "frame_main": _p(PETG, "s1", [("y", 90)]),
     "frame_rear": _p(PETG, "s1", [("y", 90)]),
@@ -58,8 +63,8 @@ PARTS = {
     "gps_mount": _p(PETG, "s1", [("x", 180)]),
     "pod_collar": _p(PETG, "s1", [("y", -90)]),
     # Constant section along the boom: stands on an end, bore vertical, no supports.
-    "rear_motor_mount": _p(PETG, "s1", [("y", 90)]),
-    "tail_block": _p(PETG, "s1", [("y", -90)]),
+    "rear_motor_mount": _p(PETG, "s1", [("y", 90)], brim=BRIM),
+    "tail_block": _p(PETG, "s1", [("y", -90)], brim=BRIM),
     "vtail_root_rib": _p(PETG, "s1", [("x", 55)], qty=2, src="vtail_root_rib_r"),
     # Hidden tip rings stand on their fairing end, like the wing's tip rib.
     "vtail_tip_cap": _p(PETG, "s1", [("x", 235)], qty=2, src="vtail_tip_cap_r"),
@@ -68,7 +73,7 @@ PARTS = {
     # Servo hatch: outer face on the bed, posts up. Hatch block: upside down, top face on the bed.
     "servo_hatch": _p(PETG, "s1", [], qty=6),
     "hatch_block": _p(PETG, "s1", [("x", 180)], qty=12),
-    "control_horn": _p(PETG, "s1", [], qty=6),
+    "control_horn": _p(PETG, "s1", [], qty=6, brim=BRIM),
 }
 for _sec in ("wing_root", "wing_mid", "wing_tip", "aileron_mid", "aileron_tip", "tip_fairing"):
     PARTS[_sec + "_r"] = _p(LW, "x", [("x", 90)])

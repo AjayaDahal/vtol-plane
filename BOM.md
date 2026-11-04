@@ -39,7 +39,7 @@ part goes and how it is assembled is in `DESIGN.md`. This list is for the
 | Filament | Printer | Needed (from the G-code) | Buy |
 |---|---|---|---|
 | LW-PLA, **active-foaming**, 1.75 mm | Kobra X: every skin | 266 g | one spool: SainSmart LW-PLA 1 kg (free delivery on Amazon), Bambu Lab PLA Aero 1 kg or colorFabb LW-PLA 750 g |
-| PETG, 1.75 mm | Kobra S1: every PETG part, as plates | 474 g | one 1 kg spool, any brand |
+| PETG, 1.75 mm | Kobra S1: every PETG part, as plates | 461 g | one 1 kg spool, any brand |
 
 One spool of each covers the parts, the test prints and a few reprints: each printer runs
 one material. No part needs supports.

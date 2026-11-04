@@ -102,15 +102,19 @@ Readytosky ESCs, the Power Brick Mini and the 3DR GPS:
 
 | | 4S design (now) | 3S, Zeee 8000 | 3S, IPO 6200 (estimated) |
 |---|---|---|---|
-| All-up weight | 2.01 kg | 2.29 kg | 2.25 kg |
-| Battery stop pin, CG | x = 380, 29.2 % MAC | x = 380, 29.5 % MAC | x = 370, 29.1 % MAC |
-| Front motor at hover, near-empty pack (limit 60 %) | 59.2 % | **47.9 %** | 47.1 % |
+| All-up weight | 2.00 kg | 2.29 kg | 2.25 kg |
+| Battery stop pin, CG | x = 380, 29.3 % MAC | x = 380, 29.5 % MAC | x = 370, 29.1 % MAC |
+| Front motor at hover, near-empty pack (limit 60 %) | 58.8 % | **47.9 %** | 47.1 % |
 | The same with the propwash on the wing (risk 1) | ~59 % | ~50–51 % | ~49–50 % |
 | Hover throttle | ~69 % | ~61 % | ~61 % |
 | Hover current | ~33 A | 21.6 A | 21.1 A |
-| Pure hover time (80 % of the pack) | ~7.2 min | **~17.8 min** | ~14.1 min |
+| Pure hover time (80 % of the pack) | ~7.3 min | **~17.8 min** | ~14.1 min |
 | Static margin | ~18 % | ~18 % | ~18 % |
 | PX4 stall / min / transition airspeed | 13 / 16 / 18 m/s | 13 / 17 / 19 m/s | 13 / 16 / 18 m/s |
+
+The 4S column is from the Nov 3 re-slice in Anycubic Slicer Next 2.0.0.3 (`REPORT.md`, round
+11). The 3S columns were modelled on the earlier slice, whose PETG weighed ~13 g more, mostly
+brims (trimmed off before flight anyway), so they are slightly pessimistic.
 
 The model scales each maker's thrust test by V² to 12.0 V (a full pack under load) and
 10.6 V (near empty). Hover power is fitted through the test point nearest hover. The checks

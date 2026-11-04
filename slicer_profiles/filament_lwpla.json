@@ -4,22 +4,22 @@
   "from": "system",
   "instantiation": "true",
   "cool_plate_temp": [
-    "35"
+    "55"
   ],
   "eng_plate_temp": [
-    "0"
+    "55"
   ],
   "hot_plate_temp": [
-    "45"
+    "55"
   ],
   "cool_plate_temp_initial_layer": [
-    "35"
+    "55"
   ],
   "eng_plate_temp_initial_layer": [
-    "0"
+    "55"
   ],
   "hot_plate_temp_initial_layer": [
-    "45"
+    "55"
   ],
   "overhang_fan_threshold": [
     "50%"
@@ -161,5 +161,23 @@
     "Anycubic Kobra 3 0.6 nozzle",
     "Anycubic Kobra 3 0.8 nozzle",
     "Anycubic Kobra 3 Max 0.4 nozzle"
+  ],
+  "textured_plate_temp": [
+    "55"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "55"
+  ],
+  "textured_cool_plate_temp": [
+    "55"
+  ],
+  "textured_cool_plate_temp_initial_layer": [
+    "55"
+  ],
+  "supertack_plate_temp": [
+    "55"
+  ],
+  "supertack_plate_temp_initial_layer": [
+    "55"
   ]
 }

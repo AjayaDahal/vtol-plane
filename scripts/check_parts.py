@@ -522,9 +522,10 @@ def gcode_path(name):
 def check_gcode():
     """The sliced files, single parts and PETG plates: present, sliced from the current STL (a
     plate: its parts' STLs and layout), shown as sliced in the viewer manifest and tracker.md,
-    every extrusion on the bed and every move inside the printer's height (end-of-print lift
-    included), no support extrusions, one vase speed band, and each plate's parts as separate
-    objects where its layout puts them."""
+    every extrusion on the bed (the printer's purge line aside) and every move inside the printer's
+    height (end-of-print lift included), the settings the prints depend on, no support
+    extrusions, one vase speed band, brims where the print table puts them, and each plate's
+    parts as separate objects where its layout puts them."""
     import json
     import re
     import plates as PT
@@ -541,7 +542,23 @@ def check_gcode():
     files += [(plate, PT.gcode_path(plate), PT.PRINTER, "petg", lambda plate=plate: PT.plate_hash(plate))
               for plate in PT.PLATES]
     missing, stale, with_support, too_tall, off_bed, vase = [], [], [], [], [], {}
-    z_top, edge, objects = {}, {}, {}
+    z_top, edge, objects, drawn, brimmed, levers = {}, {}, {}, {}, {}, {}
+    # What every print depends on, as each file's config block states it: the vase walls and webs
+    # (SLICING.md), walls, nozzle temperature, brims, no supports, and one bed temperature on every
+    # plate type the slicer offers, since its plate type picks which applies (the stock cool plate's
+    # were 35 C for LW-PLA and 60 C for PETG). Every *_plate_temp key in the file counts, so a plate
+    # type a new slicer adds fails here until make_slicer_profiles.py covers it. The printer's start
+    # macro (G9111) must get the temperature too.
+    from make_slicer_profiles import LWPLA_BED_C, PETG_BED_C, PLATE_TYPES
+    bed_c = {"lwpla_vase": str(LWPLA_BED_C), "petg": str(PETG_BED_C)}
+    plate_re = re.compile(r"\w+_plate_temp(_initial_layer)?")
+    plate_keys = {f"{t}_plate_temp{s}" for t in PLATE_TYPES for s in ("", "_initial_layer")}
+    want_cfg = {"lwpla_vase": {"spiral_mode": "1", "slice_closing_radius": "0.01", "detect_thin_wall": "0",
+                               "wall_loops": "1", "nozzle_temperature": "235", "brim_type": "outer_only",
+                               "enable_support": "0"},
+                "petg": {"spiral_mode": "0", "wall_loops": "3", "nozzle_temperature": "255", "brim_type": "no_brim",
+                         "enable_support": "0"}}
+    cfg_off = []
     obj_re = re.compile(r"EXCLUDE_OBJECT_DEFINE NAME=(\S+) CENTER=(-?[\d.]+),(-?[\d.]+) POLYGON=(\[\[.*\]\])")
     for name, path, printer, material, want in files:
         if not os.path.exists(path):
@@ -553,18 +570,42 @@ def check_gcode():
         stamp = re.search(re.escape(STAMP) + r"([0-9a-f]{64})", tail)
         if not stamp or stamp.group(1) != want():
             stale.append(name)
-        typ, f, x, y, z_max = "", 0.0, 0.0, 0.0, 0.0
-        n_sup, speeds, lens, objs = 0, [], [], []
+        typ, f, x, y, z_max, obj = "", 0.0, 0.0, 0.0, 0.0, None
+        n_sup, speeds, lens, objs, brims = 0, [], [], [], set()
+        n_layer, top, first_len, first_w = 0, 0.0, 0.0, None
+        cfg, bed_cmd = {}, None
+        part_pts = [] if material == "lwpla_vase" else None
         ext_lo, ext_hi = np.full(2, np.inf), np.full(2, -np.inf)
         with open(path, errors="ignore") as fh:
             for line in fh:
                 if line.startswith(";TYPE:"):
                     typ = line[6:].strip()
                     continue
+                if line.startswith(";Z:"):
+                    n_layer, top = n_layer + 1, float(line[3:])
+                    continue
+                if line.startswith("; initial_layer_line_width ="):
+                    first_w = float(line.split("=")[1])
+                    continue
+                if line.startswith("; ") and " = " in line:
+                    key, _, val = line[2:].rstrip("\n").partition(" = ")
+                    if key in want_cfg.get(material, ()) or plate_re.fullmatch(key):
+                        cfg[key] = val
+                    continue
+                if line.startswith("G9111"):
+                    mb = re.search(r"bedTemp=(\S+)", line)
+                    bed_cmd = mb.group(1) if mb else None
+                    continue
                 if line.startswith("EXCLUDE_OBJECT_DEFINE"):
                     m = obj_re.match(line)
                     if m:
                         objs.append((m.group(1), np.array(json.loads(m.group(4)), float)))
+                    continue
+                if line.startswith("EXCLUDE_OBJECT_START NAME="):
+                    obj = line.split("=", 1)[1].strip()
+                    continue
+                if line.startswith("EXCLUDE_OBJECT_END"):
+                    obj = None
                     continue
                 if not (line.startswith("G1") or line.startswith("G0")):
                     continue
@@ -578,9 +619,16 @@ def check_gcode():
                     re.search(r"E(-?[\d.]+)", line)
                 nx = float(mx.group(1)) if mx else x
                 ny = float(my.group(1)) if my else y
-                if me and float(me.group(1)) > 0 and (mx or my):
+                # "Custom" is the printer's own G-code: the S1 preset's purge line lies beside the bed.
+                if me and float(me.group(1)) > 0 and (mx or my) and typ != "Custom":
                     ext_lo = np.minimum(ext_lo, (min(x, nx), min(y, ny)))
                     ext_hi = np.maximum(ext_hi, (max(x, nx), max(y, ny)))
+                    if part_pts is not None and typ not in ("Brim", "Skirt"):
+                        part_pts += ((x, y), (nx, ny))
+                    if typ == "Brim":
+                        brims.add(obj)
+                    elif n_layer == 1 and typ != "Skirt":
+                        first_len += math.hypot(nx - x, ny - y)
                     if "upport" in typ:
                         n_sup += 1
                     elif typ == "Outer wall":
@@ -589,6 +637,20 @@ def check_gcode():
                 x, y = nx, ny
         z_top[name] = z_max
         objects[name] = objs
+        brimmed[name] = brims
+        if material in want_cfg:
+            off_k = [f"{k} = {cfg.get(k, 'missing')}" for k, v in want_cfg[material].items() if cfg.get(k) != v]
+            beds = {k: v for k, v in cfg.items() if plate_re.fullmatch(k)}
+            off_k += [f"{k} = {v}" for k, v in sorted(beds.items()) if v != bed_c[material]]
+            off_k += [f"{k} missing" for k in sorted(plate_keys - set(beds))]
+            if bed_cmd != bed_c[material]:
+                off_k.append(f"G9111 bedTemp={bed_cmd}")
+            if off_k:
+                cfg_off.append(f"{name}: {', '.join(off_k)}")
+        if material == "petg" and name in PARTS and first_len and first_w:
+            levers[name] = top / math.sqrt(first_len * first_w)
+        if part_pts:
+            drawn[name] = PT.convex_hull(part_pts)
         if z_max > height[printer]:
             too_tall.append(f"{name} Z {z_max:.1f} > {height[printer]:.0f}")
         lo, hi = bed[printer]
@@ -613,11 +675,72 @@ def check_gcode():
           ", ".join(stray) or f"{len(keep)} files, all current parts and plates")
     check("G-code sliced from the current print-ready STLs (hash stamp; a plate's also covers its layout)",
           not stale, ", ".join(stale) or "all current")
+    # The 3MF projects (3mf/, the same folders and names as gcode/) are what the slicer opens to send
+    # a job to the printer, and each G-code file is sliced from its 3MF: each must be there, stamped
+    # like its G-code and set up with its printer's, process's and filament's presets.
+    import zipfile
+    from slice_all import META_3MF, expected_3mf, path_3mf, preset_names
+    bad3 = []
+    for name, path, printer, material, want in files:
+        p3 = path_3mf(path)
+        if not os.path.exists(p3):
+            bad3.append(f"{name} missing")
+            continue
+        try:
+            with zipfile.ZipFile(p3) as z:
+                model = z.read("3D/3dmodel.model").decode("utf-8", "replace")
+                cfg = json.loads(z.read("Metadata/project_settings.config"))
+        except (zipfile.BadZipFile, KeyError, ValueError) as exc:
+            bad3.append(f"{name} unreadable ({exc})")
+            continue
+        m = re.search(r'<metadata name="' + META_3MF + r'">([0-9a-f]{64})<', model)
+        if not m or m.group(1) != want():
+            bad3.append(f"{name} stale")
+        got = (cfg.get("printer_settings_id"), cfg.get("print_settings_id"),
+               (cfg.get("filament_settings_id") or [""])[0])
+        if got != preset_names(printer, material):
+            bad3.append(f"{name} presets {got}")
+    keep3 = expected_3mf()
+    stray3 = sorted(os.path.relpath(p, G.ROOT) for p in glob.glob(os.path.join(G.ROOT, "3mf", "*", "*.3mf"))
+                    if os.path.normcase(os.path.abspath(p)) not in keep3)
+    check("3MF project for every print file (3mf/): current (hash stamp), its printer's, process's and "
+          "filament's presets, none stray", not bad3 and not stray3,
+          "; ".join(bad3 + [f"stray {s}" for s in stray3]) or f"{len(keep3)} projects")
+    # The complete projects (3mf/complete_project_*.3mf, one per printer, a named plate per job in
+    # print order) must be what make_projects.py builds from the job 3MFs checked above: the same
+    # objects, placements, settings and plate names, file for file.
+    import make_projects as MP
+    bad_p, made = [], []
+    for printer in MP.PROJECTS:
+        path = MP.project_path(printer)
+        rel = os.path.relpath(path, G.ROOT)
+        try:
+            want = MP.entries(printer)
+        except (OSError, KeyError, RuntimeError, AttributeError, ValueError, zipfile.BadZipFile) as exc:
+            bad_p.append(f"{rel}: cannot be built ({exc})")
+            continue
+        if not os.path.exists(path):
+            bad_p.append(f"{rel} missing")
+            continue
+        with zipfile.ZipFile(path) as z:
+            got = {n: z.read(n) for n in z.namelist()}
+        diff = sorted(n for n in set(got) | set(want) if got.get(n) != want.get(n))
+        if diff:
+            bad_p.append(f"{rel} stale: {', '.join(diff[:3])}{' ...' if len(diff) > 3 else ''}")
+        made.append(f"{os.path.basename(path)} ({len(MP.jobs(printer))} plates)")
+    check("complete projects (3mf/complete_project_*.3mf): a named plate per job, as make_projects.py builds "
+          "them from the job 3MFs", not bad_p,
+          "; ".join(bad_p) + " (run python scripts/make_projects.py)" if bad_p else ", ".join(made))
     # Every part is its own object where the script put it, turned as it meant: the slicer was told
     # --arrange 0, and each object's outline (EXCLUDE_OBJECT_DEFINE POLYGON) must match the placed
     # footprint. A part on a plate can then be cancelled on the printer without stopping the rest.
+    # Anycubic Slicer Next 2.0 labels no objects in vase mode (one part per bed, nothing to cancel).
+    # A vase part is judged by its extrusions, brim left out: they must lie inside the placed
+    # footprint (a shift or turn pushes some outside) and reach its corners. A sharp trailing edge
+    # ends short of its tip, because a line cannot follow a wedge thinner than itself: 1.6 mm on the
+    # ruddervators.
     from slice_all import bed_centre
-    wrong, worst, count = [], 0.0, 0
+    wrong, worst, count, vase_out, vase_short = [], 0.0, 0, 0.0, 0.0
     for name, path, printer, material, _ in files:
         if name not in objects:
             continue
@@ -627,6 +750,14 @@ def check_gcode():
                     for n, k, x, y, a in PT.layout(name)}
         else:
             want = {name + ".stl": PT.placed_hull(name, *bed_centre(printer), 0.0)}
+        if not objects[name] and name in drawn:
+            footprint = want[name + ".stl"]
+            out = float(PT.outside_dist(drawn[name], footprint).max())
+            short = float(PT.outside_dist(footprint, drawn[name]).max())
+            vase_out, vase_short, count = max(vase_out, out), max(vase_short, short), count + 1
+            if out > 0.5 or short > 2.5:
+                wrong.append(f"{name}: prints up to {out:.1f} mm outside its place, ends {short:.1f} mm short")
+            continue
         got = {}
         for obj, poly in objects[name]:
             got[re.sub(r"_id_\d+_copy_\d+$", "", obj)] = poly
@@ -638,8 +769,43 @@ def check_gcode():
             worst, count = max(worst, dev), count + 1
             if dev > 0.5:
                 wrong.append(f"{name}: {k} {dev:.1f} mm off its place")
-    check("every part is its own object, outline where the script placed it (G-code, plates too)", not wrong,
-          "; ".join(wrong) or f"{count} objects in {len(objects)} files, outlines within {worst:.3f} mm")
+    check("every part where the script placed it: its own object, outline in place (PETG files and plates); "
+          "extrusions inside the footprint (vase files)", not wrong,
+          "; ".join(wrong) or f"{count} parts in {len(objects)} files: outlines within {worst:.3f} mm; vase prints "
+          f"within {vase_out:.2f} mm of their footprints, reaching within {vase_short:.1f} mm of its corners")
+    # Brims as the print table says (make_print_ready.py, `brim`), whatever plate type the slicer is
+    # set to: on PETG only the parts given one, each on its own object, and the vase profile's brim
+    # around every skin. The hash stamp does not cover a part's brim, this does.
+    off_brim, n_brim = [], 0
+    for name, path, printer, material, _ in files:
+        if name not in brimmed:
+            continue
+        if material == "lwpla_vase":
+            if not brimmed[name]:
+                off_brim.append(f"{name}: no brim")
+            continue
+        if name in PT.PLATES:
+            copies = dict(PT.PLATES[name])
+            want_b = {PT.stl_name(n, k, copies[n]) + ".stl" for n, k, _, _, _ in PT.layout(name) if PARTS[n]["brim"]}
+        else:
+            want_b = {name + ".stl"} if PARTS[name]["brim"] else set()
+        got_b = {re.sub(r"_id_\d+_copy_\d+$", "", o) for o in brimmed[name] if o is not None}
+        n_brim += len(got_b)
+        if None in brimmed[name] or got_b != want_b:
+            off_brim.append(f"{name}: brim on {sorted(got_b) or 'nothing'}"
+                            f"{' and outside any object' if None in brimmed[name] else ''}, want {sorted(want_b) or 'none'}")
+    brim_parts = sorted(n for n, s in PARTS.items() if s["brim"])
+    check("brims as the print table says: every vase skin, and on PETG only " + ", ".join(brim_parts), not off_brim,
+          "; ".join(off_brim) or f"{n_brim} PETG objects with a brim, every one of them meant to have it")
+    # Which PETG parts get one: those standing taller than the square root of their first-layer
+    # contact area (top layer over the root of the first layer's extruded length times its line
+    # width, brim left out), a lever the nozzle can pry off the bed. Measured on the single files.
+    need = sorted(n for n, v in levers.items() if v >= 1.0)
+    have = sorted(n for n in levers if PARTS[n]["brim"])
+    tallest = sorted(levers, key=levers.get, reverse=True)[:8]
+    check("PETG parts standing taller than the root of their first-layer contact area have a brim, the rest none",
+          need == have, f"need {need}, have {have}" if need != have else
+          "height / root(contact): " + ", ".join(f"{n} {levers[n]:.2f}" for n in tallest) + " ...")
     # The viewer's print panel and tracker.md are made from the manifest: it must list exactly the
     # print table's files and the plates, with their printer, material and copies (a plate: its
     # contents and layout), and must not lag a slice.
@@ -680,10 +846,16 @@ def check_gcode():
           "; ".join(too_tall) or (f"highest move Z {z_top[tallest]:.1f} ({tallest}); "
                                   + ", ".join(f"{k} {v:.0f} mm" for k, v in height.items())))
     nearest = min(edge, key=edge.get) if edge else None
-    check("every extrusion >= 1 mm inside the bed edge, so no brim is cut off there", not off_bed,
+    check("every extrusion >= 1 mm inside the bed edge, so no brim is cut off there (the S1's own purge "
+          "line, beside the bed, aside)", not off_bed,
           "; ".join(off_bed) or f"closest {edge[nearest]:.1f} mm from an edge ({nearest})")
     check("G-code has no support extrusions (profile sanity)", not with_support,
           "; ".join(with_support) or "0 support moves")
+    check("G-code settings: spiral vase walls (closing radius 0.01, no thin-wall split), wall count, nozzle "
+          f"temperature, brim type, no supports; bed {LWPLA_BED_C} C (LW-PLA) / {PETG_BED_C} C (PETG) on every "
+          "plate type in the file and in the start macro", not cfg_off,
+          "; ".join(cfg_off[:4]) + (" ..." if len(cfg_off) > 4 else "") if cfg_off
+          else f"{len(files)} files, {len(plate_keys) // 2} plate types each")
     if vase:
         lo = min(v[0] for v in vase.values())
         hi = max(v[1] for v in vase.values())

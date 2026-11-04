@@ -10,12 +10,15 @@ top; older rounds follow, newest first. "Fixed" means the CAD, slicing
 and paperwork no longer contain that defect. It is not a promise that
 the plane flies. That needs the physical checks listed under "Open".
 
-## Current status (v0.2, Nov 2, 2026)
+## Current status (v0.2, Nov 3, 2026)
 
 **Ready to print, starting with the test prints.** Print `wing_tip_r`
 (flow) and PETG plate `petg_1_fit_tests` (tip ring, one servo hatch, two
 hatch blocks), then `tip_fairing_r` (closing tip) and `wing_mid_r` (web
-check), then the rest on both printers at once (`tracker.md`).
+check), then the rest on both printers at once (`tracker.md`). Each printer
+has one slicer project with every job on a named plate, in this order:
+`3mf/complete_project_kobra_x_lwpla.3mf` and
+`3mf/complete_project_kobra_s1_petg.3mf` (round 11).
 
 **Hold PETG plates 6 and 7: a 3S build is planned** (`PLAN_3S.md`, not
 built in yet). The owner will fly his own 3S packs, Cube Black, Power Brick
@@ -30,7 +33,7 @@ thrust-tested before anything is built in. It changes four PETG parts
 hand-drilled hole, out of the bigger props' wash. Every LW-PLA part
 prints as it is.
 
-- Verification gate: `python scripts/check_parts.py` passes **114/114**,
+- Verification gate: `python scripts/check_parts.py` passes **119/119**,
   locally and in CI on every push (`.github/workflows/gate.yml`).
   It covers mesh integrity, mirrored L/R parts, bed fit, every spigot,
   coupler and frame fit, flush glued skin joints (wing, V-tail and
@@ -56,15 +59,21 @@ prints as it is.
   stays at least 1 mm inside the bed's edge (no brim cut off). It
   also checks the G-code: present, sliced from the current STL (hash
   stamp), inside the printer's height, one vase speed band, and every wing
-  web printed fused to the skin.
-- 58 G-code files: 51 single parts and 7 PETG plates, no supports
-  anywhere. One material per printer (round 10): the X prints every
-  LW-PLA skin (22 jobs, 50.9 h, 266 g: one spool, one flow
-  calibration), the S1 the PETG as seven plates (7 jobs, 17.5 h,
-  474 g). The LW-PLA must be the active-foaming kind (10.1).
-- AUW ~2.01 kg, CG target 433 mm from the nose (28.5 % MAC; the stop pin
-  at x = 380 gives 434.6 mm, 29.2 %), hover split 37/37/26 %, front motors
-  at 59.2 % of their near-empty maximum (limit 60 %: the margin is thin),
+  web printed fused to the skin. Since round 11 it reads back the settings
+  the prints depend on (vase walls and webs, temperatures, brims, no
+  supports) from every file, checks the brims part by part, and checks
+  that both complete slicer projects are built from the jobs' own 3MFs.
+- 58 print jobs, 51 single parts and 7 PETG plates, each as G-code and
+  as a 3MF project to send from the slicer (the G-code is sliced from the
+  3MF), with no supports anywhere, sliced in Anycubic Slicer Next 2.0.0.3.
+  They are also gathered into one complete project per printer, a named
+  plate per job (round 11). One material per printer (round 10): the X prints every
+  LW-PLA skin (22 jobs, 49.4 h, 266 g: one spool, one flow
+  calibration), the S1 the PETG as seven plates (7 jobs, 15.9 h,
+  461 g). The LW-PLA must be the active-foaming kind (10.1).
+- AUW ~2.00 kg, CG target 433 mm from the nose (28.5 % MAC; the stop pin
+  at x = 380 gives 434.8 mm, 29.3 %), hover split 37/37/26 %, front motors
+  at 58.8 % of their near-empty maximum (limit 60 %: the margin is thin),
   static margin ~18 %.
 - Span 1478 mm: the wing and V-tail tips close in vase-mode fairings over
   hidden rings, with no flat end or spar end showing (`DESIGN.md`, "Tips").
@@ -82,7 +91,8 @@ prints as it is.
 **Open, can only be closed by building and flying** (in order):
 
 1. LW-PLA flow, spigot fit, closing tips, web fusion and servo-hatch fit:
-   the test prints above.
+   the test prints above. Then the first aileron or ruddervator: its brim
+   must hold and its top must not sway (11.6).
 2. Tilt servo dimensions against the pod bay, before printing pods and
    yokes.
 3. Real masses: weigh the parts and re-run `mass_balance.py`. The hover
@@ -98,6 +108,27 @@ prints as it is.
    of the front thrust (`PLAN_3S.md`, risk 1). The 7 in props'
    slipstream barely reaches the wing.
 7. Transition tuning: at altitude, into wind, back-transition ready.
+
+## Round 11 — complete slicer projects, and a print audit (v0.2, Nov 3, 2026)
+
+Request from the owner: one slicer project per printer, like his own thrust-stand project, with
+LW-PLA and PETG on separate plates and supports where needed, and a deep audit before printing.
+Method: the projects were assembled from the jobs' own 3MFs and every plate was sliced again
+against its job's G-code; every setting that reaches the printer was read back from the G-code;
+the slicer itself was asked where it would put supports (`audit_print.py`); every part's stance
+on the bed was measured. Midway, Anycubic Slicer Next updated itself from 1.3.3.3 to 2.0.0.3, so
+everything was re-sliced, compared and checked on the new version.
+
+| # | Severity | Finding | Fix | Status |
+|---|---|---|---|---|
+| 11.1 | P1 print | **The bed was set to 35 °C for LW-PLA and 60 °C for PETG.** The projects carried the cool plate, the 1.3.3.3 command line's default plate type, and the stock presets heat that plate to 35 °C for PLA and 60 °C for PETG. colorFabb asks 50–60 °C for LW-PLA, and the skins stand up to 240 mm tall, the ailerons 213 mm on a 9.5 mm base. The first fix covered four plate types; the review found that 2.0.0.3 has six, and that its textured cool and supertack plates stayed at 40 °C and 35 °C. | Both filament profiles give all six plate types the same bed temperature: LW-PLA 55 °C, PETG 75 °C, as in Anycubic's own Kobra S1 PETG preset for the textured PEI and smooth plates. Whatever plate the slicer is set to, the print does not change. The gate reads every plate type's value back from every file, plus the printer's start macro (`G9111 bedTemp`), so a plate type that a new slicer adds fails it (11.7). | fixed, gated |
+| 11.2 | P1 process | **The slicer changed under the build.** 2.0.0.3 differs from 1.3.3.3 in five ways that matter here: its command line sets the textured PEI plate; its auto brim, which follows the plate type, dropped almost every PETG brim (11.3); in vase mode it labels no objects, and the placement check read each skin's outline from those labels; it writes no preview thumbnails; and Anycubic's 2.0 S1 preset draws a purge line beside the bed before the first layer, where the old one primed nothing (the start G-code is only the printer's `G9111` macro, and no skirt prints). Re-sliced, the skins kept their masses and print 1.5 h faster; the PETG plates came out 13 g lighter (fewer brims, a little less solid infill) and 1.6 h faster (the S1 preset's higher machine limits). | Everything re-sliced on 2.0.0.3 and checked. The printer files are now Anycubic's 2.0 presets, which `make_slicer_profiles.py` reads from the installed slicer: the X's already matched, and the S1's brings the purge line. The bed-edge check leaves that line out, since it is the printer's own G-code. A skin's placement is now judged by its extrusions: they lie inside the placed footprint (0.00 mm outside, 0.5 mm allowed) and reach within 1.6 mm of its corners (2.5 mm allowed; a line cannot follow a sharp trailing edge thinner than itself). Mass balance after the re-slice: AUW 1998 g, stop pin at x = 380, CG 434.8 mm (29.3 % MAC), front motors 58.8 % (from 59.2 %), PX4 hover CG 438 mm. Without thumbnails, the printer's screen shows no picture for G-code sent straight from `gcode/`; the slicer's window draws one when it slices. | fixed, gated |
+| 11.3 | P1 print | **Brims were the slicer's guess.** The PETG profile's auto brim follows the plate type and the slicer version: 17 parts got one with 1.3.3.3 (cool plate, low grip), one with 2.0.0.3 (textured PEI). Among the parts left without were `tail_block`, 80 mm tall on a 619 mm² first layer, and the 40 mm fuselage couplers on 400–500 mm², whose brims finding 9.5 counted on. | The PETG profile prints no brim. A part standing taller than the square root of its first-layer contact area, a lever the nozzle can pry off the bed, gets 5 mm. The print table sets it per part (`make_print_ready.py`, `brim`), and `slice_all.py` writes it into the job's 3MF as that object's own setting, so it holds on any plate: `tail_block` (3.22), `coupler_370` (2.02), `coupler_240` (1.82), `rear_motor_mount` (1.33), `control_horn` (1.21; six of them share the four-hour wing plate) and `rib_midtip_l/r` (1.04); the next is the yoke, at 0.82. Two new checks: the brims printed are exactly these (19 PETG objects, plus every skin's 8 mm), and the list is the one the measure gives. | fixed, gated |
+| 11.4 | P2 process | **Only one project per job.** The owner asked for complete projects like his thrust-stand one, every job on its own plate. | `make_projects.py` builds `3mf/complete_project_kobra_x_lwpla.3mf` (22 plates, one skin each, the three test prints first) and `3mf/complete_project_kobra_s1_petg.3mf` (the seven PETG plates; 6 and 7 named ON HOLD). Each job is a named plate in print order, the job's own 3MF unchanged. A project holds one printer, hence one project per printer and material. `build_all.py` slices every plate again, one at a time as the slicer's window does, and compares it with its job's G-code: all 29 print the same. The PETG plates agree to 0.001 mm; vase layers where an outline closes to a fin differ by up to 0.17 mm, every run alike (rounding from the plate's offset; half a line is allowed). Masses and times are equal. The slicer cannot build such a project from its command line (`--load-assemble-list` crashed 1.3.3.3), and any plate name crashes that command line (1.3.3.3 and 2.0.0.3), so the check slices a copy with the names blanked. New check: both projects are what `make_projects.py` builds from the job 3MFs, file for file. | fixed, gated |
+| 11.5 | P2 print | **Where the slicer itself would put supports.** The gate judges overhangs on the geometry. Asked with tree supports allowed anywhere (`audit_print.py`), the slicer adds none to the skins, sliced as plain walls at 45°, the vase limit. On PETG it would add some in 13 files (17 on 1.3.3.3), all under the top of a horizontal hole or under a bridge. The holes are bolt, pin, wire, joiner, bearing, insert and pushrod holes, 1.6–10 mm. The bridges include `rib_midtip`'s plate over its spigot ring (~17 mm), the pods' cavities (11–13 mm) and the boom rib's 7 mm-wide underside at z 5 mm, which it prints as a bridge when supports are off. A support inside a hole or a closed-in cavity could not be taken out, and would spoil the fit. | No supports, as designed. `tracker.md` reminder: run a drill of each horizontal hole's size through it before assembly, since its bridged top may sag a little. | by design (verified) |
+| 11.6 | P2 print | **The control surfaces are the slenderest prints.** The ailerons and ruddervators stand 199–233 mm tall on bases 9.5–11.6 mm wide, 19–22 times their width, or about 8 counting the 8 mm brim. A brim that lifts at one end, or a top that sways under the nozzle, would show on the first one. | `tracker.md` reminder: watch the first one's brim and its first centimetres, and stop and reprint rather than let a lifting brim run on. Nothing more can be learned before it prints. | open (watch) |
+| 11.7 | P3 gate | **The settings the prints depend on were not read back.** The gate checked the moves, not the settings, though `SLICING.md` listed the temperatures among its checks; the bed temperature (11.1) got through. | The gate reads every file's settings: spiral vase walls with a 0.01 mm closing radius and no thin-wall split (the webs), the wall count, nozzle temperature, brim type, no supports, and the bed temperature on every `*_plate_temp` key in the file and in the start macro. Run on the files of the four-type fix, it failed on all 58 for the two missed plate types. | fixed, gated |
+| 11.8 | P3 docs | **Numbers left behind by the slicer change** (found in review): the S1's gantry clearance, now 40 mm in its 2.0 preset (was 48), in `SLICING.md` and `plates.py`; the plate margin still explained by the auto brim; the X's LW-PLA time in `BOM_3S.csv`; the slicer version in `requirements.txt`. Also, on the X, which prints every skin, only the 20 mm V-tail tip fairing would fit under the 30 mm gantry, not the 32 mm wing tip fairings. | Corrected. | fixed |
 
 ## Round 10 — one material per printer, and the LW-PLA type (v0.2, Nov 3, 2026)
 

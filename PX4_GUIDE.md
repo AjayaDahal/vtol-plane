@@ -12,7 +12,7 @@ from `scripts/mass_balance.py`. Re-check both if you change the airframe or PX4 
 
 ## Geometry (Actuators tab)
 
-Positions are relative to the hover CG (437 mm aft of the nose tip), x forward, y right.
+Positions are relative to the hover CG (438 mm aft of the nose tip), x forward, y right.
 Set **`CA_ROTOR_COUNT` = 3**. The 13100 airframe defaults to 4 rotors, with a fourth one 1 m
 out that would take part of every command.
 

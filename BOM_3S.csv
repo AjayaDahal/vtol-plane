@@ -50,9 +50,9 @@ Airframe,Heat shrink / braid,1,BUY,,wherever wires cross carbon (carbon conducts
 Airframe,Fish tape and pull cord,1,BUY,"1 mm stiff wire ~1 m, thin nylon cord ~1 m",pull the leads through the boom; lay the GPS cable through fuse_3,,,
 Airframe,Nylon mesh (optional),1,BUY,scrap,inside the nose-tip air inlet,,,
 Filament,"LW-PLA, ACTIVE-FOAMING, 1.75 mm",1,BUY,"SainSmart LW-PLA (active foaming), White, 1 kg","the Kobra X prints every skin: 266 g, plus the test prints and reprints. Free delivery on Amazon, no Prime needed. Foams above 210 C, down to 0.54 g/cm3. Cheaper: Bambu Lab PLA Aero, 1 kg, white or grey, $26.99 at us.store.bambulab.com ($6.99 shipping under $59; with the PETG in the same order both cost ~$48 delivered). NOT pre-foamed LW-PLA (Polymaker PolyLite LW-PLA, SUNLU LW-PLA, Overture Air PLA): these files would under-extrude it. Light colour: LW-PLA softens at 55-60 C and dark skins get that hot in summer sun",47.49,47.49,https://www.amazon.com/dp/B0B1PS6MMP
-Filament,"PETG, 1.75 mm",1,BUY,"any brand, 1 kg spool","the Kobra S1 prints every PETG part as 7 plates: 474 g. Normal PETG, not a foaming PETG",,,
-Printed,LW-PLA skins,22,PRINT,21 files on the Kobra X (22 prints),"266 g, ~51 h: wings, ailerons, tip fairings, fuselage, V-tail, ruddervators (tracker.md)",,,
-Printed,PETG parts,53,PRINT,7 plates on the Kobra S1,"474 g, ~18 h. Hold plates 6 and 7 until the 3S changes are built in (PLAN_3S.md)",,,
+Filament,"PETG, 1.75 mm",1,BUY,"any brand, 1 kg spool","the Kobra S1 prints every PETG part as 7 plates: 461 g. Normal PETG, not a foaming PETG",,,
+Printed,LW-PLA skins,22,PRINT,21 files on the Kobra X (22 prints),"266 g, ~49 h: wings, ailerons, tip fairings, fuselage, V-tail, ruddervators (tracker.md)",,,
+Printed,PETG parts,53,PRINT,7 plates on the Kobra S1,"461 g, ~16 h. Hold plates 6 and 7 until the 3S changes are built in (PLAN_3S.md)",,,
 Tools,"Watt meter, XT60 inline",1,BUY,,for the motor thrust test and current checks; skip if you have one,,,
 Tools,Kitchen scale and luggage scale,1,HAVE?,,motor thrust test (kitchen scale) and yoke load test (4.5 kg pull),,,
 Tools,Soldering iron with a heat-set insert tip,1,HAVE?,,"inserts, motor leads, XT60s",,,

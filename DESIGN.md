@@ -22,9 +22,9 @@ disagree, the scripts win.
 | Wing | Clark Y, flat bottom level with the fuselage datum, 0° dihedral, straight LE; chord 220 mm root → 150 mm tip; area 0.267 m²; MAC 187 mm |
 | Ailerons | 2 per side, hinge at 75 % chord, top-surface tape hinge, ±25° |
 | V-tail | 2 fixed panels, NACA 0012, 240 mm span plus a 20 mm tip fairing, chord 180 → 110 mm, 35° from horizontal (110° included); ruddervators hinged at 70 % chord |
-| All-up weight | ~2.01 kg: printed parts ~742 g, 4S battery 520 g, everything else ~750 g |
+| All-up weight | ~2.00 kg: printed parts ~728 g, 4S battery 520 g, everything else ~750 g |
 | CG | **433 mm aft of the nose tip** (28.5 % MAC); 25–30 % band = 427–436 mm |
-| Hover | front motors 741 g each (37 % of AUW), rear 530 g (26 %); front motor at 48–59 % of its maximum (the design limit is 60 %); ~7.2 min pure hover (estimate) |
+| Hover | front motors 735 g each (37 % of AUW), rear 527 g (26 %); front motor at 47–59 % of its maximum (the design limit is 60 %); ~7.3 min pure hover (estimate) |
 | Stall | 10.0–11.5 m/s (CL 1.2 at sea level to CL 1.0 at 35 °C) |
 | Static margin | ~18 % MAC |
 | Motors / props | 3× Emax ECOII 2807 **1700KV** (the 4S winding), 7×4.5: front right CW, front left CCW, rear CCW |
@@ -214,7 +214,7 @@ the field box: if it is lost the nose can depart in flight, and the CG jumps aft
 5. **Web check:** print `wing_mid_r` and look into its open ends. Every web must run from the
    bottom skin to the top skin and be joined to it ("Inside the wing").
 6. Then print the rest (`tracker.md`), both printers at once: the X prints every LW-PLA skin
-   (about 51 h), the S1 the PETG as seven plates (about 18 h). Nothing needs supports. Hold
+   (about 49 h), the S1 the PETG as seven plates (about 16 h). Nothing needs supports. Hold
    PETG plates 6 and 7 until the 3S changes are built in (`PLAN_3S.md`): they carry the motor
    mounts and the FC shelf.
 
@@ -425,9 +425,9 @@ clears the printed parts. `renders/29–33` show it inside the fuselage.
 1. Slide the joiners through the fuselage. Plug both wings on and pin each rear spar to the rear
    joiner with the M2.5 nylon pin.
 2. Tilt both motors fully forward and balance on your fingertips **433 mm aft of the nose tip**.
-   The estimate puts the battery centre at x = 296 mm; anywhere in 271–306 mm keeps the CG in
+   The estimate puts the battery centre at x = 295 mm; anywhere in 271–306 mm keeps the CG in
    the 25–30 % band. The 3 mm stop pin goes in the aftmost tray hole that keeps the CG within
-   29.5 % MAC: the hole at x = 380, which holds the battery at 301 mm (CG 435 mm, 29.2 %). The
+   29.5 % MAC: the hole at x = 380, which holds the battery at 301 mm (CG 435 mm, 29.3 %). The
    holes run from x = 250 to 390: move the pin aft if the real CG comes out
    forward, forward if it comes out aft. The hover margin wants the CG as far aft as the band
    allows: each hole forward puts ~0.5 % more of the hover load on the front motors, and at

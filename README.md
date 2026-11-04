@@ -43,7 +43,7 @@ margin and the G-code itself) before any filament is used. The gate runs on ever
 | **Speeds** | cruise ~18 m/s, stall 10–11.5 m/s (estimates) |
 | **Hover** | ~7 min pure hover (estimate); front motors kept under 60 % of their thrust |
 | **Airframe** | LW-PLA vase-mode skins with fused internal webs, PETG structure, carbon tubes |
-| **Printers** | Kobra X: every LW-PLA skin (~51 h, one spool) · Kobra S1: the PETG as 7 plates (~18 h) |
+| **Printers** | Kobra X: every LW-PLA skin (~49 h, one spool) · Kobra S1: the PETG as 7 plates (~16 h) |
 
 Exact numbers (from `scripts/mass_balance.py`): [`DESIGN.md`](DESIGN.md#key-numbers).
 
@@ -139,15 +139,18 @@ flowchart LR
     PR --> PRS[("parts/print_ready")]
     PRS --> SL["slice_all.py + plates.py<br/>Anycubic Slicer Next CLI"]
     SL --> GC[("gcode/")]
+    SL --> TM[("3mf/<br/>a project per job")]
+    TM --> MP["make_projects.py<br/>a project per printer,<br/>a plate per job"]
     GC --> MV["make_viewer.py<br/>viewer manifest, vtol_plane.stl"]
     MV --> MT["make_tracker.py<br/>tracker tables, schedule chart"]
     GC --> MB["mass_balance.py<br/>mass, CG, hover, PX4 numbers"]
     PL["payload.py<br/>electronics and cable runs"] --> MB
-    MT & MB --> G{{"check_parts.py<br/>verification gate"}}
+    MT & MB & MP --> G{{"check_parts.py<br/>verification gate"}}
 ```
 
 Change a number in `scripts/params.py` and run `python scripts/build_all.py`. It rebuilds every
-part, re-slices every file and plate, regenerates the viewer, the tracker and the schedule chart,
+part, re-slices every file and plate, assembles the two complete slicer projects (and slices each
+of their plates again to check it), regenerates the viewer, the tracker and the schedule chart,
 and runs the gate.
 
 <details>
@@ -171,7 +174,11 @@ and runs the gate.
     files;
   - every move is inside the printer's height and every extrusion inside its bed;
   - there are no support moves, and the vase walls print in one speed band;
-  - the wing webs print fused, and every part is its own object where the script placed it.
+  - the wing webs print fused, and every part is its own object where the script placed it;
+  - brims only where the print table puts them: every vase skin, and the PETG parts that stand
+    taller than the root of their first-layer contact area.
+- **Slicer projects:** each job's 3MF carries the G-code's stamp and the right presets, and the
+  two complete projects are what `make_projects.py` builds from them.
 - **Docs:** the viewer manifest, `tracker.md` and the schedule chart match the sliced files.
 
 The results and the reasoning behind every check: [`REPORT.md`](REPORT.md).
@@ -190,6 +197,20 @@ the spigot and servo-hatch fits. The files are sliced for **active-foaming** LW-
 ([`BOM.md`](BOM.md#filament)). Then work down [`tracker.md`](tracker.md), which also
 carries the [reminders](tracker.md#reminders-for-print-time-agents-raise-these-with-the-user-when-printing-starts)
 to tick off along the way. The chart is redrawn from the sliced files on every build.
+
+Every job comes three ways:
+- **a complete project per printer**, the easiest:
+  [`3mf/complete_project_kobra_x_lwpla.3mf`](3mf/complete_project_kobra_x_lwpla.3mf) (22 plates)
+  and [`3mf/complete_project_kobra_s1_petg.3mf`](3mf/complete_project_kobra_s1_petg.3mf)
+  (7 plates). Each job is a named plate, in print order (`LW-PLA 01 - wing_tip_r (flow test)`,
+  `PETG 6 - fuselage tail (6 parts) - ON HOLD (3S plan)`). Open it in Anycubic Slicer Next, pick
+  a plate, slice it, check the preview and send it;
+- a **3MF project per job** in [`3mf/`](3mf), in the same folders and under the same names as
+  the G-code;
+- **G-code** in [`gcode/`](gcode), the same job already sliced.
+
+The projects hold the parts in place and every setting, and the G-code is sliced from them
+([`SLICING.md`](SLICING.md#3mf-projects-sending-a-job-from-the-slicer)).
 
 ## Flight setup
 
@@ -229,7 +250,7 @@ python scripts/serve_viewer.py     # the 3-D viewer at http://127.0.0.1:28765/vi
 python scripts/build_all.py        # rebuild, re-slice and verify everything
 ```
 
-`build_all.py` needs Anycubic Slicer Next 1.3.3.3: set `VTOL_SLICER` if it is not at the default
+`build_all.py` needs Anycubic Slicer Next 2.0.0.3: set `VTOL_SLICER` if it is not at the default
 Windows path, or pass `--no-slice` to rebuild without slicing ([`SLICING.md`](SLICING.md)). To
 re-render the pictures and animations after a change, open the viewer with `?capture=1` (or
 `?capture=gif` for the animations only) while `serve_viewer.py` runs.
@@ -245,6 +266,8 @@ scripts/            Python: generators, slicing pipeline, mass balance and the g
   make_print_ready.py the print table: printer, orientation, copies
   plates.py           PETG plate layouts
   slice_all.py        slices every part and plate
+  make_projects.py    the two complete slicer projects, a plate per job
+  audit_print.py      support and stability audit in the slicer (not part of the gate)
   mass_balance.py     mass, CG, hover thrust, PX4 numbers
   make_viewer.py      viewer manifest and renders/vtol_plane.stl
   make_tracker.py     tracker tables and renders/print_schedule.svg
@@ -254,6 +277,8 @@ scripts/            Python: generators, slicing pipeline, mass balance and the g
 parts/assembly/     every part where it sits in the aircraft (STL)
 parts/print_ready/  every part as it lies on the bed (STL)
 gcode/              x_lwpla, s1_petg (one part per file), s1_petg_plates
+3mf/                slicer projects: complete_project_kobra_x_lwpla.3mf and complete_project_kobra_s1_petg.3mf
+                      (a named plate per job), and one per job in the same folders as gcode/
 slicer_profiles/    printer, process and filament profiles
 viewer/             the three.js viewer and its manifest
 renders/            pictures, animations, the exterior model and the print schedule
@@ -262,7 +287,7 @@ renders/            pictures, animations, the exterior model and the print sched
 ## Status
 
 **v0.2: designed, sliced and verified; the test prints are next.** On the way to first flight
-([`REPORT.md`](REPORT.md#current-status-v02-nov-2-2026)):
+([`REPORT.md`](REPORT.md#current-status-v02-nov-3-2026)):
 
 1. Test prints: LW-PLA flow, spigot and servo-hatch fit, the closing tips, the wing webs.
 2. Measure the tilt servos against the pod bay before printing the pods and yokes.

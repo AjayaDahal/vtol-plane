@@ -6,6 +6,24 @@
   Design, assembly order and hand-drilled holes: `DESIGN.md`.
 - After any change to `scripts/` or `slicer_profiles/`, run `python scripts/build_all.py` (rebuild,
   re-slice, verify). `scripts/check_parts.py` must pass before anything is printed.
+- Every print job is a 3MF project (`3mf/`, the owner opens it in Anycubic Slicer Next to send
+  it to the printer) and G-code (`gcode/`, same folders and names). `slice_all.py` writes the 3MF
+  from the STLs and profiles, then slices that 3MF on its own, so both always come from one run;
+  never edit either by hand. The gate checks both (stamp, presets, no strays).
+- The owner prints from two complete projects, `3mf/complete_project_kobra_x_lwpla.3mf` and
+  `3mf/complete_project_kobra_s1_petg.3mf`: one named plate per job, in print order.
+  `scripts/make_projects.py` assembles them from the job 3MFs (`slice_all.py` and `build_all.py`
+  run it; `--verify`, in `build_all.py`, slices every plate again against its job's G-code). The
+  gate checks them file for file. The slicer's CLI crashes on any plate name, so verification
+  slices a copy with the names blanked; keep plate names out of the job 3MFs.
+- Slicer: Anycubic Slicer Next 2.0.0.3. If it updates, re-slice everything and diff the output
+  before trusting it: 2.0 changed the CLI's default plate type, its auto brim and its vase-mode
+  object labels (`REPORT.md`, round 11). The machine profiles come from the installed slicer's
+  presets (`make_slicer_profiles.py`). `scripts/audit_print.py` (needs the slicer, not in the
+  gate) shows what supports the slicer itself would add and how slender each part stands.
+- Brims are set per part in the print table (`make_print_ready.py`, `brim`); the PETG profile
+  prints none. The gate requires a brim on exactly the PETG parts standing taller than the root
+  of their first-layer contact area, so a geometry change can add or drop one there.
 - The print table and totals in `tracker.md` are generated from the sliced files
   (`scripts/make_tracker.py`, run by `build_all.py` and `slice_all.py` after slicing). Edit only
   the Status column, the notes in brackets after a part's name and the text around the tables;
@@ -15,7 +33,7 @@
   this and the layouts. LW-PLA vase parts cannot share a bed. Printer split, one material per
   printer (the owner's choice: one LW-PLA spool, one flow calibration): the X prints every
   LW-PLA skin, the S1 all the PETG (PETG warps on the open-frame X). Keep it that way; the X has
-  the long queue (about 51 h against 18 h, `tracker.md` totals).
+  the long queue (about 49 h against 16 h, `tracker.md` totals).
 - When a finding is fixed or a new one is found, update its status in `REPORT.md` (the
   "Current status" section and the round tables) in the same commit. Never leave a fixed
   finding marked open, or an open one marked fixed.
@@ -44,5 +62,6 @@
   it in, follow the plan's "Order of work" (tag `v0.2-4s`, branch `build-3s`, PR), then update
   this note and the hover-margin note above.
 - The wing webs depend on two vase-profile settings, `slice_closing_radius` 0.01 and
-  `detect_thin_wall` 0 (`SLICING.md`). Do not let a preset update reset them. The G-code
+  `detect_thin_wall` 0 (`SLICING.md`). Do not let a preset update reset them; the gate reads
+  them, the bed temperatures and the other key settings back from every G-code file. The G-code
   stamp only covers the STL, so after any profile change re-slice everything.

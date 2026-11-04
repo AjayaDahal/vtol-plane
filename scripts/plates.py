@@ -3,21 +3,22 @@ jobs instead of one file per part.
 
 Only PETG is plated. An LW-PLA vase skin is one continuous spiral wall: the slicer puts several
 vase objects on one plate only by printing them one after another, and then every object but the
-last has to pass under the print head's gantry (48 mm on the S1, 30 mm on the X). The skins are
-130-240 mm tall; only the tip fairings (20-32 mm) would fit under, and pairing one with a skin
-would save a single job of 17-30 min.
+last has to pass under the print head's gantry (40 mm on the S1, 30 mm on the X). The skins are
+130-240 mm tall; on the X, which prints them all, only the 20 mm V-tail tip fairing would fit
+under, and pairing it with a skin would save a single 12 min job.
 
 Layout: each part keeps its print orientation (make_print_ready.py) and only turns about Z. Its
 footprint is the convex hull of its print-ready mesh, laid out on a 1 mm grid, GAP mm from every
-other footprint and MARGIN mm inside the bed: room for the widest brim the slicer's auto brim
-makes (13.6 mm, on the fuselage couplers), so no brim is cut off at the bed's edge. Neighbours'
-brims may meet and print joined. Parts go on largest first, each at the lowest free spot, then
+other footprint and MARGIN mm inside the bed. MARGIN was sized for the widest brim the 1.3.3.3
+slicer's auto brim made (13.6 mm, on the fuselage couplers); the 5 mm brims the print table sets
+now (make_print_ready.py, `brim`) leave room to spare, so no brim is cut off at the bed's edge.
+Neighbours' brims may meet and print joined. Parts go on largest first, each at the lowest free spot, then
 the leftmost (bottom-left fill), trying its minimum-area orientation, that turned 90 deg, then
 the two diagonals; the finished layout is centred on the bed. The
 layout is deterministic, so the gate and the viewer recompute it. slice_all.py writes every
 placed copy as its own STL and slices the plate with --arrange 0: the slicer keeps the
-positions, and each part stays its own object, with its own brim, and can be cancelled on its
-own on the printer (Klipper exclude_object).
+positions, and each part stays its own object, with its own brim if it has one, and can be
+cancelled on its own on the printer (Klipper exclude_object).
 """
 import hashlib
 import json
@@ -144,6 +145,19 @@ def hull_gap(P, Q):
 def outline_dev(P, Q):
     """Largest distance from either polygon's corners to the other's outline: 0 for one outline."""
     return float(max(_to_edges(P, Q).max(), _to_edges(Q, P).max()))
+
+
+def convex_hull(pts):
+    """Convex hull of 2-D points, counter-clockwise."""
+    return _hull(pts)
+
+
+def outside_dist(pts, poly):
+    """Distance from each point to the convex counter-clockwise polygon `poly`: 0 inside it."""
+    pts = np.asarray(pts, float)
+    a, b = poly, np.roll(poly, -1, axis=0)
+    cross = (b[:, 0] - a[:, 0]) * (pts[:, None, 1] - a[:, 1]) - (b[:, 1] - a[:, 1]) * (pts[:, None, 0] - a[:, 0])
+    return np.where((cross >= -1e-9).all(1), 0.0, _to_edges(pts, poly))
 
 
 def placed_mesh(name, x, y, angle):

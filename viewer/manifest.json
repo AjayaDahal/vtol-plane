@@ -2905,7 +2905,7 @@
     199.0
    ],
    "grams": 5.12,
-   "minutes": 71.3,
+   "minutes": 67.3,
    "role": "aileron"
   },
   {
@@ -2922,7 +2922,7 @@
     199.0
    ],
    "grams": 5.12,
-   "minutes": 71.3,
+   "minutes": 67.2,
    "role": "aileron"
   },
   {
@@ -2939,7 +2939,7 @@
     213.0
    ],
    "grams": 4.76,
-   "minutes": 75.8,
+   "minutes": 71.8,
    "role": "aileron"
   },
   {
@@ -2956,7 +2956,7 @@
     213.0
    ],
    "grams": 4.76,
-   "minutes": 75.8,
+   "minutes": 71.8,
    "role": "aileron"
   },
   {
@@ -2972,8 +2972,8 @@
     60.0,
     11.5
    ],
-   "grams": 20.38,
-   "minutes": 54.9,
+   "grams": 20.13,
+   "minutes": 48.5,
    "role": "battery tray: stop-pin holes, two strap loops round the battery"
   },
   {
@@ -2989,8 +2989,8 @@
     21.3,
     10.0
    ],
-   "grams": 9.16,
-   "minutes": 22.8,
+   "grams": 9.19,
+   "minutes": 17.6,
    "role": "spigot ring on the boom rib's inboard face"
   },
   {
@@ -3006,8 +3006,8 @@
     21.3,
     10.0
    ],
-   "grams": 9.16,
-   "minutes": 22.8,
+   "grams": 9.19,
+   "minutes": 17.6,
    "role": "spigot ring on the boom rib's inboard face"
   },
   {
@@ -3023,8 +3023,8 @@
     41.0,
     28.5
    ],
-   "grams": 27.94,
-   "minutes": 62.7,
+   "grams": 27.25,
+   "minutes": 55.8,
    "role": "tilt-servo pod and axle boss"
   },
   {
@@ -3040,8 +3040,8 @@
     41.0,
     28.5
    ],
-   "grams": 27.66,
-   "minutes": 62.2,
+   "grams": 27.26,
+   "minutes": 55.9,
    "role": "tilt-servo pod and axle boss"
   },
   {
@@ -3057,8 +3057,8 @@
     170.3,
     16.0
    ],
-   "grams": 22.44,
-   "minutes": 50.7,
+   "grams": 20.76,
+   "minutes": 40.7,
    "role": "boom rib with the pod tongue"
   },
   {
@@ -3074,8 +3074,8 @@
     188.5,
     16.0
    ],
-   "grams": 22.45,
-   "minutes": 50.8,
+   "grams": 20.76,
+   "minutes": 40.7,
    "role": "boom rib with the pod tongue"
   },
   {
@@ -3091,8 +3091,8 @@
     8.0,
     15.0
    ],
-   "grams": 0.64,
-   "minutes": 12.0,
+   "grams": 0.74,
+   "minutes": 8.1,
    "role": "control horn"
   },
   {
@@ -3108,8 +3108,8 @@
     118.3,
     40.0
    ],
-   "grams": 20.52,
-   "minutes": 40.5,
+   "grams": 19.52,
+   "minutes": 32.5,
    "role": "nose joint, heat-set insert for the nose screw"
   },
   {
@@ -3125,8 +3125,8 @@
     118.3,
     40.0
    ],
-   "grams": 19.17,
-   "minutes": 37.1,
+   "grams": 18.19,
+   "minutes": 29.7,
    "role": "joins fuse_2 and fuse_3"
   },
   {
@@ -3142,8 +3142,8 @@
     95.2,
     40.0
    ],
-   "grams": 22.37,
-   "minutes": 52.6,
+   "grams": 21.3,
+   "minutes": 44.3,
    "role": "joins fuse_3 and fuse_4, boom web"
   },
   {
@@ -3159,8 +3159,8 @@
     104.4,
     2.5
    ],
-   "grams": 24.23,
-   "minutes": 52.8,
+   "grams": 23.59,
+   "minutes": 48.4,
    "role": "Pixhawk on top; the ESC block and small boards hang underneath"
   },
   {
@@ -3176,8 +3176,8 @@
     112.9,
     11.5
    ],
-   "grams": 20.28,
-   "minutes": 49.5,
+   "grams": 19.49,
+   "minutes": 40.6,
    "role": "main joiner sleeve and boom bore"
   },
   {
@@ -3193,8 +3193,8 @@
     107.9,
     7.5
    ],
-   "grams": 14.9,
-   "minutes": 37.9,
+   "grams": 14.65,
+   "minutes": 30.9,
    "role": "rear joiner sleeve and boom bore"
   },
   {
@@ -3211,7 +3211,7 @@
     240.0
    ],
    "grams": 18.23,
-   "minutes": 201.8,
+   "minutes": 197.8,
    "role": "removable nose, one M3 nylon screw: the access opening"
   },
   {
@@ -3228,7 +3228,7 @@
     130.0
    ],
    "grams": 13.95,
-   "minutes": 152.4,
+   "minutes": 148.4,
    "role": "battery and avionics bay"
   },
   {
@@ -3245,7 +3245,7 @@
     240.0
    ],
    "grams": 22.46,
-   "minutes": 244.4,
+   "minutes": 240.4,
    "role": "wing section of the fuselage"
   },
   {
@@ -3262,7 +3262,7 @@
     150.0
    ],
    "grams": 8.0,
-   "minutes": 89.8,
+   "minutes": 85.8,
    "role": "tail cone"
   },
   {
@@ -3278,8 +3278,8 @@
     52.0,
     12.2
    ],
-   "grams": 7.0,
-   "minutes": 20.4,
+   "grams": 6.91,
+   "minutes": 16.1,
    "role": "external GPS saddle, glued on top"
   },
   {
@@ -3295,8 +3295,8 @@
     11.7,
     5.1
    ],
-   "grams": 0.75,
-   "minutes": 7.8,
+   "grams": 0.76,
+   "minutes": 3.8,
    "role": "glued inside the skin at a hatch end; the hatch's M2 screw goes into it"
   },
   {
@@ -3312,8 +3312,8 @@
     32.2,
     15.0
    ],
-   "grams": 4.68,
-   "minutes": 16.2,
+   "grams": 4.69,
+   "minutes": 12.1,
    "role": "boom exit collar"
   },
   {
@@ -3329,8 +3329,8 @@
     36.0,
     36.0
    ],
-   "grams": 18.15,
-   "minutes": 43.0,
+   "grams": 18.13,
+   "minutes": 37.6,
    "role": "rear motor clamp on the boom"
   },
   {
@@ -3346,8 +3346,8 @@
     20.4,
     23.0
    ],
-   "grams": 15.01,
-   "minutes": 35.6,
+   "grams": 14.58,
+   "minutes": 30.9,
    "role": "mid/tip joint rib"
   },
   {
@@ -3363,8 +3363,8 @@
     20.4,
     23.0
    ],
-   "grams": 15.01,
-   "minutes": 35.8,
+   "grams": 14.58,
+   "minutes": 30.8,
    "role": "mid/tip joint rib"
   },
   {
@@ -3380,8 +3380,8 @@
     25.7,
     13.0
    ],
-   "grams": 16.1,
-   "minutes": 37.3,
+   "grams": 15.08,
+   "minutes": 29.4,
    "role": "root rib: spars, wire hole, joiner lock pin"
   },
   {
@@ -3397,8 +3397,8 @@
     25.7,
     13.0
    ],
-   "grams": 16.1,
-   "minutes": 37.3,
+   "grams": 15.07,
+   "minutes": 29.4,
    "role": "root rib: spars, wire hole, joiner lock pin"
   },
   {
@@ -3414,8 +3414,8 @@
     15.9,
     15.0
    ],
-   "grams": 7.14,
-   "minutes": 20.1,
+   "grams": 6.75,
+   "minutes": 14.1,
    "role": "hidden tip ring: the spar ends; the tip skin and the tip fairing butt over it"
   },
   {
@@ -3431,8 +3431,8 @@
     15.9,
     15.0
    ],
-   "grams": 7.14,
-   "minutes": 20.1,
+   "grams": 6.75,
+   "minutes": 13.9,
    "role": "hidden tip ring: the spar ends; the tip skin and the tip fairing butt over it"
   },
   {
@@ -3449,7 +3449,7 @@
     233.0
    ],
    "grams": 5.43,
-   "minutes": 82.7,
+   "minutes": 78.6,
    "role": "ruddervator"
   },
   {
@@ -3466,7 +3466,7 @@
     233.0
    ],
    "grams": 5.43,
-   "minutes": 82.7,
+   "minutes": 78.7,
    "role": "ruddervator"
   },
   {
@@ -3482,8 +3482,8 @@
     42.0,
     13.0
    ],
-   "grams": 3.02,
-   "minutes": 16.6,
+   "grams": 3.04,
+   "minutes": 12.4,
    "role": "removable servo hatch: the servo screws to its posts, 2 M2 screws hold it in"
   },
   {
@@ -3499,8 +3499,8 @@
     38.0,
     80.0
    ],
-   "grams": 27.87,
-   "minutes": 69.8,
+   "grams": 27.96,
+   "minutes": 64.8,
    "role": "V-tail mount on the end of the boom"
   },
   {
@@ -3517,7 +3517,7 @@
     32.0
    ],
    "grams": 2.58,
-   "minutes": 30.2,
+   "minutes": 26.2,
    "role": "wing tip fairing: the top surface comes down to the flat bottom (Hoerner tip)"
   },
   {
@@ -3534,7 +3534,7 @@
     32.0
    ],
    "grams": 2.58,
-   "minutes": 30.2,
+   "minutes": 26.2,
    "role": "wing tip fairing: the top surface comes down to the flat bottom (Hoerner tip)"
   },
   {
@@ -3551,7 +3551,7 @@
     240.0
    ],
    "grams": 13.7,
-   "minutes": 150.7,
+   "minutes": 146.7,
    "role": "V-tail panel"
   },
   {
@@ -3568,7 +3568,7 @@
     240.0
    ],
    "grams": 13.7,
-   "minutes": 150.8,
+   "minutes": 146.7,
    "role": "V-tail panel"
   },
   {
@@ -3584,8 +3584,8 @@
     21.7,
     13.0
    ],
-   "grams": 9.31,
-   "minutes": 23.5,
+   "grams": 9.22,
+   "minutes": 18.9,
    "role": "V-tail root rib (carbon pin into the tail block)"
   },
   {
@@ -3601,8 +3601,8 @@
     11.5,
     11.0
    ],
-   "grams": 2.69,
-   "minutes": 12.1,
+   "grams": 2.71,
+   "minutes": 8.1,
    "role": "hidden V-tail tip ring: the panel and its tip fairing butt over it"
   },
   {
@@ -3619,7 +3619,7 @@
     20.0
    ],
    "grams": 1.27,
-   "minutes": 16.5,
+   "minutes": 12.4,
    "role": "V-tail tip fairing"
   },
   {
@@ -3636,7 +3636,7 @@
     204.0
    ],
    "grams": 20.66,
-   "minutes": 227.6,
+   "minutes": 223.6,
    "role": "wing skin with internal webs"
   },
   {
@@ -3653,7 +3653,7 @@
     204.0
    ],
    "grams": 20.66,
-   "minutes": 227.6,
+   "minutes": 223.6,
    "role": "wing skin with internal webs"
   },
   {
@@ -3670,7 +3670,7 @@
     214.0
    ],
    "grams": 33.49,
-   "minutes": 366.4,
+   "minutes": 362.4,
    "role": "wing skin with internal webs"
   },
   {
@@ -3687,7 +3687,7 @@
     214.0
    ],
    "grams": 33.49,
-   "minutes": 366.5,
+   "minutes": 362.4,
    "role": "wing skin with internal webs"
   },
   {
@@ -3704,7 +3704,7 @@
     217.0
    ],
    "grams": 14.7,
-   "minutes": 161.5,
+   "minutes": 157.4,
    "role": "wing skin with internal webs"
   },
   {
@@ -3721,7 +3721,7 @@
     217.0
    ],
    "grams": 14.7,
-   "minutes": 161.5,
+   "minutes": 157.4,
    "role": "wing skin with internal webs"
   },
   {
@@ -3737,8 +3737,8 @@
     63.0,
     40.0
    ],
-   "grams": 12.61,
-   "minutes": 44.4,
+   "grams": 12.22,
+   "minutes": 39.3,
    "role": "tilting motor mount"
   },
   {
@@ -3754,8 +3754,8 @@
     63.0,
     40.0
    ],
-   "grams": 12.61,
-   "minutes": 44.4,
+   "grams": 12.22,
+   "minutes": 39.3,
    "role": "tilting motor mount"
   }
  ],
@@ -3809,8 +3809,8 @@
      "angle": 90.0
     }
    ],
-   "grams": 11.66,
-   "minutes": 31.9
+   "grams": 11.24,
+   "minutes": 24.6
   },
   {
    "name": "petg_2_wing",
@@ -4057,8 +4057,8 @@
      "angle": 90.0
     }
    ],
-   "grams": 113.58,
-   "minutes": 257.8
+   "grams": 110.83,
+   "minutes": 236.9
   },
   {
    "name": "petg_3_boom_vtail_ribs",
@@ -4127,8 +4127,8 @@
      "angle": 135.0
     }
    ],
-   "grams": 68.0,
-   "minutes": 145.5
+   "grams": 65.31,
+   "minutes": 128.1
   },
   {
    "name": "petg_4_fuselage_rings",
@@ -4161,8 +4161,8 @@
      "angle": 135.0
     }
    ],
-   "grams": 39.42,
-   "minutes": 74.8
+   "grams": 37.68,
+   "minutes": 62.8
   },
   {
    "name": "petg_5_fuselage_frames",
@@ -4206,8 +4206,8 @@
      "angle": 135.0
     }
    ],
-   "grams": 57.36,
-   "minutes": 129.2
+   "grams": 55.29,
+   "minutes": 113.6
   },
   {
    "name": "petg_6_fuselage_tail",
@@ -4284,8 +4284,8 @@
      "angle": 127.04701
     }
    ],
-   "grams": 102.62,
-   "minutes": 229.3
+   "grams": 101.72,
+   "minutes": 218.1
   },
   {
    "name": "petg_7_pods_yokes",
@@ -4340,8 +4340,8 @@
      "angle": 90.0
     }
    ],
-   "grams": 81.07,
-   "minutes": 183.4
+   "grams": 78.97,
+   "minutes": 169.7
   }
  ],
  "tilt_range": [

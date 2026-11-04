@@ -22,9 +22,9 @@ disagree, the scripts win.
 | Wing | Clark Y, flat bottom level with the fuselage datum, 0° dihedral, straight LE; chord 220 mm root → 150 mm tip; area 0.267 m²; MAC 187 mm |
 | Ailerons | 2 per side, hinge at 75 % chord, top-surface tape hinge, ±25° |
 | V-tail | 2 fixed panels, NACA 0012, 240 mm span plus a 20 mm tip fairing, chord 180 → 110 mm, 35° from horizontal (110° included); ruddervators hinged at 70 % chord |
-| All-up weight | ~2.00 kg: printed parts ~728 g, 4S battery 520 g, everything else ~750 g |
+| All-up weight | ~2.00 kg: printed parts ~731 g, 4S battery 520 g, everything else ~750 g |
 | CG | **433 mm aft of the nose tip** (28.5 % MAC); 25–30 % band = 427–436 mm |
-| Hover | front motors 735 g each (37 % of AUW), rear 527 g (26 %); front motor at 47–59 % of its maximum (the design limit is 60 %); ~7.3 min pure hover (estimate) |
+| Hover | front motors 736 g each (37 % of AUW), rear 528 g (26 %); front motor at 48–59 % of its maximum (the design limit is 60 %); ~7.3 min pure hover (estimate) |
 | Stall | 10.0–11.5 m/s (CL 1.2 at sea level to CL 1.0 at 35 °C) |
 | Static margin | ~18 % MAC |
 | Motors / props | 3× Emax ECOII 2807 **1700KV** (the 4S winding), 7×4.5: front right CW, front left CCW, rear CCW |
@@ -93,7 +93,7 @@ right; every left-hand part has its own file.
 | `boom_pod_l/r` | on the tongue, x 295–378 | epoxy + 2× M3×35 through pod and tongue; tilt servo in its bay, its plug in the pocket under it |
 | `yoke_l/r` | straddles the pod | servo horn (inboard), bearing on the axle boss (outboard) |
 | `wing_mid_l/r` | y 283–487 | spigots of the boom rib and mid/tip rib |
-| `rib_midtip_l/r` | y 487–490 | epoxy on the spars |
+| `rib_midtip_l/r` | y 487–490 | epoxy on the spars; the wire passes through a boss in each spigot |
 | `wing_tip_l/r` | y 490–707 | spigots |
 | `rib_tip_l/r` | hidden ring, y 697–712 | epoxy on the spars (their ends sit in its bosses); 10 mm into `wing_tip`, 5 mm into the tip fairing |
 | `tip_fairing_l/r` | y 707–739, full chord | butts against `wing_tip` over the tip ring, glued |

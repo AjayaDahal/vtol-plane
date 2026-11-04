@@ -31,28 +31,28 @@
 <line x1="790.0" y1="76" x2="790.0" y2="682" stroke="#d1d9e0"/>
 <text x="790.0" y="72" text-anchor="middle" fill="#59636e">52 h</text>
 <text x="24" y="100" font-weight="600" fill="#1f2328">Kobra S1</text>
-<text x="190" y="100" fill="#59636e">7 jobs, 15.9 h</text>
+<text x="190" y="100" fill="#59636e">7 jobs, 16.0 h</text>
 <text x="40" y="123" fill="#bc4c00">petg_1_fit_tests</text>
 <rect x="190.0" y="113" width="4.7" height="13" rx="2" fill="#2f6db5" stroke="#e36209" stroke-width="2"/>
 <text x="199.7" y="123" fill="#59636e">25 min</text>
 <text x="40" y="142" fill="#1f2328">petg_2_wing</text>
-<rect x="194.7" y="132" width="45.6" height="13" rx="2" fill="#2f6db5" stroke="#1f4f8a" stroke-width="1"/>
-<text x="245.3" y="142" fill="#59636e">3h 57m</text>
+<rect x="194.7" y="132" width="46.1" height="13" rx="2" fill="#2f6db5" stroke="#1f4f8a" stroke-width="1"/>
+<text x="245.8" y="142" fill="#59636e">4h 00m</text>
 <text x="40" y="161" fill="#1f2328">petg_3_boom_vtail_ribs</text>
-<rect x="240.3" y="151" width="24.6" height="13" rx="2" fill="#2f6db5" stroke="#1f4f8a" stroke-width="1"/>
-<text x="269.9" y="161" fill="#59636e">2h 08m</text>
+<rect x="240.8" y="151" width="24.7" height="13" rx="2" fill="#2f6db5" stroke="#1f4f8a" stroke-width="1"/>
+<text x="270.5" y="161" fill="#59636e">2h 08m</text>
 <text x="40" y="180" fill="#1f2328">petg_4_fuselage_rings</text>
-<rect x="264.9" y="170" width="12.1" height="13" rx="2" fill="#2f6db5" stroke="#1f4f8a" stroke-width="1"/>
-<text x="282.0" y="180" fill="#59636e">1h 03m</text>
+<rect x="265.5" y="170" width="12.1" height="13" rx="2" fill="#2f6db5" stroke="#1f4f8a" stroke-width="1"/>
+<text x="282.5" y="180" fill="#59636e">1h 03m</text>
 <text x="40" y="199" fill="#1f2328">petg_5_fuselage_frames</text>
-<rect x="277.0" y="189" width="21.8" height="13" rx="2" fill="#2f6db5" stroke="#1f4f8a" stroke-width="1"/>
-<text x="303.8" y="199" fill="#59636e">1h 54m</text>
+<rect x="277.5" y="189" width="21.8" height="13" rx="2" fill="#2f6db5" stroke="#1f4f8a" stroke-width="1"/>
+<text x="304.4" y="199" fill="#59636e">1h 54m</text>
 <text x="40" y="218" fill="#1f2328">petg_6_fuselage_tail</text>
-<rect x="298.8" y="208" width="41.9" height="13" rx="2" fill="#2f6db5" stroke="#1f4f8a" stroke-width="1"/>
-<text x="345.8" y="218" fill="#59636e">3h 38m</text>
+<rect x="299.4" y="208" width="41.9" height="13" rx="2" fill="#2f6db5" stroke="#1f4f8a" stroke-width="1"/>
+<text x="346.3" y="218" fill="#59636e">3h 38m</text>
 <text x="40" y="237" fill="#1f2328">petg_7_pods_yokes</text>
-<rect x="340.8" y="227" width="32.6" height="13" rx="2" fill="#2f6db5" stroke="#1f4f8a" stroke-width="1"/>
-<text x="378.4" y="237" fill="#59636e">2h 50m</text>
+<rect x="341.3" y="227" width="33.0" height="13" rx="2" fill="#2f6db5" stroke="#1f4f8a" stroke-width="1"/>
+<text x="379.3" y="237" fill="#59636e">2h 51m</text>
 <text x="24" y="263" font-weight="600" fill="#1f2328">Kobra X</text>
 <text x="190" y="263" fill="#59636e">22 jobs, 49.4 h</text>
 <text x="40" y="286" fill="#bc4c00">wing_tip_r</text>

@@ -7,9 +7,9 @@ Two printers, one material each:
   warps on the open-frame X.
 
 The X has the long queue (about 49 h, against 16 h for the S1). Run both at once when you can.
-No part needs supports. Brims: every LW-PLA skin has an 8 mm one; on the PETG only the seven
-parts that stand tall on a small base (`coupler_240`, `coupler_370`, `rib_midtip_l/r`,
-`rear_motor_mount`, `tail_block`, `control_horn`), 5 mm. Trim them off before fitting.
+No part needs supports. Brims: every LW-PLA skin has an 8 mm one; on the PETG only the five
+parts that stand tall on a small base (`coupler_240`, `coupler_370`, `rear_motor_mount`,
+`tail_block`, `control_horn`), 5 mm. Trim them off before fitting.
 
 **To print from the slicer**, open the printer's complete project in Anycubic Slicer Next:
 `3mf/complete_project_kobra_x_lwpla.3mf` on the X (plates `LW-PLA 01` to `LW-PLA 22`) and
@@ -75,11 +75,16 @@ means a pre-foamed spool (see the reminders), which no flow setting fixes. Where
 - [ ] **Tilt servo size.** Measure the tilt servos against the pod bay (24 × 13 mm body, 21 mm
   deep, tab holes 28 mm apart, spline 6 mm from the front) before printing plate
   `petg_7_pods_yokes`. If they differ, change `SERVO_*` in `scripts/params.py` and rebuild.
+  The bay's ceiling prints as a 24 mm bridge, the longest in the build: if it sags, trim the
+  sag off so the servo slides in.
 - [ ] **Axle shims.** Have two 0.5 mm M3 shim washers (OD ≤ 5 mm) before assembling the yokes;
   without them the yoke binds against the pod.
-- [ ] **Horizontal holes in the PETG.** No part prints with supports, so the top of every
-  horizontal hole (bolt, pin, wire, insert and pushrod holes, 1.6–10 mm) is a bridge and may sag
-  a little. Run a drill of the hole's size through each before fitting its bolt, pin or insert.
+- [ ] **Holes and bridges in the PETG.** No part prints with supports (`renders/51` shows where the
+  slicer would have put them, and why none are needed), so the top of every horizontal hole
+  (bolt, pin, wire, insert and pushrod holes, 1.6–10 mm) is a bridge and may sag a little. Run a
+  drill of the hole's size through each before fitting its bolt, pin or insert. Clear any loose
+  strands from under the bridged ceilings too: inside the `rib_midtip` rings, the pods' servo
+  bays and the slot near the top of `tail_block`.
 - [ ] **Servo hatch fit.** Plate `petg_1_fit_tests` also carries one `servo_hatch` and two
   `hatch_block`s; try a servo in them before printing plate `petg_2_wing`, which has the other
   five. The 9 g servo's tabs must screw to the posts (holes 28 mm apart) with its body (up to
@@ -104,19 +109,22 @@ Suggested order (the plates of the complete projects follow it):
 To see every print file and plate on its bed with its mass and time, open the 3D
 viewer (`python scripts/serve_viewer.py`) and press "Show the print files", or look at
 `renders/35_print_files_all.png` and `renders/47_print_plates_s1_petg.png`. Both printers'
-queues in this order, with their sliced times: `renders/print_schedule.svg`.
+queues in this order, with their sliced times: `renders/print_schedule.svg`. Every plate as the
+slicer prints it, drawn from the G-code like its preview (walls, infill, bridges, brims, no
+supports): `renders/48_sliced_plates_x_lwpla.png`, `renders/49_sliced_plates_s1_petg.png`, and
+the PETG first layers from above, `renders/50_first_layers_s1_petg.png`.
 
 ## Plates (PETG, Kobra S1)
 
 | Plate | Printer | On it | Mass (g) | Time | Status |
 |---|---|---|---|---|---|
 | `petg_1_fit_tests` | S1 | `rib_tip_r`, `servo_hatch`, `hatch_block` ×2 | 11.2 | 0h 25m | sliced |
-| `petg_2_wing` | S1 | `rib_root_l`, `rib_root_r`, `rib_midtip_l`, `rib_midtip_r`, `rib_tip_l`, `boom_cup_l`, `boom_cup_r`, `servo_hatch` ×5, `hatch_block` ×10, `control_horn` ×6 | 110.8 | 3h 57m | sliced |
-| `petg_3_boom_vtail_ribs` | S1 | `boom_rib_l`, `boom_rib_r`, `vtail_root_rib` ×2, `vtail_tip_cap` ×2 | 65.3 | 2h 08m | sliced |
+| `petg_2_wing` | S1 | `rib_root_l`, `rib_root_r`, `rib_midtip_l`, `rib_midtip_r`, `rib_tip_l`, `boom_cup_l`, `boom_cup_r`, `servo_hatch` ×5, `hatch_block` ×10, `control_horn` ×6 | 112.6 | 4h 00m | sliced |
+| `petg_3_boom_vtail_ribs` | S1 | `boom_rib_l`, `boom_rib_r`, `vtail_root_rib` ×2, `vtail_tip_cap` ×2 | 65.6 | 2h 08m | sliced |
 | `petg_4_fuselage_rings` | S1 | `coupler_240`, `coupler_370` | 37.7 | 1h 03m | sliced |
 | `petg_5_fuselage_frames` | S1 | `coupler_610`, `frame_main`, `frame_rear` | 55.3 | 1h 54m | sliced |
 | `petg_6_fuselage_tail` | S1 | `fc_shelf`, `battery_tray`, `gps_mount`, `pod_collar`, `tail_block`, `rear_motor_mount` | 101.7 | 3h 38m | on hold (3S plan) |
-| `petg_7_pods_yokes` | S1 | `boom_pod_l`, `boom_pod_r`, `yoke_l`, `yoke_r` | 79.0 | 2h 50m | on hold (3S plan) |
+| `petg_7_pods_yokes` | S1 | `boom_pod_l`, `boom_pod_r`, `yoke_l`, `yoke_r` | 79.8 | 2h 51m | on hold (3S plan) |
 
 ## Every part, one per file
 
@@ -149,10 +157,10 @@ for reprinting one part.
 | `battery_tray` | PETG | S1 | 1 | 20.1 | 0h 48m | sliced |
 | `boom_cup_l` | PETG | S1 | 1 | 9.2 | 0h 18m | sliced |
 | `boom_cup_r` | PETG | S1 | 1 | 9.2 | 0h 18m | sliced |
-| `boom_pod_l` | PETG | S1 | 1 | 27.2 | 0h 56m | sliced |
-| `boom_pod_r` | PETG | S1 | 1 | 27.3 | 0h 56m | sliced |
-| `boom_rib_l` | PETG | S1 | 1 | 20.8 | 0h 41m | sliced |
-| `boom_rib_r` | PETG | S1 | 1 | 20.8 | 0h 41m | sliced |
+| `boom_pod_l` | PETG | S1 | 1 | 27.7 | 0h 57m | sliced |
+| `boom_pod_r` | PETG | S1 | 1 | 27.7 | 0h 57m | sliced |
+| `boom_rib_l` | PETG | S1 | 1 | 20.9 | 0h 41m | sliced |
+| `boom_rib_r` | PETG | S1 | 1 | 20.9 | 0h 41m | sliced |
 | `control_horn` | PETG | S1 | 6 | 0.7 | 0h 08m | sliced |
 | `coupler_240` | PETG | S1 | 1 | 19.5 | 0h 32m | sliced |
 | `coupler_370` | PETG | S1 | 1 | 18.2 | 0h 30m | sliced |
@@ -164,8 +172,8 @@ for reprinting one part.
 | `hatch_block` (two per hatch) | PETG | S1 | 12 | 0.8 | 0h 04m | sliced |
 | `pod_collar` | PETG | S1 | 1 | 4.7 | 0h 12m | sliced |
 | `rear_motor_mount` | PETG | S1 | 1 | 18.1 | 0h 38m | on hold (3S plan) |
-| `rib_midtip_l` | PETG | S1 | 1 | 14.6 | 0h 31m | sliced |
-| `rib_midtip_r` | PETG | S1 | 1 | 14.6 | 0h 31m | sliced |
+| `rib_midtip_l` | PETG | S1 | 1 | 15.4 | 0h 32m | sliced |
+| `rib_midtip_r` | PETG | S1 | 1 | 15.4 | 0h 32m | sliced |
 | `rib_root_l` | PETG | S1 | 1 | 15.1 | 0h 29m | sliced |
 | `rib_root_r` | PETG | S1 | 1 | 15.1 | 0h 29m | sliced |
 | `rib_tip_l` (hidden tip ring) | PETG | S1 | 1 | 6.8 | 0h 14m | sliced |
@@ -181,9 +189,9 @@ Totals, quantities included, printed as above (LW-PLA one part per job, PETG as 
 
 | Printer | What | Jobs | Mass | Time |
 |---|---|---|---|---|
-| S1 | PETG, 7 plates | 7 | 461 g | 15.9 h |
+| S1 | PETG, 7 plates | 7 | 464 g | 16.0 h |
 | X | LW-PLA vase, one part per job | 22 | 266 g | 49.4 h |
-| S1 | for comparison: the same PETG as single files (reprints) | 53 | 462 g | 18.1 h |
+| S1 | for comparison: the same PETG as single files (reprints) | 53 | 465 g | 18.1 h |
 
 Notes:
 
@@ -196,7 +204,7 @@ Notes:
 - **Plates.** Each copy on a plate is its own object, named after its part (`hatch_block_3`), so
   the printer can cancel one that comes loose and finish the rest; reprint it from its own
   file. The parts keep 6 mm apart (at least 4.5 mm on the layout grid) and 15 mm from the bed's
-  edge. A 5 mm brim (couplers, `rib_midtip`, horns, `tail_block`, `rear_motor_mount`) stops at a
+  edge. A 5 mm brim (couplers, horns, `tail_block`, `rear_motor_mount`) stops at a
   neighbour, and two brims may meet between parts and print joined: cut them apart.
   `check_parts.py` checks that the plates hold every PETG print exactly once, that the G-code
   puts each part where the layout does, brims only where they belong, and none cut off at the

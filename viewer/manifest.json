@@ -3023,8 +3023,8 @@
     41.0,
     28.5
    ],
-   "grams": 27.25,
-   "minutes": 55.8,
+   "grams": 27.67,
+   "minutes": 56.6,
    "role": "tilt-servo pod and axle boss"
   },
   {
@@ -3040,8 +3040,8 @@
     41.0,
     28.5
    ],
-   "grams": 27.26,
-   "minutes": 55.9,
+   "grams": 27.66,
+   "minutes": 56.8,
    "role": "tilt-servo pod and axle boss"
   },
   {
@@ -3057,7 +3057,7 @@
     170.3,
     16.0
    ],
-   "grams": 20.76,
+   "grams": 20.87,
    "minutes": 40.7,
    "role": "boom rib with the pod tongue"
   },
@@ -3074,7 +3074,7 @@
     188.5,
     16.0
    ],
-   "grams": 20.76,
+   "grams": 20.88,
    "minutes": 40.7,
    "role": "boom rib with the pod tongue"
   },
@@ -3346,8 +3346,8 @@
     20.4,
     23.0
    ],
-   "grams": 14.58,
-   "minutes": 30.9,
+   "grams": 15.42,
+   "minutes": 31.9,
    "role": "mid/tip joint rib"
   },
   {
@@ -3363,8 +3363,8 @@
     20.4,
     23.0
    ],
-   "grams": 14.58,
-   "minutes": 30.8,
+   "grams": 15.42,
+   "minutes": 32.4,
    "role": "mid/tip joint rib"
   },
   {
@@ -4057,8 +4057,8 @@
      "angle": 90.0
     }
    ],
-   "grams": 110.83,
-   "minutes": 236.9
+   "grams": 112.57,
+   "minutes": 239.6
   },
   {
    "name": "petg_3_boom_vtail_ribs",
@@ -4127,8 +4127,8 @@
      "angle": 135.0
     }
    ],
-   "grams": 65.31,
-   "minutes": 128.1
+   "grams": 65.58,
+   "minutes": 128.2
   },
   {
    "name": "petg_4_fuselage_rings",
@@ -4340,8 +4340,8 @@
      "angle": 90.0
     }
    ],
-   "grams": 78.97,
-   "minutes": 169.7
+   "grams": 79.79,
+   "minutes": 171.4
   }
  ],
  "tilt_range": [

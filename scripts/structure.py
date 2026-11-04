@@ -119,8 +119,12 @@ def midtip_rib():
     r_in, e_in = spigot(y0, -1, hinge=h)
     r_out, e_out = spigot(y1, +1, hinge=h)
     bosses, holes = spar_features(y0 - L, y1 + L, [e_in, e_out])
+    # The wire hole gets a boss through both spigots, like the spars': the rib prints standing on
+    # one spigot, and without it the hole's edge in the plate printed in mid-air over the ring.
+    for env in (e_in, e_out):
+        bosses += cyl_y(P.RIB_WIRE_R + P.SPAR_BOSS_WALL, P.RIB_WIRE_X, P.RIB_WIRE_Z, y0 - L, y1 + L) & env
     part = part + r_in + r_out + bosses - holes
-    return part - cyl_y(P.RIB_WIRE_R, P.RIB_WIRE_X, P.RIB_WIRE_Z, y0 - 1, y1 + 1)
+    return part - cyl_y(P.RIB_WIRE_R, P.RIB_WIRE_X, P.RIB_WIRE_Z, y0 - L - 1, y1 + L + 1)
 
 
 def tip_rib():

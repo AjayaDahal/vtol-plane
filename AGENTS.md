@@ -20,10 +20,19 @@
   before trusting it: 2.0 changed the CLI's default plate type, its auto brim and its vase-mode
   object labels (`REPORT.md`, round 11). The machine profiles come from the installed slicer's
   presets (`make_slicer_profiles.py`). `scripts/audit_print.py` (needs the slicer, not in the
-  gate) shows what supports the slicer itself would add and how slender each part stands.
-- Brims are set per part in the print table (`make_print_ready.py`, `brim`); the PETG profile
-  prints none. The gate requires a brim on exactly the PETG parts standing taller than the root
-  of their first-layer contact area, so a geometry change can add or drop one there.
+  gate) shows what supports the slicer itself would add and how slender each part stands; after
+  a PETG geometry or profile change, run it with `--render` to redraw `renders/51`.
+- The slice previews (`renders/48`-`50`, `preview_slices.py`) are drawn from the G-code by
+  `build_all.py` and `slice_all.py`; the gate checks they show the current plates (labels
+  included, so after changing `HOLD` or a plate's name in `make_projects.py`, run
+  `preview_slices.py`). Look at them
+  after a slicing change: they are how the "hole edges in mid-air" fault was found (`REPORT.md`
+  11.9), which the gate's over-air check now catches.
+- Brims and other per-part slicer settings live in the print table (`make_print_ready.py`,
+  `brim` and `slicer`); the PETG profile prints no brim. `slice_all.py` writes them onto each
+  part's object in its 3MF, and the gate checks the 3MFs carry exactly those. It also requires a
+  brim on exactly the PETG parts standing taller than the root of their first-layer contact area,
+  so a geometry change can add or drop one there.
 - The print table and totals in `tracker.md` are generated from the sliced files
   (`scripts/make_tracker.py`, run by `build_all.py` and `slice_all.py` after slicing). Edit only
   the Status column, the notes in brackets after a part's name and the text around the tables;
@@ -62,6 +71,7 @@
   it in, follow the plan's "Order of work" (tag `v0.2-4s`, branch `build-3s`, PR), then update
   this note and the hover-margin note above.
 - The wing webs depend on two vase-profile settings, `slice_closing_radius` 0.01 and
-  `detect_thin_wall` 0 (`SLICING.md`). Do not let a preset update reset them; the gate reads
+  `detect_thin_wall` 0 (`SLICING.md`), and the PETG over-air check on `detect_overhang_wall` 1.
+  Do not let a preset update reset them; the gate reads
   them, the bed temperatures and the other key settings back from every G-code file. The G-code
   stamp only covers the STL, so after any profile change re-slice everything.

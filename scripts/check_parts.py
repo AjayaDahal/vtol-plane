@@ -557,7 +557,7 @@ def check_gcode():
                                "wall_loops": "1", "nozzle_temperature": "235", "brim_type": "outer_only",
                                "enable_support": "0"},
                 "petg": {"spiral_mode": "0", "wall_loops": "3", "nozzle_temperature": "255", "brim_type": "no_brim",
-                         "enable_support": "0"}}
+                         "enable_support": "0", "counterbore_hole_bridging": "none", "detect_overhang_wall": "1"}}
     cfg_off = []
     obj_re = re.compile(r"EXCLUDE_OBJECT_DEFINE NAME=(\S+) CENTER=(-?[\d.]+),(-?[\d.]+) POLYGON=(\[\[.*\]\])")
     for name, path, printer, material, want in files:
@@ -677,9 +677,11 @@ def check_gcode():
           not stale, ", ".join(stale) or "all current")
     # The 3MF projects (3mf/, the same folders and names as gcode/) are what the slicer opens to send
     # a job to the printer, and each G-code file is sliced from its 3MF: each must be there, stamped
-    # like its G-code and set up with its printer's, process's and filament's presets.
+    # like its G-code and set up with its printer's, process's and filament's presets, and each
+    # part's object must carry exactly its own settings from the print table (brim, hole bridging),
+    # which the hash stamp does not cover.
     import zipfile
-    from slice_all import META_3MF, expected_3mf, path_3mf, preset_names
+    from slice_all import META_3MF, expected_3mf, object_settings, path_3mf, preset_names
     bad3 = []
     for name, path, printer, material, want in files:
         p3 = path_3mf(path)
@@ -690,6 +692,7 @@ def check_gcode():
             with zipfile.ZipFile(p3) as z:
                 model = z.read("3D/3dmodel.model").decode("utf-8", "replace")
                 cfg = json.loads(z.read("Metadata/project_settings.config"))
+                objects_cfg = z.read("Metadata/model_settings.config").decode("utf-8", "replace")
         except (zipfile.BadZipFile, KeyError, ValueError) as exc:
             bad3.append(f"{name} unreadable ({exc})")
             continue
@@ -700,12 +703,25 @@ def check_gcode():
                (cfg.get("filament_settings_id") or [""])[0])
         if got != preset_names(printer, material):
             bad3.append(f"{name} presets {got}")
+        if name in PT.PLATES:
+            copies = dict(PT.PLATES[name])
+            owner = {PT.stl_name(n, k, copies[n]) + ".stl": n for n, k, _, _, _ in PT.layout(name)}
+        else:
+            owner = {name + ".stl": name}
+        for block in re.findall(r'<object id="\d+">(.*?)<part ', objects_cfg, re.S):
+            kv = dict(re.findall(r'<metadata key="([^"]+)" value="([^"]*)"/>', block))
+            obj = kv.pop("name", None)
+            kv.pop("extruder", None)
+            if obj not in owner:
+                bad3.append(f"{name}: unknown object {obj}")
+            elif kv != object_settings(owner[obj]):
+                bad3.append(f"{name}: {obj} carries {kv or 'no settings'}, want {object_settings(owner[obj]) or 'none'}")
     keep3 = expected_3mf()
     stray3 = sorted(os.path.relpath(p, G.ROOT) for p in glob.glob(os.path.join(G.ROOT, "3mf", "*", "*.3mf"))
                     if os.path.normcase(os.path.abspath(p)) not in keep3)
     check("3MF project for every print file (3mf/): current (hash stamp), its printer's, process's and "
-          "filament's presets, none stray", not bad3 and not stray3,
-          "; ".join(bad3 + [f"stray {s}" for s in stray3]) or f"{len(keep3)} projects")
+          "filament's presets, each part's own settings from the print table, none stray", not bad3 and not stray3,
+          "; ".join(bad3[:6] + [f"stray {s}" for s in stray3]) or f"{len(keep3)} projects")
     # The complete projects (3mf/complete_project_*.3mf, one per printer, a named plate per job in
     # print order) must be what make_projects.py builds from the job 3MFs checked above: the same
     # objects, placements, settings and plate names, file for file.
@@ -852,8 +868,8 @@ def check_gcode():
     check("G-code has no support extrusions (profile sanity)", not with_support,
           "; ".join(with_support) or "0 support moves")
     check("G-code settings: spiral vase walls (closing radius 0.01, no thin-wall split), wall count, nozzle "
-          f"temperature, brim type, no supports; bed {LWPLA_BED_C} C (LW-PLA) / {PETG_BED_C} C (PETG) on every "
-          "plate type in the file and in the start macro", not cfg_off,
+          f"temperature, brim type, no supports, PETG hole bridging and overhang-wall labels; bed {LWPLA_BED_C} C "
+          f"(LW-PLA) / {PETG_BED_C} C (PETG) on every plate type in the file and in the start macro", not cfg_off,
           "; ".join(cfg_off[:4]) + (" ..." if len(cfg_off) > 4 else "") if cfg_off
           else f"{len(files)} files, {len(plate_keys) // 2} plate types each")
     if vase:
@@ -1504,6 +1520,106 @@ def check_tips():
           ", ".join(f"{k}: {t:.2f} mm thick at the end, {ln:.0f} mm beyond the skin" for k, t, ln in edges))
 
 
+AIR_SPAN, AIR_WALL = 30.0, 3.0   # mm: longest bridge over air; farthest a wall may lie from the layer below
+
+
+def check_air():
+    """What the PETG G-code lays over air, measured against the layer below (each part's own
+    file): every bridge line spans at most AIR_SPAN mm of air and no wall lies more than AIR_WALL
+    mm from the layer below, the geometry rules check_overhangs() applies (bridges, ledges). The
+    slicer prints a hole's edge in a bridged ceiling before the bridge, in mid-air, unless the part
+    has a boss under it or the slicer bridges around such holes first (REPORT 11.9). The walls are
+    the ones the slicer labels overhangs, so the PETG profile pins detect_overhang_wall (read back
+    in check_gcode()), and a feature type the check does not know fails it."""
+    span, out, bad, n_lines, unknown = (0.0, ""), (0.0, ""), [], 0, set()
+    for name in sorted(n for n, s in PARTS.items() if s["material"] == "petg"):
+        path = gcode_path(name)
+        if not os.path.exists(path):
+            continue   # reported by check_gcode()
+        (s, sz), (w, wz), n = over_air(path, unknown)
+        n_lines += n
+        if s > span[0]:
+            span = (s, f"{name} at z {sz:.1f}")
+        if w > out[0]:
+            out = (w, f"{name} at z {wz:.1f}")
+        if s > AIR_SPAN:
+            bad.append((s, f"{name}: a {s:.1f} mm bridge at z {sz:.1f}"))
+        if w > AIR_WALL:
+            bad.append((w, f"{name}: a wall {w:.1f} mm out at z {wz:.1f}"))
+    if unknown:
+        bad.append((math.inf, f"feature types it does not know: {', '.join(sorted(unknown))} (preview_slices.COLORS)"))
+    check(f"PETG G-code lays nothing far over air: bridges span <= {AIR_SPAN:.0f} mm, walls lie <= {AIR_WALL:.0f} mm "
+          "from the layer below", not bad,
+          "; ".join(m for _, m in sorted(bad, reverse=True)) or f"{n_lines} bridge lines, longest {span[0]:.1f} mm "
+          f"({span[1]}); walls at most {out[0]:.2f} mm out ({out[1]})")
+
+
+def over_air(path, unknown=None):
+    """What one G-code file lays over air, against the layer below: ((longest bridge span, its z),
+    (farthest overhang wall from the layer below, its z), bridge lines). Every bridge and
+    overhang-wall line is sampled every 0.2 mm against a map of the layer below (0.45 mm lines).
+    unknown: a set that collects the file's feature types preview_slices does not know."""
+    from PIL import Image, ImageDraw
+    from scipy import ndimage
+    import preview_slices as PS
+    res, half = 0.2, 0.225
+    bridge = [PS.NAMES.index(n) for n in ("Bridge", "Internal Bridge")]
+    wall = PS.NAMES.index("Overhang wall")
+    span, out, n_lines = (0.0, 0.0), (0.0, 0.0), 0
+    segs, kinds = PS.parse(path, unknown)
+    keep = kinds != PS.NAMES.index("Custom")
+    segs, kinds = segs[keep], kinds[keep]
+    zs, layer = np.unique(np.round(segs[:, 2], 3), return_inverse=True)
+    lo = segs[:, :2].min(0) - 1.0
+    size = (np.ceil((segs[:, :2].max(0) + 1.0 - lo) / res).astype(int) + 1).tolist()
+    hot = np.isin(kinds, bridge + [wall])
+    for li in np.unique(layer[hot]).tolist():
+        if li == 0:
+            continue   # the first layer lies on the bed
+        img = Image.new("1", tuple(size), 0)
+        dr = ImageDraw.Draw(img)
+        for x0, y0, _, x1, y1, _ in segs[layer == li - 1].tolist():
+            dr.line(((x0 - lo[0]) / res, (y0 - lo[1]) / res, (x1 - lo[0]) / res, (y1 - lo[1]) / res),
+                    fill=1, width=max(1, round(2 * half / res)))
+        air = ndimage.distance_transform_edt(~np.array(img, bool)) * res   # mm to the nearest line below
+        for s, k in zip(segs[(layer == li) & hot], kinds[(layer == li) & hot]):
+            n = max(2, int(math.hypot(s[3] - s[0], s[4] - s[1]) / res) + 1)
+            t = np.linspace(0.0, 1.0, n)
+            px = np.clip(((s[0] + (s[3] - s[0]) * t - lo[0]) / res).astype(int), 0, size[0] - 1)
+            py = np.clip(((s[1] + (s[4] - s[1]) * t - lo[1]) / res).astype(int), 0, size[1] - 1)
+            d = air[py, px]
+            if k == wall:
+                if d.max() > out[0]:
+                    out = (float(d.max()), float(zs[li]))
+                continue
+            n_lines += 1
+            runs = np.diff(np.flatnonzero(np.diff(np.concatenate([[0], (d > half).astype(int), [0]]))))[::2]
+            longest = float(runs.max()) * math.hypot(s[3] - s[0], s[4] - s[1]) / (n - 1) if len(runs) else 0.0
+            if longest > span[0]:
+                span = (longest, float(zs[li]))
+    return span, out, n_lines
+
+
+def check_previews():
+    """The slice previews (renders/48-50, preview_slices.py) show the current plates: each carries
+    a hash of every cell's label and G-code."""
+    from PIL import Image
+    import preview_slices as PS
+    stale = []
+    for name, cells in PS.sources().items():
+        path = os.path.join(G.ROOT, "renders", name)
+        if not os.path.exists(path) or not all(os.path.exists(p) for _, p in cells):
+            stale.append(f"{name} missing")
+            continue
+        with Image.open(path) as img:
+            got = img.text.get(PS.KEY)
+        if got != PS.stamp(cells):
+            stale.append(name)
+    check("slice previews (renders/48-50) show the current plates and G-code", not stale,
+          f"stale: {', '.join(stale)} (run python scripts/preview_slices.py)" if stale
+          else f"{len(PS.OUT)} pictures")
+
+
 if __name__ == "__main__":
     check_meshes()
     check_handedness()
@@ -1527,6 +1643,8 @@ if __name__ == "__main__":
     if "--no-gcode" not in sys.argv:
         check_gcode()
         check_web_gcode()
+        check_air()
+        check_previews()
     failed = [n for n, ok in RESULTS if not ok]
     print(f"\n{len(RESULTS) - len(failed)}/{len(RESULTS)} checks passed")
     sys.exit(1 if failed else 0)

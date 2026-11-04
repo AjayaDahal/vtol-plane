@@ -11,7 +11,10 @@
   narrow parts are the ones a nozzle can knock loose or set wobbling. The gate picks the PETG
   parts that get a brim by a related measure, height against the root of the first-layer area.
 
-Run: python scripts/audit_print.py [part ...]
+With --render it also draws renders/51_support_audit_petg.png: every part the slicer would
+support, see-through, with that support in magenta, and what it sits under (WHY).
+
+Run: python scripts/audit_print.py [--render] [part ...]
 """
 import concurrent.futures
 import glob
@@ -27,8 +30,28 @@ import numpy as np
 
 import geom as G
 import plates as PT
+import preview_slices as PS
 import slice_all as SA
 from make_print_ready import PARTS
+
+RENDER = "51_support_audit_petg.png"
+# What each part's would-be support sits under, as RENDER shows it, and how the print copes
+# without it (check_parts.check_air() measures every bridge and wall over air in the real G-code).
+_POD = "the servo bay's ceiling (a 24 mm bridge), the narrow slot beside it and the axle boss: bridged"
+_RIB = "under the plate, inside the spigot ring: a 16 mm bridge; its wire hole stands on a boss"
+WHY = {
+    "boom_pod_l": _POD, "boom_pod_r": _POD,
+    "boom_rib_l": "a 7 mm-wide step at z 5 mm: a 7 mm bridge",
+    "boom_rib_r": "a 7 mm-wide step at z 5 mm: a 7 mm bridge",
+    "coupler_240": "a small lug inside the ring: a short ledge",
+    "frame_main": "inside the horizontal bore along its strut",
+    "frame_rear": "inside the horizontal bore along its strut",
+    "rear_motor_mount": "inside a horizontal screw hole in its flange",
+    "rib_midtip_l": _RIB, "rib_midtip_r": _RIB,
+    "tail_block": "a 6 mm slot near the top, and the tops of the pin and wire holes",
+    "yoke_l": "inside the axle holes at the top of its arms",
+    "yoke_r": "inside the axle holes at the top of its arms",
+}
 
 AUDIT = {
     "lwpla_vase": {"spiral_mode": "0", "enable_support": "1", "support_type": "tree(auto)",
@@ -62,13 +85,16 @@ def support_grams(path, density):
     return grams, (min(zs), max(zs)) if zs else None
 
 
-def slice_with_supports(name):
+def slice_with_supports(name, keep=False):
+    """(support grams, support z range, the toolpaths if keep else None) for the part sliced with
+    the audit's settings."""
     spec = PARTS[name]
     printer, material = spec["printer"], spec["material"]
     with tempfile.TemporaryDirectory() as tmp:
         with open(os.path.join(SA.PROFILES, SA.PROCESS[(printer, material)])) as f:
             proc = json.load(f)
         proc.update(AUDIT[material])
+        proc.update(spec["slicer"])
         proc_path = os.path.join(tmp, "process_audit.json")
         with open(proc_path, "w") as f:
             json.dump(proc, f)
@@ -86,7 +112,7 @@ def slice_with_supports(name):
         found = glob.glob(os.path.join(out, "*.gcode"))
         if len(found) != 1:
             raise RuntimeError(f"{name}: no G-code (exit {run.returncode})\n{(run.stdout + run.stderr)[-800:]}")
-        return support_grams(found[0], DENSITY[material])
+        return (*support_grams(found[0], DENSITY[material]), PS.parse(found[0]) if keep else None)
 
 
 def min_width(h):
@@ -110,23 +136,47 @@ def stability(name):
     return height, w, height / w, height / (w + 2 * brim)
 
 
-def main(names=None):
+def main(names=None, render=False):
     names = names or sorted(PARTS, key=lambda n: (PARTS[n]["material"], n))
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
-        sup = dict(zip(names, pool.map(slice_with_supports, names)))
+        sup = dict(zip(names, pool.map(lambda n: slice_with_supports(n, keep=render), names)))
     print(f"{'part':22s} {'material':10s} {'support (g)':>11s} {'support z (mm)':>16s} {'height':>7s} "
           f"{'base w':>7s} {'h/w':>6s} {'h/(w+brim)':>10s}")
     needs = []
     for name in names:
-        grams, zr = sup[name]
+        grams, zr, _ = sup[name]
         h, w, r, rb = stability(name)
         zt = f"{zr[0]:.1f}-{zr[1]:.1f}" if zr else "-"
         print(f"{name:22s} {PARTS[name]['material']:10s} {grams:11.2f} {zt:>16s} {h:7.1f} {w:7.1f} {r:6.1f} {rb:10.1f}")
         if grams > 0.05:
             needs.append(name)
     print(f"\nparts the slicer would support: {', '.join(needs) or 'none'}")
+    if render:
+        render_supports(needs, sup)
     return needs
 
 
+def render_supports(needs, sup):
+    """renders/51_support_audit_petg.png: each part the slicer would support, drawn see-through,
+    with the supports it would add drawn over it in magenta. The printer's purge line is left
+    out, so each picture is framed to its part."""
+    purge = PS.NAMES.index("Custom")
+    cells, used = [], set()
+    for name in needs:
+        grams, zr, (segs, kinds) = sup[name]
+        part = kinds != purge
+        img = PS.draw(segs[part], kinds[part], (420, 380), az=-35.0, el=30.0, xray=True, width=0.8)
+        used.update(PS.NAMES[k] for k in np.unique(kinds) if k in PS.SUPPORT)
+        cells.append((img, f"{name}: {grams:.1f} g of support, z {zr[0]:.1f}-{zr[1]:.1f} mm", WHY.get(name, "")))
+    title = "Where the slicer would add supports, if they were allowed (none print)"
+    note = ("Tree supports allowed anywhere, 30 deg threshold, bridges not supported (audit_print.py). Each part is drawn "
+            "see-through; magenta is the support it would add. All of it sits inside holes or under bridged spans.")
+    img = PS.sheet(cells, 4, title, note, used, extra=[("The part, see-through", (226, 226, 226))])
+    path = os.path.join(G.ROOT, "renders", RENDER)
+    img.save(path, optimize=True)
+    print(f"wrote {os.path.relpath(path, G.ROOT)} ({os.path.getsize(path) // 1024} KB)")
+
+
 if __name__ == "__main__":
-    main(sys.argv[1:] or None)
+    args = [a for a in sys.argv[1:] if a != "--render"]
+    main(args or None, render="--render" in sys.argv[1:])

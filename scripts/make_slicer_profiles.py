@@ -160,9 +160,12 @@ def petg_variants():
     # No brim, rather than the preset's auto brim, which follows the plate type and the slicer:
     # Anycubic Slicer Next 1.3.3.3's CLI took the Cool Plate and put brims on 17 parts, 2.0.0.3 takes
     # a textured PEI plate and put one on a single part. Parts that need one get it from the print
-    # table (make_print_ready.py, `brim`), so every plate type and slicer prints the same.
+    # table (make_print_ready.py, `brim`), so every plate type and slicer prints the same. Holes in
+    # bridged ceilings keep the stock handling here; the parts that need more get it from the print
+    # table too (`slicer`; REPORT 11.9). Overhang walls keep their own label: the gate's over-air
+    # check finds the walls it measures by it (check_parts.check_air).
     petg.update({"name": "PETG structural @VTOL", "wall_loops": "3", "sparse_infill_density": "15%",
-                 "brim_type": "no_brim"})
+                 "brim_type": "no_brim", "counterbore_hole_bridging": "none", "detect_overhang_wall": "1"})
     write("process_petg.json", petg)
     sup = dict(petg)
     sup.update({"name": "PETG structural + supports @VTOL", "enable_support": "1",

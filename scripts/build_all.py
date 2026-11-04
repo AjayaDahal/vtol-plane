@@ -1,7 +1,7 @@
 """Regenerate everything in order: skins, PETG parts, print orientation, slicing, the complete
-slicer projects (each plate sliced again and checked), viewer manifest, the print table in
-tracker.md, checks. The manifest and the tracker come after slicing because they carry each file's
-sliced mass and print time.
+slicer projects (each plate sliced again and checked), the slice previews (renders/48-50), viewer
+manifest, the print table in tracker.md, checks. The manifest and the tracker come after slicing
+because they carry each file's sliced mass and print time.
 
 Usage: python build_all.py [--no-slice]
 """
@@ -30,10 +30,12 @@ def main():
             args.append("--no-gcode")
         else:
             import make_projects
+            import preview_slices
             import slice_all
             slice_all.main()
             # The two complete projects, every plate sliced again and checked against its job's G-code.
             projects_ok = make_projects.main(check=True)
+            preview_slices.main()
     finally:
         # Even when a part fails to slice: the viewer needs the new geometry.
         make_viewer.main()

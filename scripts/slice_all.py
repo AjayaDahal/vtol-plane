@@ -12,8 +12,8 @@ Each G-code file ends with a `; vtol_stl_sha256 = ...` comment naming the STL it
 (for a plate, a hash of its parts' STLs and places), and its 3MF carries the same hash as
 metadata, so check_parts.py can tell stale files from current (git does not keep file times).
 Run on its own (`python slice_all.py [part or plate ...]`), it then refreshes
-viewer/manifest.json and tracker.md, which carry each file's sliced mass and time, and the two
-complete projects (make_projects.py).
+viewer/manifest.json and tracker.md, which carry each file's sliced mass and time, the two
+complete projects (make_projects.py) and the slice previews (preview_slices.py).
 """
 import glob
 import hashlib
@@ -71,31 +71,40 @@ def _run(cmd, what):
     return run, f"{what} (exit {run.returncode})\n{(run.stdout + run.stderr)[-1500:]}"
 
 
-def _set_brims(project, brims):
-    """Give each object named in `brims` ({STL name: mm}) its own outer brim in the project 3MF, as
-    per-object settings: the slicer applies them on any plate and shows them on the object."""
+def object_settings(name):
+    """The slicer settings a part carries on its own object, from the print table: its brim, if it
+    has one, and any other per-part settings (make_print_ready.py `slicer`)."""
+    spec = PARTS[name]
+    out = {"brim_type": "outer_only", "brim_width": f"{spec['brim']:g}"} if spec["brim"] else {}
+    out.update(spec["slicer"])
+    return out
+
+
+def _set_object_settings(project, settings):
+    """Give each object named in `settings` ({STL name: {key: value}}) those settings in the project
+    3MF, as per-object settings: the slicer applies them on any plate and shows them on the object."""
     with zipfile.ZipFile(project) as z:
         files = [(info, z.read(info.filename)) for info in z.infolist()]
     with zipfile.ZipFile(project, "w", zipfile.ZIP_DEFLATED) as z:
         for info, data in files:
             if info.filename == "Metadata/model_settings.config":
                 text = data.decode()
-                for stl, width in brims.items():
+                for stl, kv in settings.items():
                     head = (r'(<object id="\d+">\s*<metadata key="name" value="' + re.escape(stl) +
                             r'"/>\s*<metadata key="extruder" value="\d+"/>)')
-                    text, n = re.subn(head, r'\1\n    <metadata key="brim_type" value="outer_only"/>'
-                                      rf'\n    <metadata key="brim_width" value="{width:g}"/>', text, count=1)
+                    meta = "".join(f'\n    <metadata key="{k}" value="{v}"/>' for k, v in kv.items())
+                    text, n = re.subn(head, lambda m: m.group(1) + meta, text, count=1)
                     if n != 1:
                         raise RuntimeError(f"{stl}: no such object in {os.path.basename(project)}")
                 data = text.encode()
             z.writestr(info, data)
 
 
-def _slice(stls, printer, material, dst, stamp, arrange, brims=None):
+def _slice(stls, printer, material, dst, stamp, arrange, per_object=None):
     """Lay `stls` out on one bed as a project 3MF (--arrange 0 keeps each STL where it is), give the
-    parts in `brims` their brim, then slice that 3MF on its own, with a fresh settings folder: the
-    G-code is what opening the 3MF in the slicer and slicing it gives, and the 3MF must carry every
-    setting itself."""
+    objects in `per_object` ({STL name: {key: value}}) their own settings, then slice that 3MF on
+    its own, with a fresh settings folder: the G-code is what opening the 3MF in the slicer and
+    slicing it gives, and the 3MF must carry every setting itself."""
     settings = [os.path.join(PROFILES, MACHINE[printer]), os.path.join(PROFILES, PROCESS[(printer, material)])]
     project = path_3mf(dst)
     with tempfile.TemporaryDirectory() as tmp:
@@ -109,8 +118,8 @@ def _slice(stls, printer, material, dst, stamp, arrange, brims=None):
         made = os.path.join(tmp, name3)
         if not os.path.exists(made):
             raise RuntimeError(log)
-        if brims:
-            _set_brims(made, brims)
+        if per_object:
+            _set_object_settings(made, per_object)
         sliced = os.path.join(tmp, "sliced")
         os.makedirs(sliced)
         _, log = _run([SLICER, "--slice", "0", "--arrange", "0", "--orient", "0",
@@ -144,23 +153,24 @@ def slice_part(name):
     with tempfile.TemporaryDirectory() as tmp:
         path = os.path.join(tmp, name + ".stl")
         G.write_stl(path, G.transform(G.read_stl(os.path.join(G.PRINT, name + ".stl")), None, (cx, cy, 0.0)))
-        brims = {name + ".stl": spec["brim"]} if spec["brim"] else None
+        own = {name + ".stl": object_settings(name)} if object_settings(name) else None
         return _slice([path], spec["printer"], spec["material"], out_path(name), stl_hash(name), arrange=0,
-                      brims=brims)
+                      per_object=own)
 
 
 def slice_plate(plate):
     """Every placed copy as its own STL, so each stays its own object (own brim, cancellable)."""
     copies = dict(PT.PLATES[plate])
     with tempfile.TemporaryDirectory() as tmp:
-        stls, brims = [], {}
+        stls, own = [], {}
         for name, k, x, y, angle in PT.layout(plate):
             path = os.path.join(tmp, PT.stl_name(name, k, copies[name]) + ".stl")
             G.write_stl(path, PT.placed_mesh(name, x, y, angle))
             stls.append(path)
-            if PARTS[name]["brim"]:
-                brims[os.path.basename(path)] = PARTS[name]["brim"]
-        return _slice(stls, PT.PRINTER, "petg", PT.gcode_path(plate), PT.plate_hash(plate), arrange=0, brims=brims)
+            if object_settings(name):
+                own[os.path.basename(path)] = object_settings(name)
+        return _slice(stls, PT.PRINTER, "petg", PT.gcode_path(plate), PT.plate_hash(plate), arrange=0,
+                      per_object=own)
 
 
 def expected_gcode():
@@ -203,14 +213,16 @@ if __name__ == "__main__":
     try:
         main(sys.argv[1:])
     finally:
-        # The viewer manifest and tracker.md carry each file's sliced mass and time, and the
-        # complete projects are assembled from the job 3MFs.
+        # The viewer manifest and tracker.md carry each file's sliced mass and time, the complete
+        # projects are assembled from the job 3MFs, and the slice previews are drawn from the G-code.
         import make_projects
         import make_tracker
         import make_viewer
+        import preview_slices
         make_viewer.main()
         make_tracker.main()
-        try:
-            make_projects.main()
-        except Exception as exc:  # e.g. a job 3MF missing after a failed slice; the gate reports it
-            print(f"complete projects not rebuilt: {exc}")
+        for step in (make_projects.main, preview_slices.main):
+            try:
+                step()
+            except Exception as exc:  # e.g. a file missing after a failed slice; the gate reports it
+                print(f"{step.__module__} not rebuilt: {exc}")

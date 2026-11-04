@@ -11,12 +11,18 @@ import geom as G
 
 LW, PETG, PETG_SUP = "lwpla_vase", "petg", "petg_support"
 BRIM = 5   # mm, outer brim of the PETG parts that get one
+# A hole in a bridged ceiling: the slicer prints the hole's edge before the bridge, in mid-air
+# (12 mm out over the pods' servo bays, 3.6 mm over the boom rib's step), unless it bridges
+# around such holes first. Not for every part: on rib_midtip it turned the plate's bridges
+# lengthwise, to 52 mm (REPORT 11.9).
+HOLE_BRIDGING = {"counterbore_hole_bridging": "partiallybridge"}
 
 
-def _p(material, printer, rot, qty=1, src=None, brim=0):
-    """brim: mm of outer brim for this part alone (slice_all.py sets it on the part's own object, on
-    a plate too); the PETG profile prints none, the LW-PLA vase profile 8 mm on every skin."""
-    return dict(material=material, printer=printer, rot=rot, qty=qty, src=src, brim=brim)
+def _p(material, printer, rot, qty=1, src=None, brim=0, slicer=None):
+    """brim: mm of outer brim for this part alone; slicer: other slicer settings for this part
+    alone. slice_all.py sets both on the part's own object in its 3MF, on a plate too. The PETG
+    profile prints no brim, the LW-PLA vase profile 8 mm on every skin."""
+    return dict(material=material, printer=printer, rot=rot, qty=qty, src=src, brim=brim, slicer=slicer or {})
 
 
 PARTS = {
@@ -37,19 +43,21 @@ PARTS = {
     # ring end so the spigot rings print as vertical walls (upright they would be 10 mm overhangs).
     "rib_root_r": _p(PETG, "s1", [("x", 90)]),
     "rib_root_l": _p(PETG, "s1", [("x", -90)]),
-    "rib_midtip_r": _p(PETG, "s1", [("x", 90)], brim=BRIM),
-    "rib_midtip_l": _p(PETG, "s1", [("x", -90)], brim=BRIM),
+    # 23 mm tall on 540 mm2 of first layer (ratio 0.99, with the wire-hole boss): no brim, which
+    # also keeps the bottom spigot ring's fit edge clean.
+    "rib_midtip_r": _p(PETG, "s1", [("x", 90)]),
+    "rib_midtip_l": _p(PETG, "s1", [("x", -90)]),
     # The tip rib is a hidden ring: it stands on its fairing end, the full-chord side.
     "rib_tip_r": _p(PETG, "s1", [("x", -90)]),
     "rib_tip_l": _p(PETG, "s1", [("x", 90)]),
     # Boom rib prints flat on its inboard face; its inboard spigot ring is the separate cup.
-    "boom_rib_r": _p(PETG, "s1", [("x", 90), ("z", 45)]),
-    "boom_rib_l": _p(PETG, "s1", [("x", -90), ("z", 45)]),
+    "boom_rib_r": _p(PETG, "s1", [("x", 90), ("z", 45)], slicer=HOLE_BRIDGING),
+    "boom_rib_l": _p(PETG, "s1", [("x", -90), ("z", 45)], slicer=HOLE_BRIDGING),
     "boom_cup_r": _p(PETG, "s1", [("x", -90)]),
     "boom_cup_l": _p(PETG, "s1", [("x", 90)]),
     # Pod prints upright: the gusset and nose chamfer are 45 deg, the slot and bay are bridges.
-    "boom_pod_r": _p(PETG, "s1", []),
-    "boom_pod_l": _p(PETG, "s1", []),
+    "boom_pod_r": _p(PETG, "s1", [], slicer=HOLE_BRIDGING),
+    "boom_pod_l": _p(PETG, "s1", [], slicer=HOLE_BRIDGING),
     "yoke_r": _p(PETG, "s1", [("x", 180)]),
     "yoke_l": _p(PETG, "s1", [("x", 180)]),
     "coupler_240": _p(PETG, "s1", [("y", -90)], brim=BRIM),

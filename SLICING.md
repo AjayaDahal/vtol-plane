@@ -20,17 +20,20 @@ python scripts/slice_all.py        # -> 3mf/<s1|x>_<lwpla|petg>/<part>.3mf and 3
                                    #    (one file: slice_all.py fuse_1, or a plate's name)
 python scripts/make_projects.py    # the two complete projects, a plate per job -> 3mf/complete_project_*.3mf
                                    #    (--verify: slice every plate again and compare it with its job's G-code)
+python scripts/preview_slices.py   # every plate drawn from its G-code like the slicer's preview -> renders/48-50
 python scripts/make_viewer.py      # 3-D viewer manifest, with each file's sliced mass and time -> viewer/manifest.json;
                                    #    the exterior model for GitHub's 3-D viewer -> renders/vtol_plane.stl
 python scripts/make_tracker.py     # print tables and totals in tracker.md, and the queue chart renders/print_schedule.svg
 python scripts/mass_balance.py     # mass, CG, battery position (reads masses from the G-code)
 python scripts/check_parts.py      # the gate: geometry, fits, flush joints, mechanism, balance, overhangs, G-code
 python scripts/audit_print.py      # not in the build: what the slicer itself would support, and how tall and
-                                   #    narrow each part stands (needs the slicer, so CI cannot run it)
+                                   #    narrow each part stands (needs the slicer, so CI cannot run it); --render
+                                   #    draws the would-be supports -> renders/51
 ```
 
-`slice_all.py` run on its own also runs `make_viewer.py`, `make_tracker.py` and
-`make_projects.py` when it is done; `build_all.py` runs `make_projects.py --verify`.
+`slice_all.py` run on its own also runs `make_viewer.py`, `make_tracker.py`,
+`make_projects.py` and `preview_slices.py` when it is done; `build_all.py` runs
+`make_projects.py --verify` and `preview_slices.py`.
 A full run (no names) also deletes any G-code or 3MF file that no current part or plate
 produces, so a part that moves printer leaves no old file behind.
 
@@ -98,9 +101,41 @@ is centred on its bed by `slice_all.py` and sliced with `--orient 0 --arrange 0 
 so the slicer keeps its orientation: with `--arrange 1` the slicer's own arrange turned some parts
 about z (it laid the 45° boom rib along x and cut its brim at the bed's edge).
 
+## Slice previews and the support audit
+
+The pictures `renders/48`–`51` show what the slicer's preview would show, drawn from the G-code
+by `scripts/preview_slices.py`: every extrusion a line, coloured by type (walls, infill,
+bridges, brims, supports, the purge line). `build_all.py` and `slice_all.py` redraw 48–50 after
+slicing; each carries a hash of each plate's label and G-code, which the gate checks. The complete
+projects' plates slice to this same G-code (`make_projects.py --verify`).
+
+- `48_sliced_plates_x_lwpla.png`: the X project's 22 plates: each skin one spiral wall on its
+  8 mm brim, the wing webs showing as fine vertical lines.
+- `49_sliced_plates_s1_petg.png`: the seven PETG plates: no supports, brims only on the five
+  tall parts, bridges in blue.
+- `50_first_layers_s1_petg.png`: the PETG first layers from above: every part flat on the bed,
+  the brims, and the S1's purge line beyond the bed's back edge.
+- `51_support_audit_petg.png` (`audit_print.py --render`, needs the slicer): each PETG part the
+  slicer would support if allowed, drawn see-through with that support in magenta. It sits inside
+  holes (the bores along the frames' struts, the yokes' axle holes, a screw hole in the rear
+  motor mount, the tops of `tail_block`'s pin and wire holes and of its 6 mm slot), under the
+  7 mm step of the boom rib, under the plates inside the `rib_midtip` spigot rings (16 mm
+  bridges) and under the pods' servo-bay ceilings (24 mm). Support in a hole could not be taken
+  out without spoiling the fit, and every span bridges: the gate measures each one in the G-code
+  ("G-code check" below).
+
+Looking at these found one fault: where a hole opens in a bridged ceiling, the slicer printed the
+hole's edge before the bridge, in mid-air: 12 mm from anything below over the pods' servo bays,
+8 mm at the `rib_midtip` plate's wire hole, 3.6 mm over the boom rib's step. The mid/tip rib now
+has a boss under its wire hole through both spigot rings, like its spar holes, so the edge stands
+on it. The pods and boom ribs carry their own slicer setting to bridge around such holes first
+(`counterbore_hole_bridging` = partially bridged, the print table's `slicer`); for every part, as
+the profile's default, it would have turned the rib plate's bridges lengthwise, to 52 mm
+(`REPORT.md` 11.9).
+
 ## Plates (`scripts/plates.py`)
 
-The PETG parts print as seven plates on the S1 instead of 53 single prints: 461 g and 15.9 h
+The PETG parts print as seven plates on the S1 instead of 53 single prints: 464 g and 16.0 h
 against 18.1 h, because small parts sharing a bed no longer each wait out the minimum layer
 time, and 46 fewer jobs to start, level and clear. The plates are grouped in build order:
 `petg_1_fit_tests` (tip ring, one servo hatch, two hatch blocks) goes with the LW-PLA test
@@ -133,7 +168,7 @@ prints, and `petg_7_pods_yokes` waits until the tilt servos have been measured.
 |---|---|
 | `machine_kobra_s1.json`, `machine_kobra_x.json` | printer definitions: Anycubic Slicer Next 2.0.0.3's own presets, which `make_slicer_profiles.py` reads from the installed slicer. The S1's draws a purge line beside the bed (y = 255 mm) before the first layer; its start G-code is only the printer's `G9111` macro, and the profiles print no skirt |
 | `process_lwpla_vase.json` (S1), `process_lwpla_vase_x.json` (X) | spiral mode, 1 wall, 0.2 mm, 8 mm outer brim, wall speed capped at 30 mm/s, `slice_closing_radius` 0.01, `detect_thin_wall` 0. Each printer needs its own variant: a process derived from one printer is rejected by the other. Every LW-PLA part prints on the X now; the S1 variant is kept for one-off prints |
-| `process_petg.json` | 3 walls, 15 % crosshatch infill, 5 top / 3 bottom layers, no brim (a part that needs one gets its own: "Brims" below), no supports. Every PETG part uses it |
+| `process_petg.json` | 3 walls, 15 % crosshatch infill, 5 top / 3 bottom layers, no brim (a part that needs one gets its own: "Brims" below), no supports. Every PETG part uses it; a few carry settings of their own on top (the print table's `slicer`: the pods and boom ribs bridge around holes in their bridged ceilings first) |
 | `process_petg_support.json` | same, with tree supports. No part uses it any more; kept for one-off prints |
 | `filament_lwpla.json` | 235 C (220 C first layer), flow 0.55, fan 100 %, 4 s minimum layer time, bed 55 C on every plate type |
 | `filament_petg.json` | 255 C, flow 0.95, fan 40 %, bed 75 C on every plate type |
@@ -154,8 +189,9 @@ type's value back from every file, so a plate type that a new slicer version add
 **Brims.** Every LW-PLA skin has the vase profile's 8 mm outer brim. PETG prints without one,
 except the parts that stand taller than the square root of their first-layer contact area, a
 lever the nozzle can pry off the bed: `tail_block` (height 3.2 times that root), `coupler_370`
-(2.0), `coupler_240` (1.8), `rear_motor_mount` (1.3), `control_horn` (1.2) and `rib_midtip_l/r`
-(1.04) get a 5 mm brim; the next is the yoke at 0.82. The print table sets it per part
+(2.0), `coupler_240` (1.8), `rear_motor_mount` (1.3) and `control_horn` (1.2) get a 5 mm brim.
+The next is `rib_midtip_l/r` at 0.99 (its wire-hole boss widens its first layer), which prints
+without one and so keeps its bottom spigot ring's fit edge clean, then the yoke at 0.82. The print table sets it per part
 (`make_print_ready.py`, `brim`), and `slice_all.py` writes it into the job's 3MF as that object's
 own setting, so the slicer applies it on any plate and shows it on the object. The gate measures
 every part's ratio in its G-code and checks the list, and that the brims printed are exactly these.
@@ -232,11 +268,11 @@ plates) on every run:
   41.4° (the wing's; the V-tail's 37.6°), and the gate prints the steepest. As a sanity check
   on the profiles, no G-code file contains a support extrusion. The slicer agrees once its
   answer is read: `audit_print.py` (not in the gate) slices every part with tree supports allowed
-  anywhere. It adds none to the skins, and on 13 PETG files only under the tops of horizontal
-  holes (1.6–10 mm) or under bridges, such as `rib_midtip`'s plate over its spigot ring and the
-  pods' cavities. A support inside a hole or a closed cavity could not be taken out and would
-  spoil the fit, so none prints; drill the horizontal holes to size before assembly
-  (`tracker.md`).
+  anywhere. It adds none to the skins, and on 13 PETG files only inside holes or under spans that
+  bridge, such as `rib_midtip`'s plate over its spigot ring and the pods' servo-bay ceilings
+  (`renders/51_support_audit_petg.png`, "Slice previews and the support audit" above). A support
+  inside a hole could not be taken out without spoiling the fit, and the spans bridge (measured
+  below), so none prints; drill the horizontal holes to size before assembly (`tracker.md`).
 - LW-PLA walls print at 17 mm/s (ruddervator tips) to 30 mm/s.
 - The wing webs print: in a layer where all of a skin's webs are at full depth, the vase path
   turns back once per web and each turn lands within 0.22 mm of the top-skin line (it fuses
@@ -247,12 +283,22 @@ plates) on every run:
 - LW-PLA files: `spiral_mode = 1`, 235 C, bed 55 C. PETG files: 255 C, bed 75 C, 3 walls. The
   bed temperature is the same on every plate type in each file and in the printer's start macro
   (`G9111 bedTemp`); with the vase walls' and webs' settings, the brim type and no supports, the
-  gate reads these back from every file.
+  gate reads these back from every file. Each part's own settings (brim, hole bridging) are
+  checked in its 3MF against the print table.
+- Nothing far over air (PETG, each part's own file): every bridge and overhang-wall line is
+  measured against the layer below it. No bridge spans more than 30 mm of air and no wall lies
+  more than 3 mm from the layer below, the same rules as the geometry check above (bridges,
+  ledges). The longest bridge is the pods' servo-bay ceiling. The check finds the walls by the
+  slicer's "Overhang wall" label, so the PETG profile pins `detect_overhang_wall = 1` (read back
+  from every file: with it off, a wall in mid-air is labelled a plain wall), and a feature type it
+  does not know fails it.
+- The slice previews (`renders/48`–`50`) carry a hash of what they show, each plate's label and
+  G-code, and match it.
 - Masses and times in `tracker.md` and the viewer equal the slicer's footer (`total filament
   used [g]`, `print_time`): `build_all.py` writes the viewer's manifest and the tracker's table
   (`make_tracker.py`) after slicing, and the gate checks both against every file.
-  Totals as printed: X 49.4 h of LW-PLA (266 g, 22 jobs); S1 15.9 h of PETG plates (461 g,
-  7 jobs). The PETG as single files would take 18.1 h (462 g).
+  Totals as printed: X 49.4 h of LW-PLA (266 g, 22 jobs); S1 16.0 h of PETG plates (464 g,
+  7 jobs). The PETG as single files would take 18.1 h (465 g).
 - Re-slicing an unchanged STL did not always give the same file in 1.3.3.3, even at the same
   place on the bed: `boom_pod_r` came out at 27.66 g and 27.94 g in two slices. Treat each mass
   as good to ~0.3 g, and expect a full re-slice to move a few tracker entries by a few tenths.

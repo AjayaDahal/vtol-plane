@@ -113,6 +113,21 @@ holds every glued joint flush to 0.15 mm ([DESIGN.md](DESIGN.md#finish-making-th
 <img src="renders/35_print_files_all.png" alt="Every print file on its bed">
 </details>
 
+<details>
+<summary><b>Sliced</b>: every plate as the slicer prints it, first layers, and where supports would go</summary>
+<br>
+<img src="renders/49_sliced_plates_s1_petg.png" alt="The seven PETG plates sliced: walls, infill, bridges and brims, no supports">
+<img src="renders/50_first_layers_s1_petg.png" alt="The PETG plates' first layers from above, with brims and the purge line">
+<img src="renders/48_sliced_plates_x_lwpla.png" alt="The Kobra X's 22 LW-PLA plates sliced: one vase skin each on its brim">
+
+Drawn from the G-code like the slicer's preview, coloured by feature. No part prints with
+supports. Below, where the slicer would add them if it could: all inside holes or under spans
+that bridge, which the gate measures in the G-code
+([SLICING.md](SLICING.md#slice-previews-and-the-support-audit)).
+
+<img src="renders/51_support_audit_petg.png" alt="Where the slicer would add supports, drawn see-through in magenta">
+</details>
+
 ## How it is built
 
 - **Skins** are LW-PLA printed in vase mode: one continuous ~0.5 mm wall, foamed to about half
@@ -176,10 +191,13 @@ and runs the gate.
   - there are no support moves, and the vase walls print in one speed band;
   - the wing webs print fused, and every part is its own object where the script placed it;
   - brims only where the print table puts them: every vase skin, and the PETG parts that stand
-    taller than the root of their first-layer contact area.
+    taller than the root of their first-layer contact area;
+  - nothing far over air: every PETG bridge spans at most 30 mm, every wall lies within 3 mm of
+    the layer below.
 - **Slicer projects:** each job's 3MF carries the G-code's stamp and the right presets, and the
   two complete projects are what `make_projects.py` builds from them.
-- **Docs:** the viewer manifest, `tracker.md` and the schedule chart match the sliced files.
+- **Docs:** the viewer manifest, `tracker.md`, the schedule chart and the slice previews match the
+  sliced files.
 
 The results and the reasoning behind every check: [`REPORT.md`](REPORT.md).
 </details>
@@ -267,7 +285,8 @@ scripts/            Python: generators, slicing pipeline, mass balance and the g
   plates.py           PETG plate layouts
   slice_all.py        slices every part and plate
   make_projects.py    the two complete slicer projects, a plate per job
-  audit_print.py      support and stability audit in the slicer (not part of the gate)
+  preview_slices.py   slice previews: every plate drawn from its G-code (renders/48-50)
+  audit_print.py      support and stability audit in the slicer (not part of the gate; renders/51)
   mass_balance.py     mass, CG, hover thrust, PX4 numbers
   make_viewer.py      viewer manifest and renders/vtol_plane.stl
   make_tracker.py     tracker tables and renders/print_schedule.svg

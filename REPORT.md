@@ -10,7 +10,7 @@ top; older rounds follow, newest first. "Fixed" means the CAD, slicing
 and paperwork no longer contain that defect. It is not a promise that
 the plane flies. That needs the physical checks listed under "Open".
 
-## Current status (v0.2, Nov 3, 2026)
+## Current status (v0.2, Nov 5, 2026)
 
 **Ready to print, starting with the test prints.** Print `wing_tip_r`
 (flow) and PETG plate `petg_1_fit_tests` (tip ring, one servo hatch, two
@@ -31,9 +31,13 @@ pack. That margin rests on SunnySky's own thrust table, so one motor is
 thrust-tested before anything is built in. It changes four PETG parts
 (`yoke_l/r`, `rear_motor_mount`, `fc_shelf`) and moves the pitot, a
 hand-drilled hole, out of the bigger props' wash. Every LW-PLA part
-prints as it is.
+prints as it is. **The premortem (round 13) makes these motors the
+recommendation:** the 4S motors have 30 g of margin before the 60 %
+limit, while the 3S build flown in simulation keeps the 4S build's
+full-pack headroom to the end of its pack. Order one X2814 and thrust-test
+it now: plates 6 and 7 wait for its measured hole pattern.
 
-- Verification gate: `python scripts/check_parts.py` passes **121/121**,
+- Verification gate: `python scripts/check_parts.py` passes **123/123**,
   locally and in CI on every push (`.github/workflows/gate.yml`).
   It covers mesh integrity, mirrored L/R parts, bed fit, every spigot,
   coupler and frame fit, flush glued skin joints (wing, V-tail and
@@ -65,7 +69,10 @@ prints as it is.
   the PETG G-code lays nothing far over air (bridges at most 30 mm, walls
   within 3 mm of the layer below), and checks that both complete slicer
   projects are built from the jobs' own 3MFs and that the slice previews
-  (`renders/48`–`50`) show the current plates and G-code.
+  (`renders/48`–`50`) show the current plates and G-code. Since round 12
+  it checks that the flight simulation's model (`sim/`) is what
+  `make_sim.py` builds from the current design, with its static margin
+  within 3 % MAC of the mass balance's.
 - 58 print jobs, 51 single parts and 7 PETG plates, each as G-code and
   as a 3MF project to send from the slicer (the G-code is sliced from the
   3MF), with no supports anywhere, sliced in Anycubic Slicer Next 2.0.0.3.
@@ -78,6 +85,15 @@ prints as it is.
   at x = 380 gives 434.8 mm, 29.3 %), hover split 37/37/26 %, front motors
   at 58.9 % of their near-empty maximum (limit 60 %: the margin is thin),
   static margin ~18 %.
+- Flight simulation (rounds 12 and 13, `SIMULATION.md`): PX4 v1.17 in
+  Gazebo flies the whole mission on a model generated from the design
+  (vertical takeoff, transition, circuit, back transition, landing on the
+  pad) with `PX4_GUIDE.md`'s settings. It changed `VT_ARSP_TRANS` to
+  14 m/s, since a transition held level never reaches 18 (12.1). The
+  premortem's stress variants (heavier, near-empty pack, no airspeed
+  sensor, a stronger-lifting wing, the 3S motors) changed `FW_PSP_OFF`,
+  `VT_F_TR_OL_TM` and the failsafes, and recommend the 3S motors (13.1–13.5).
+  No printed part changes. Video: `renders/sim_flight.mp4`.
 - Span 1478 mm: the wing and V-tail tips close in vase-mode fairings over
   hidden rings, with no flat end or spar end showing (`DESIGN.md`, "Tips").
 - Serviceable: battery out through the nose in a minute; every aileron and
@@ -100,7 +116,9 @@ prints as it is.
    yokes.
 3. Real masses: weigh the parts and re-run `mass_balance.py`. The hover
    margin is thin; if the real AUW comes out above ~2.03 kg, the front
-   motors exceed 60 % of their near-empty thrust.
+   motors exceed 60 % of their near-empty thrust: fit the 3S motors
+   (13.1), and do not fly the 4S build heavier (`PX4_GUIDE.md`,
+   preflight 10).
 4. CG: balance at 433 mm, then glide-test.
 5. Bench: motor order and direction, tilt calibration (−20…90°),
    surface directions, ruddervator mixing, props off.
@@ -110,7 +128,57 @@ prints as it is.
    load on the wing, which the gate does not model: an estimated 5–8 %
    of the front thrust (`PLAN_3S.md`, risk 1). The 7 in props'
    slipstream barely reaches the wing.
-7. Transition tuning: at altitude, into wind, back-transition ready.
+7. Transition tuning: at altitude, into wind, back-transition ready. The
+   simulation's settings are the starting point; in the first transition,
+   check that the airspeed passes `VT_ARSP_TRANS` (12.1).
+
+## Round 13 — premortem with the simulation's findings (v0.2, Nov 5, 2026)
+
+Request from the owner: from what the simulation taught, what has to change before printing:
+the motors, the 3-D model, the settings? Premise: the aircraft is built, and its first flights
+go wrong. What went wrong? Method: each failure story was traced through the PX4 v1.17 source,
+the design numbers and the flight logs. The simulation then flew stress variants of the model
+through the same mission (`sim/variant.py`; `SIMULATION.md`, "Stress tests"): heavier, on a
+near-empty pack, without its airspeed sensor, with a wing that lifts more than modelled, and
+with the 3S plan's motors. The answers: no printed part changes; the motors should (the 3S
+plan's, already designed in `PLAN_3S.md`); seven PX4 settings change; and the guide gets
+go/no-go checks before the first hover. The simulation's airframe carries the new settings,
+and its check flight and video were flown again with them.
+
+| # | Severity | Finding | Fix | Status |
+|---|---|---|---|---|
+| 13.1 | P1 flight | **The 4S motors leave no margin for the build's real weight.** At the estimated 2.00 kg the front motors hover on 58.9 % of their near-empty thrust against the 60 % limit, so 30 g of growth (glue, wire, paint, a heavier pack) takes the build past it, and printed airframes come out heavier than their estimates. In calm air the simulation still flies the whole mission 10 % and 20 % overweight on a near-empty pack, but its front motors then average 63 % and 69 % of their thrust in hover and peak at 74 % and 81 %: 26 % and 19 % of headroom, against 46 % at the design weight on a full pack. Headroom is what a gust, the pack's sag under load and the arrest of a sinking back transition draw on, and the simulation has none of them. Pure hover is ~7 min. | **Yes, more powerful motors:** the 3S plan's SunnySky X2814 900KV on 12 × 6 props (`PLAN_3S.md`). Flown in the simulation (13.10) that build hovers on 48 % of its near-empty thrust at 2.29 kg, peaking at 56 %: the headroom the 4S build has only on a full pack at its design weight, kept to the end of a pack 60 % bigger. A 20 % heavier 3S build would still hover at ~57 %. Pure hover ~18 min. The CAD change waits for one motor's thrust test and its measured hole pattern (the plan's step 2): plates 6 and 7 stay on hold, everything else prints now. Until then `PX4_GUIDE.md` says not to fly the 4S build above 2.03 kg (preflight 10), and to land and weigh it if the first hover's throttle is high. | open: order and thrust-test one X2814 |
+| 13.2 | P1 flight | **The transition rested on an estimate of the wing's lift at level attitude.** PX4 holds `FW_PSP_OFF` (0°) through the front transition, so the airspeed only rises until the wing carries the aircraft at that attitude: 15.2 m/s in the model, 1.2 m/s above `VT_ARSP_TRANS` (12.1). The real wing's lift there is uncertain: a Clark Y's zero-lift angle at low Reynolds number, and the props blowing on it. With 1.5° more lift (a stress variant) the level transition has climbed 2.7 m by the time it reaches 14 m/s (0.9 m with the design wing), and it no longer levels off but balloons: asked for 18 m/s, it climbed 12 m while creeping to 17.5 m/s, timed out and pitched up 40° into hover. | `FW_PSP_OFF` −2°: the cruise attitude (−1.4° flown, −1.1° modelled), rounded down. The transition is flown 2° nose-down. The design wing now passes 14 m/s at 7.6 s (9.0 s level) and would reach 18; the 1.5°-stronger wing passes 14 m/s at 8.4 s, 0.7 m up, and reaches 18 too. The transition ends with the tilt ramp at 8 s (13.3). `PX4_GUIDE.md`: set it to the logged cruise pitch later, no higher than −1°, and a degree lower if a transition levels off. | fixed (simulated) |
+| 13.3 | P1 flight | **PX4's transition timers suit faster aircraft.** If the airspeed is still under `VT_ARSP_BLEND` (8 m/s) after `VT_F_TR_OL_TM` (6 s), PX4 abandons the transition. The model was at 8.8 m/s then, so a real aircraft whose props lose thrust as it speeds up could trip it. Without a valid airspeed (a loose plug, a blocked pitot), the transition ends after that time instead. A tiltrotor also waits for its tilt ramp (`VT_F_TRANS_DUR`, 8 s; `Tiltrotor::isFrontTransitionCompletedBase`), where the model was at 12.7 m/s with the old pitch. | `VT_F_TR_OL_TM` 12 s; with 13.2 the model is at 10.4 m/s after 6 s. Flown without its airspeed sensor, the simulation's transition now ends after 13.7 s at ~19.5 m/s (after 8.5 s at 15 m/s with PX4's 6 s), and it flies the circuit on `FW_THR_TRIM` and lands at home. | fixed (simulated) |
+| 13.4 | P1 flight | **The simulation's throttles would fly the real aircraft too slowly.** Its props keep their static thrust at any airspeed, so it cruises on a tenth of full thrust; real 7 × 4.5 props lose most of theirs at 18 m/s and need an estimated ~0.6 throttle. Without a valid airspeed PX4 flies on `FW_THR_TRIM` alone. | `PX4_GUIDE.md`, "Thrust curve and throttles": keep PX4's `FW_THR_TRIM` 0.6 until the first cruise, then set it from the log; let the estimator learn `MPC_THR_HOVER`; measure `THR_MDL_FAC` on the thrust stand. In the simulation, whose motors follow the square law exactly (0.90), the matched curve halved the pitch error in hover (1.7° to 0.9° RMS). | documented |
+| 13.5 | P1 flight | **The failsafes were words, not settings.** PX4 only warns about a low battery by default (`COM_LOW_BAT_ACT` 0), ignores a lost telemetry link, has no geofence and no fixed-wing quadchute limits. The 4S motors are at their weakest when the pack is low, in the landing hover. | `PX4_GUIDE.md`, "Failsafes": Return at 25 %, land at 15 %; Return on RC or telemetry loss and at the geofence; quadchute (to hover, then Return) past 35° pitch or 65° roll, below 15 m or 15 m under the setpoint in fixed-wing flight, or after losing 10 m in the transition. The simulation's airframe carries the quadchute limits; none of them trips in the check flight or the stress runs. | fixed (settings) |
+| 13.6 | P0 flight | **3S build: the pitot would be drilled in the 12 in props' wash.** The plan moves it to y ≈ 505 once built in, but the hole table said y ≈ 400, and the wings get assembled while the motors are on order. At 400 the props blow on it: it reads high in the transition and ends it early, a stall at low height. | `DESIGN.md` (hole table, electronics), `BOM.md`, `PLAN_3S.md` (step 1) and the print-time reminder in `tracker.md`: for the 3S build, drill it at y ≈ 505 in `wing_tip_r`. For either build, `PX4_GUIDE.md` now tests the pitot before flight and checks in the first hover that it reads under ~2 m/s. | fixed (documents) |
+| 13.7 | P2 flight | **Wind in hover.** A 1.48 m wing and a V-tail give a lot of side area in hover. The simulation cannot judge it: its airspeed sensor ignores the wind (gz-sim's sensor holds a zero wind) and its lifting surfaces ignore flow along the span. | Keep `WV_EN` 1 (PX4's VTOL default turns the nose into the wind in hover). Take off and land into the wind, and fly the first hovers in light wind (`PX4_GUIDE.md`). | procedure |
+| 13.8 | P2 check | **Could a control surface or the tilt run out of travel?** | No. Through the whole mission no surface passes 7.5° of its 25° (the rudder, coordinating the 50° turns); the ruddervators trim 1.6° down at cruise and the ailerons ~0; yaw in hover takes ±2° of differential tilt; no motor or surface saturates. No surface, tail or hinge change. | verified (simulated) |
+| 13.9 | P2 check | **The real twin of 12.2:** a servo driven into a hard stop stalls and overheats. | The gate's tilt sweep finds nothing within 5° beyond either end of −20…90°, so only the servo's own end points limit the yokes, and the calibration step sets those short of buzzing. | verified |
+| 13.10 | P2 check | **Would the 3S build fly?** Its motors were only checked on paper. | Flown in the simulation as a variant: 2.29 kg, the X2814's thrust on a near-empty pack (SunnySky's table), and slower spin-up (80 ms) and more torque for the 12 in props (estimates). All ten checks pass, front motors at 48 % in hover, peaks 56 %. Hover attitude is a little looser (roll 0.9° RMS against ~0.5°) with the slower props. | verified (simulated) |
+
+## Round 12 — flight simulation: PX4 SITL in Gazebo (v0.2, Nov 4, 2026)
+
+Request from the owner: a PX4 + Gazebo simulation of the aircraft, then the simulation's video
+saved as well. Method: `make_sim.py` writes the Gazebo model, world and PX4 airframe from the
+design: every `mass_balance.py` row placed in 3-D for the mass, CG and inertia,
+`PX4_GUIDE.md`'s rotor geometry and outputs, and the wing and V-tail as lifting surfaces from
+their planform (`SIMULATION.md`). PX4 v1.17 SITL with Gazebo Harmonic, under WSL2, flies
+`sim/fly_test.py`'s mission: vertical takeoff to 30 m, the transition, a 950 × 400 m circuit at
+40 m, the back transition on a straight final and a vertical landing, with ten checks and the
+PX4 log analysed. `sim/chase_cam.py` films it (`renders/sim_flight.mp4`). The model hovers on
+front and rear motor commands of 0.67 and 0.56, which is the mass balance's 37/37/26 % split
+on these motors. It cruises at 18 m/s on 0.29 throttle (this model predicts 0.31), holds roll
+and pitch within 1.9° and 1.7° RMS through 50° banked turns, and lands 0.1 m from home. Two new
+gate checks (123 in all): `sim/` is what `make_sim.py` writes from the current design, and the
+model's static margin (16 %) is within 3 % MAC of the mass balance's (18 %).
+
+| # | Severity | Finding | Fix | Status |
+|---|---|---|---|---|
+| 12.1 | P1 flight | **The front transition could not reach `VT_ARSP_TRANS` 18 m/s.** PX4 holds the aircraft level through it with the motors tilted 40° (`VT_TILT_TRANS` 0.55). By ~15 m/s the wing carries the weight, the altitude controller throttles back, the motors' forward pull falls with it, and the airspeed levels off at 15.2 m/s. After 15 s (`VT_TRANS_TIMEOUT`) PX4 abandoned the transition, pitched up to 48° and flew home in hover. | `VT_ARSP_TRANS` 14 m/s, 1 m/s above `FW_AIRSPD_STALL`: in `PX4_GUIDE.md`, the simulation's airframe, `mass_balance.py`'s suggestion and `PLAN_3S.md`. The transition takes 9.5 s, and the aircraft speeds up to 18 m/s as a plane. The model has neither the props' thrust loss with airspeed nor their wash over the wing, so the first-flight sequence now says to watch the airspeed and switch back before the timeout. | fixed in simulation; confirm in the first transition |
+| 12.2 | P1 check | **The simulation's servos stuck on their stops.** Gazebo's physics engine (DART) ignores a servo's command while its joint rests on a position limit, and the first model's stops were the ends of the commanded range. The tilt servos sat at exactly 90° in cruise and stayed there after the back transition, so the front motors pushed forward while PX4 asked them to lift: at full front thrust the IMU felt 14 m/s² forward and almost nothing upward, and the video shows the props still facing forward. Every back transition climbed 18–85 m, dived and zoomed, or tumbled, and no PX4 setting helped. An aileron could stick the same way at full deflection. Reproduced in Gazebo alone, without PX4. | The stops sit 5° beyond the commanded range (`STOP_MARGIN_DEG` in `make_sim.py`). Every joint follows its command again, and the back transition flies on PX4's defaults: 6.3 s from 18 m/s to a hover, climbing 3.6 m, pitch at most 24°. The parameter changes tried against the fault were dropped. Not a fault of the aircraft. | fixed |
+| 12.3 | P3 check | **The aircraft rocks ±1.5° in pitch, at 0.65 Hz, in the vertical climb only.** Gazebo's lift-drag elements apply no force unless the airflow has a forward component. Climbing straight up at 1.8 m/s, the aircraft drifts a few cm/s fore and aft, and the elements switch on and off with it: the pitch acceleration follows the sign of that drift. The hover and the descent are steady. A thrust-curve model (`THR_MDL_FAC` 0.9) did not change it. | None: a limit of the model, noted in `SIMULATION.md`. | model limit |
 
 ## Round 11 — complete slicer projects, and a print audit (v0.2, Nov 3, 2026)
 

@@ -1,7 +1,7 @@
 """Regenerate everything in order: skins, PETG parts, print orientation, slicing, the complete
 slicer projects (each plate sliced again and checked), the slice previews (renders/48-50), viewer
-manifest, the print table in tracker.md, checks. The manifest and the tracker come after slicing
-because they carry each file's sliced mass and print time.
+manifest, the print table in tracker.md, the PX4 SITL model (sim/), checks. The manifest, the
+tracker and the SITL model come after slicing because they carry each file's sliced mass.
 
 Usage: python build_all.py [--no-slice]
 """
@@ -12,6 +12,7 @@ import sys
 
 import geom as G
 import make_print_ready
+import make_sim
 import make_tracker
 import make_viewer
 import skins
@@ -40,6 +41,7 @@ def main():
         # Even when a part fails to slice: the viewer needs the new geometry.
         make_viewer.main()
         make_tracker.main()
+        make_sim.main()
     here = os.path.dirname(os.path.abspath(__file__))
     code = subprocess.call([sys.executable, "check_parts.py", *args], cwd=here)
     sys.exit(code or (0 if projects_ok else 1))

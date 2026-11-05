@@ -1620,6 +1620,24 @@ def check_previews():
           else f"{len(PS.OUT)} pictures")
 
 
+def check_sim():
+    """The PX4 SITL model (make_sim.py) is current, and its aerodynamic layout agrees with the
+    design's stability numbers. Its mass and hover CG are mass_balance.py's by construction (make_sim
+    asserts both)."""
+    import make_sim as S
+    try:
+        stale, info = S.stale()
+    except (AssertionError, KeyError) as e:
+        check("PX4 SITL model (sim/) builds from the design", False, f"make_sim.py: {e!r}")
+        return
+    check("PX4 SITL model and airframe (sim/) match the design", not stale,
+          f"stale: {', '.join(stale)} (run python scripts/make_sim.py)" if stale
+          else f"{S.MODEL}, airframe {S.AIRFRAME_ID}, mass {info['r']['auw']:.0f} g, hover CG x={info['origin'][0]:.1f}")
+    sm, sm_mb = info["aero"]["static_margin"], info["r"]["static_margin"]
+    check("SITL model's static margin within 3 % MAC of mass_balance.py's", abs(sm - sm_mb) <= 0.03,
+          f"{100 * sm:.1f} % against {100 * sm_mb:.1f} %")
+
+
 if __name__ == "__main__":
     check_meshes()
     check_handedness()
@@ -1640,6 +1658,7 @@ if __name__ == "__main__":
     check_tray_straps()
     check_tips()
     check_plates()
+    check_sim()
     if "--no-gcode" not in sys.argv:
         check_gcode()
         check_web_gcode()

@@ -13,7 +13,8 @@ Each G-code file ends with a `; vtol_stl_sha256 = ...` comment naming the STL it
 metadata, so check_parts.py can tell stale files from current (git does not keep file times).
 Run on its own (`python slice_all.py [part or plate ...]`), it then refreshes
 viewer/manifest.json and tracker.md, which carry each file's sliced mass and time, the two
-complete projects (make_projects.py) and the slice previews (preview_slices.py).
+complete projects (make_projects.py), the slice previews (preview_slices.py) and the PX4 SITL
+model (make_sim.py), whose masses come from the G-code.
 """
 import glob
 import hashlib
@@ -214,14 +215,16 @@ if __name__ == "__main__":
         main(sys.argv[1:])
     finally:
         # The viewer manifest and tracker.md carry each file's sliced mass and time, the complete
-        # projects are assembled from the job 3MFs, and the slice previews are drawn from the G-code.
+        # projects are assembled from the job 3MFs, the slice previews are drawn from the G-code, and
+        # the SITL model weighs each part as sliced.
         import make_projects
+        import make_sim
         import make_tracker
         import make_viewer
         import preview_slices
         make_viewer.main()
         make_tracker.main()
-        for step in (make_projects.main, preview_slices.main):
+        for step in (make_projects.main, preview_slices.main, make_sim.main):
             try:
                 step()
             except Exception as exc:  # e.g. a file missing after a failed slice; the gate reports it

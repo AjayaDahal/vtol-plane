@@ -2,8 +2,10 @@
 
 For PX4 v1.14 or later (control allocation in the Actuators tab of QGroundControl). The
 parameter names and meanings below were checked against the PX4 source
-(`control_allocator/module.yaml`, `vtol_att_control/tiltrotor_params.yaml`). Airspeeds come
-from `scripts/mass_balance.py`. Re-check both if you change the airframe or PX4 version.
+(`control_allocator/module.yaml`, `vtol_att_control/tiltrotor_params.yaml`; the transition,
+quadchute and failsafe settings against v1.17's `vtol_att_control`, `FlightTaskTransition`,
+`commander` and `battery` code). Airspeeds come from `scripts/mass_balance.py`. Re-check both
+if you change the airframe or PX4 version. The simulation (`SIMULATION.md`) flies them.
 
 ## Airframe
 
@@ -100,14 +102,61 @@ PX4 normalizes the tilt over the servo range set above: angle = −20° + 110° 
 | `FW_AIRSPD_MIN` | 16 m/s | 1.25 × that stall |
 | `FW_AIRSPD_TRIM` | 18 m/s | cruise; CL ≈ 0.37 there |
 | `FW_AIRSPD_MAX` | 25 m/s | |
-| `VT_ARSP_TRANS` | 18 m/s | transition ends 2 m/s above `FW_AIRSPD_MIN`, at the cruise speed |
-| `VT_F_TRANS_DUR` | 5–15 s | front transition |
-| `VT_B_TRANS_DUR` | 8–15 s | back transition |
+| `VT_ARSP_TRANS` | **14 m/s** | 1 m/s above stall. The airspeed must get past it before the wing alone carries the aircraft at the transition's attitude and the motors unload (simulation, below) |
+| `FW_PSP_OFF` | **−2°** | the cruise attitude (−1.4° in the simulation), rounded down. PX4 holds it through the front transition: nose-down, the wing takes the weight later, so the airspeed keeps rising past `VT_ARSP_TRANS`. After the first flights set it to the logged cruise pitch, but no higher than −1° |
+| `VT_F_TRANS_DUR` | **8 s** | the tilt's ramp to 40°. A tiltrotor's front transition cannot end before it, whatever the airspeed |
+| `VT_F_TR_OL_TM` | **12 s** | without a valid airspeed (a loose plug, a blocked pitot) the transition ends after this time instead: at ~19.5 m/s in the simulation. With one, PX4 gives up if the airspeed is still under `VT_ARSP_BLEND` (8 m/s) by then; PX4's 6 s left 1–2 m/s of margin in the simulation |
+| `VT_B_TRANS_DUR` | 8–15 s | back transition (PX4's default, 10 s, flies well in simulation) |
+
+The simulation (`SIMULATION.md`) flies these settings through a whole mission, and stress
+variants of it (`REPORT.md`, round 13). Held level (`FW_PSP_OFF` 0), the transition levelled
+off at 15.2 m/s: with `VT_ARSP_TRANS` at 18 m/s, PX4 gave up after `VT_TRANS_TIMEOUT` (15 s),
+pitched up to 48° and flew home in hover. At −2° the aircraft passes 14 m/s after ~7.6 s, and
+the transition ends with the tilt ramp at 8 s. It would even reach 18 m/s, and still does with
+a wing that lifts as if set 1.5° steeper: the model's lift at that attitude is an estimate, and
+the real props blow on the wing.
 
 Do not copy tilt values from other builds. A value of 0.08, for example, would mean the
 motors lean 11° back in hover with this servo range. On the bench (props off), arm in
 multicopter mode and confirm the motors point straight up. If they don't, correct
 `VT_TILT_MC`, not the servo horn. Assign an RC switch to the transition before any flight.
+
+## Thrust curve and throttles
+
+- **`THR_MDL_FAC`:** measure it before the first hover. On the thrust stand, record one
+  motor's thrust at throttle 0.1, 0.2 … 1.0 with the flight prop, and fit
+  thrust/maximum = f·s² + (1 − f)·s, with s the throttle; `THR_MDL_FAC` = f. PX4 then commands
+  thrust rather than throttle, so its hover control is as tight at every throttle. In the
+  simulation, whose motors follow the square law exactly (f = 0.9), it halved the pitch error
+  in hover.
+- **`MPC_THR_HOVER`:** the hover-thrust estimator learns it in the first hover. A starting
+  value: 0.69 with `THR_MDL_FAC` at 0, or the front motors' share of their thrust (~0.5) with
+  the measured curve.
+- **`FW_THR_TRIM`:** leave PX4's 0.6 until the first cruise, then set the level-flight
+  throttle from the log. Do not copy the simulation's value (0.10 of full thrust): its props
+  keep their static thrust at 18 m/s, real ones do not. Without a valid airspeed PX4 flies on
+  `FW_THR_TRIM` alone, so a value too low flies too slowly.
+
+## Failsafes (set before the first transition)
+
+| Parameter | Value | Meaning |
+|---|---|---|
+| `COM_LOW_BAT_ACT` | **3** | Return at the critical level, land at the emergency level (PX4 only warns by default) |
+| `BAT_LOW_THR` | 0.35 | warning |
+| `BAT_CRIT_THR` | **0.25** | Return. The landing hover is the hungriest part of the flight, and the 4S motors have the least margin on a sagging pack |
+| `BAT_EMERGEN_THR` | 0.15 | land where it is |
+| `NAV_RCL_ACT` | 2 (default) | RC loss: Return |
+| `NAV_DLL_ACT` | **2** | telemetry loss: Return (leave 0 when no telemetry link is flown) |
+| `GF_ACTION`, `GF_MAX_HOR_DIST`, `GF_MAX_VER_DIST` | **3**, field | geofence: Return; radius and ceiling for the field |
+| `VT_FW_QC_P`, `VT_FW_QC_R` | **35°, 65°** | quadchute (switch to hover, then `COM_QC_ACT`, default Return) if fixed-wing pitch or roll passes these: a stall or a spin. Roll is limited to 50° (`FW_R_LIM`) |
+| `VT_FW_MIN_ALT` | **15 m** | quadchute below 15 m in fixed-wing flight |
+| `VT_QC_ALT_LOSS` | **15 m** | quadchute 15 m under the altitude setpoint in fixed-wing flight |
+| `VT_QC_T_ALT_LOSS` | **10 m** | quadchute after losing 10 m in the front transition (default 20) |
+| `WV_EN` | 1 (VTOL default) | in hover, turn the nose into the wind |
+| `ASPD_DO_CHECKS` | 7 (default) | the airspeed checks; a failed sensor is dropped |
+
+The simulation flies its check mission with these quadchute limits and none of them trips
+(`SIMULATION.md`). Part 107: VLOS only unless a BVLOS waiver is in hand.
 
 ## First-flight sequence
 
@@ -115,12 +164,21 @@ multicopter mode and confirm the motors point straight up. If they don't, correc
    servos, all four ailerons and both ruddervators.
 2. CG: balance at 433 mm aft of the nose tip with the motors tilted forward. Glide-test
    (unpowered hand toss over grass) before any powered hover.
-3. First hover: multicopter mode only, low, over open ground. Hover throttle should be around
-   70 %. Check yaw authority (differential tilt) and the vibration and compass logs before
-   flying again.
+3. First hover: multicopter mode only, low, over open ground, in light wind (under ~5 m/s:
+   the wing and V-tail catch a lot of it in hover). Hover throttle should be around
+   70 % (with `THR_MDL_FAC` at 0; with the measured curve PX4 shows thrust, about 0.5). Much
+   more means the aircraft is too heavy for its motors: land and weigh it. In a still hover
+   the airspeed should read under ~2 m/s; more means the pitot sits in the propwash, and it
+   would end the transition early. Check yaw authority (differential tilt) and the vibration
+   and compass logs before flying again.
 4. First transition at 30 m+, into wind, with the transition switch in hand. If the nose drops
-   or a wing wallows, switch back. Back-transition is the safety net.
-5. Only after clean transitions both ways: missions, then the phone-over-4G MAVLink link.
+   or a wing wallows, switch back. Back-transition is the safety net. Watch the airspeed: it
+   should pass 14 m/s within ~10 s. If it levels off below `VT_ARSP_TRANS`, switch back before
+   the 15 s timeout, which ends in a hard pitch-up (above), and set `FW_PSP_OFF` a degree
+   lower. `VT_ARSP_TRANS` is already 1 m/s above stall.
+5. After the first cruise legs, read the level-flight pitch and throttle from the log: set
+   `FW_PSP_OFF` to that pitch (but no higher than −1°) and `FW_THR_TRIM` to that throttle.
+6. Only after clean transitions both ways: missions, then the phone-over-4G MAVLink link.
 
 ## Preflight checklist (props off first, then on — every flying day)
 
@@ -140,10 +198,9 @@ multicopter mode and confirm the motors point straight up. If they don't, correc
 7. Wires: nothing chafes on carbon (it conducts) and no ESC touches an LW-PLA skin. The
    battery lead cannot reach a prop. The nose-tip air inlet and the two belly outlets are open.
 8. Wings: both lock pins in, joiners fully home.
-
-## Failsafes (set before the first transition)
-
-- Datalink and RC loss: Return or Land, never "continue mission" on a first build.
-- Geofence: radius and altitude ceiling for the field.
-- Battery failsafe: land at low voltage, not just warn.
-- Part 107: VLOS only unless a BVLOS waiver is in hand.
+9. Airspeed (props off): blow gently into the pitot and watch QGC's airspeed rise; a reading
+   that stays at 0 or goes negative means swapped or kinked tubing. Calibrate it in QGC with
+   the pitot shaded from the wind. A pitot that reads high ends the transition early.
+10. Weight, the first day and after any change: ready to fly, the 4S build may weigh at most
+    **2.03 kg**. Above that its front motors hover on more than 60 % of their near-empty
+    thrust (`mass_balance.py`). Do not fly it heavier: fit the 3S motors (`PLAN_3S.md`).

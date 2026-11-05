@@ -64,7 +64,22 @@
   pockets are the ways in (`DESIGN.md`, "Servicing"). The gate checks the hatches, the plug
   pockets and the battery-strap path.
 - The hover margin is thin (front motors ~60 % of their near-empty thrust, the gate's limit):
-  count every new gram in `mass_balance.py` and re-run the gate.
+  count every new gram in `mass_balance.py` and re-run the gate. The premortem (`REPORT.md`,
+  round 13) recommends the 3S plan's motors for exactly this reason.
+- Flight simulation (`SIMULATION.md`): `scripts/make_sim.py` writes the PX4 SITL model, its
+  world and the PX4 airframe into `sim/` from the design (masses from the sliced G-code, so
+  `build_all.py` and `slice_all.py` run it); the gate fails when `sim/` is stale. Never edit the
+  generated files. A transition, airspeed or failsafe setting changes in `make_sim.py`'s
+  airframe and `PX4_GUIDE.md` together (airspeeds in `mass_balance.py`'s suggestion too), after
+  a check flight (`sim/fly_test.py`) passes. The airframe's throttles are this model's (it runs
+  `THR_MDL_FAC` 0.90, so they are thrust fractions); never copy them into `PX4_GUIDE.md`. Keep
+  the model's joint stops outside the range PX4 commands (`STOP_MARGIN_DEG`): Gazebo holds a
+  servo that rests on its stop. `sim/variant.py` makes the premortem's stress variants of the
+  installed model (`SIMULATION.md`, "Stress tests"); re-fly them after a design change that
+  touches mass, thrust or the wing, and after the 3S build is built in. To fly it: WSL
+  Ubuntu 24.04 with PX4 v1.17.0 in `~/PX4-Autopilot` and Gazebo Harmonic, `sim/install.sh`, then
+  `make px4_sitl gz_vtol_plane`; set `GALLIUM_DRIVER=d3d12`, or Gazebo renders on the CPU. Do not
+  edit a shell script while bash is running it (bash reads it as it goes).
 - The owner is moving to a 3S build (`PLAN_3S.md`, not built in yet): his own 3S packs, Cube
   Black, Power Brick Mini, 3DR GPS and Readytosky ESCs, with SunnySky X2814 900KV motors on
   12 in props. Until it is built in, PETG plates 6 and 7 stay on hold (`tracker.md`). To build

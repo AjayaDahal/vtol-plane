@@ -224,7 +224,8 @@ def report(r):
           f"neutral point ~x={r['x_np']:.0f}, static margin ~{100 * r['static_margin']:.0f} % MAC.")
     print(f"- Suggested PX4 (stall at CL 1.0, Austin 35 C, AUW +{100 * (MASS_MARGIN - 1):.0f} %): "
           f"FW_AIRSPD_STALL {math.ceil(r['v_stall_px4'])}, FW_AIRSPD_MIN {r['fw_min']}, "
-          f"VT_ARSP_TRANS {r['fw_min'] + 2}.")
+          f"FW_AIRSPD_TRIM {r['fw_min'] + 2}, VT_ARSP_TRANS {math.ceil(r['v_stall_px4']) + 1} "
+          f"(1 m/s above stall: the simulated transition levels off near 15 m/s, REPORT.md round 12).")
 
 
 if __name__ == "__main__":

@@ -80,7 +80,7 @@ are weaker and their size varies with the foaming.
 | Flight controller, Pixhawk 6C | 1 | PX4 tilt-rotor VTOL |
 | GPS + compass module (M10 class, ≤ 50 mm round) | 1 | on the external saddle on top of `fuse_3`; a Holybro M10 also carries the safety button, LED and buzzer |
 | Digital airspeed sensor (MS4525DO class) | 1 | PX4 transitions use airspeed |
-| Pitot tube for airspeed sensor | 1 | right wing mid-section LE at y≈400 mm, outside the prop disc |
+| Pitot tube for airspeed sensor | 1 | right wing mid-section LE at y≈400 mm, outside the prop disc (tip section at y≈505 for the 3S build's 12 in props, `PLAN_3S.md`) |
 | Motor, Emax ECOII 2807 **1700KV** | 3 | Emax's 4S winding, 19×19 mm M3. The 1300KV version is the 6S winding: on 4S it gives only ~1.35 kg, too little margin at ~2.0 kg AUW. Use 1300KV only with a 6S pack |
 | ESC, 50 A, DShot (BLHeli_32 or BLHeli_S) | 3 | 1700KV + 7 in pulls ~46 A at full throttle, so 45 A is too small. Body ≤ 50 × 28 × 12 mm with heat-shrink: the three are taped into one block under the FC shelf |
 | Propeller 7×4.5 | 1 CW + 2 CCW + spares | front right CW, front left CCW, rear CCW (Stallion order) |

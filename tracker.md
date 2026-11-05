@@ -37,7 +37,11 @@ means a pre-foamed spool (see the reminders), which no flow setting fixes. Where
   Print these two plates only once the plan is built in and re-sliced, with the new motors
   measured. Everything else prints as it is now, every LW-PLA part included. Plate 6's
   unchanged parts (`battery_tray`, `gps_mount`, `pod_collar`, `tail_block`) may print early
-  from their single files; mark them printed here.
+  from their single files; mark them printed here. **Order one SunnySky X2814 900KV now and
+  thrust-test it** (`PLAN_3S.md`, step 2): plates 6 and 7 wait for its measured hole pattern,
+  and the premortem found the 4S motors too marginal for the build as it will weigh
+  (`REPORT.md`, round 13). If the wings are assembled before the motors arrive, drill the pitot
+  at y ≈ 505 in `wing_tip_r`, not at y ≈ 400 (`DESIGN.md`, "Holes and cuts made by hand").
 - [ ] **LW-PLA type: active-foaming only.** The LW-PLA files are sliced for filament that
   foams in the hot nozzle (colorFabb-style LW-PLA): it swells to about twice its volume, so the
   profile feeds only 55 % (flow 0.55 at 235 °C). Pre-foamed LW-PLA (Polymaker's, 0.9 g/cm³)

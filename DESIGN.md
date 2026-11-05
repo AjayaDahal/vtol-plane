@@ -393,7 +393,8 @@ clears the printed parts. `renders/29–33` show it inside the fuselage.
 - **Pixhawk** on the front of the `fc_shelf` (x 263–347) on 3 mm foam, arrow forward.
 - **Under the shelf**, above the battery, on Velcro: power module and servo BEC on the left,
   receiver and airspeed sensor on the right. The pitot sits in the right wing LE at y ≈ 400
-  (outside the prop disc); its tubing follows the wire hole into the fuselage.
+  (outside the prop disc; at y ≈ 505 for the 3S build's bigger props, "Holes and cuts made by
+  hand"); its tubing follows the wire hole into the fuselage.
 - **ESC block:** heat-shrink the three ESCs, stand them on edge side by side with 3 mm foam
   between them, and tape them into one 42 × 50 × 28 mm block. Hang it under the shelf's aft
   part (x 360–410) on Velcro, with two 20 mm straps that pass down through the shelf's side
@@ -448,7 +449,7 @@ clears the printed parts. `renders/29–33` show it inside the fuselage.
 | `wing_mid`, `wing_tip` bottom skins | aileron servo hatch | centred at x = 458 (between the webs at 438.7 and 484.7), y = ±325 / ±530 | the cover's outline + 0.2 mm: 34.4 × 42.4 mm |
 | V-tail panels, lower surface | ruddervator servo hatch | centred 55 mm aft of the LE, 45 mm from the panel's root edge | 34.4 × 42.4 mm, as the wing |
 | every `servo_hatch` cover | servo arm slot | where your servo's arm comes out, within 15 mm of the cover's centre spanwise | to suit the arm |
-| right `wing_mid` LE | pitot tube | y ≈ 400 | pitot OD |
+| right `wing_mid` LE | pitot tube | y ≈ 400 (4S motors). **Building the 3S plan?** Drill it at y ≈ 505 in `wing_tip_r` instead (`PLAN_3S.md`): at 400 it sits in the 12 in props' wash, reads high and ends the transition early | pitot OD |
 | tail boom | rear motor leads; ruddervator leads | x ≈ 803 (facing up, 5 mm behind the motor clamp); x ≈ 1001 and 1024 (marked through the tail block) | Ø6 |
 | rear spar, rear joiner | M2.5 lock pin | x = 480, y = ±68, through the root rib's guide hole | Ø2.5 |
 | yoke inboard arm | servo horn screws | 7 mm either side of the axis, drilled into the disc horn (step 2.6) | 2× Ø1.5, 6.5 mm deep |
@@ -561,7 +562,9 @@ animations; `?capture=gif` only the animations (Pillow writes them).
 
 - Real LW-PLA flow and wall thickness, from the test print.
 - CG and trim: balance, then glide-test before any powered transition.
-- Transition schedule and airspeeds: start from `PX4_GUIDE.md`, tune in the field.
+- Transition schedule and airspeeds: start from `PX4_GUIDE.md`, flown in simulation
+  (`SIMULATION.md`), and tune in the field. In the first transition, check that the airspeed
+  passes `VT_ARSP_TRANS` (14 m/s) well before the 15 s timeout.
 - Vibration on the printed yokes and boom: check the logs after the first hover.
 - Belly durability and compass interference: check after the first flights.
 - Temperature inside the fuselage: after the first long hover, feel the ESC block and the

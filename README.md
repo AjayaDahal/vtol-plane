@@ -16,7 +16,7 @@
 
 **[▶ Open the live 3-D viewer](https://ajayadahal.github.io/vtol-plane/)** ·
 [Design](DESIGN.md) · [Bill of materials](BOM.md) · [Print tracker](tracker.md) ·
-[PX4 setup](PX4_GUIDE.md) · [Review report](REPORT.md)
+[PX4 setup](PX4_GUIDE.md) · [Simulation](SIMULATION.md) · [Review report](REPORT.md)
 
 </div>
 
@@ -63,6 +63,17 @@ Exact numbers (from `scripts/mass_balance.py`): [`DESIGN.md`](DESIGN.md#key-numb
 <b>Servicing.</b> Every control servo sits on a screwed hatch, and the yokes lift off their pods.</td>
 </tr>
 </table>
+
+## See it fly, in simulation
+
+[![The check flight in Gazebo: the back transition, motors swinging up to hover](renders/52_sim_flight.png)](renders/sim_flight.mp4)
+
+PX4 v1.17 flies a Gazebo model generated from the design through the whole mission: vertical
+takeoff, transition, a circuit at 18 m/s, back transition and a landing on the pad
+([video](renders/sim_flight.mp4), 3 min 42 s). It changed the transition: it ends at 14 m/s
+and is flown 2° nose-down, because held level the aircraft never reaches 18. Its stress tests
+(heavier, a near-empty pack, no airspeed sensor, a wing that lifts more) say to fit the 3S
+plan's bigger motors before flying ([`SIMULATION.md`](SIMULATION.md)).
 
 ## Explore it in 3-D
 
@@ -160,13 +171,14 @@ flowchart LR
     MV --> MT["make_tracker.py<br/>tracker tables, schedule chart"]
     GC --> MB["mass_balance.py<br/>mass, CG, hover, PX4 numbers"]
     PL["payload.py<br/>electronics and cable runs"] --> MB
-    MT & MB & MP --> G{{"check_parts.py<br/>verification gate"}}
+    MB --> SIM["make_sim.py<br/>Gazebo model, PX4 airframe"]
+    MT & MB & MP & SIM --> G{{"check_parts.py<br/>verification gate"}}
 ```
 
 Change a number in `scripts/params.py` and run `python scripts/build_all.py`. It rebuilds every
 part, re-slices every file and plate, assembles the two complete slicer projects (and slices each
-of their plates again to check it), regenerates the viewer, the tracker and the schedule chart,
-and runs the gate.
+of their plates again to check it), regenerates the viewer, the tracker, the schedule chart and
+the flight simulation's model, and runs the gate.
 
 <details>
 <summary><b>What the gate checks</b></summary>
@@ -198,6 +210,8 @@ and runs the gate.
   two complete projects are what `make_projects.py` builds from them.
 - **Docs:** the viewer manifest, `tracker.md`, the schedule chart and the slice previews match the
   sliced files.
+- **Simulation:** the Gazebo model, world and PX4 airframe in `sim/` are what `make_sim.py` builds
+  from the current design, and the model's static margin agrees with the mass balance.
 
 The results and the reasoning behind every check: [`REPORT.md`](REPORT.md).
 </details>
@@ -256,6 +270,9 @@ PX4 runs it as a *Generic Tiltrotor VTOL* with three rotors and two tilt servos.
 - tilt calibration, transition airspeeds and failsafes;
 - the [first-flight sequence](PX4_GUIDE.md#first-flight-sequence).
 
+[`SIMULATION.md`](SIMULATION.md) flies these settings in PX4's simulator, on a Gazebo model
+generated from the design.
+
 ## Quick start
 
 ```bash
@@ -290,9 +307,12 @@ scripts/            Python: generators, slicing pipeline, mass balance and the g
   mass_balance.py     mass, CG, hover thrust, PX4 numbers
   make_viewer.py      viewer manifest and renders/vtol_plane.stl
   make_tracker.py     tracker tables and renders/print_schedule.svg
+  make_sim.py         the PX4 SITL model: Gazebo model, world and airframe in sim/
   check_parts.py      the verification gate
   build_all.py        all of the above, in order
   serve_viewer.py     local server for the viewer and its capture mode
+sim/                PX4 + Gazebo flight simulation: install script, check flight, chase camera,
+                      stress variants, and the generated model, world and airframe (SIMULATION.md)
 parts/assembly/     every part where it sits in the aircraft (STL)
 parts/print_ready/  every part as it lies on the bed (STL)
 gcode/              x_lwpla, s1_petg (one part per file), s1_petg_plates
@@ -306,13 +326,18 @@ renders/            pictures, animations, the exterior model and the print sched
 ## Status
 
 **v0.2: designed, sliced and verified; the test prints are next.** On the way to first flight
-([`REPORT.md`](REPORT.md#current-status-v02-nov-3-2026)):
+([`REPORT.md`](REPORT.md#current-status-v02-nov-5-2026)):
 
 1. Test prints: LW-PLA flow, spigot and servo-hatch fit, the closing tips, the wing webs.
 2. Measure the tilt servos against the pod bay before printing the pods and yokes.
 3. Weigh the real parts and re-run the mass balance. The hover margin is thin.
 4. Balance at the design CG, then glide-test.
 5. Bench tests with the props off, then the first hover, then transitions at altitude.
+
+**Simulated:** the whole mission flies in PX4 + Gazebo on `PX4_GUIDE.md`'s settings, which the
+simulation and a premortem changed: the transition ends at 14 m/s and is flown 2° nose-down,
+and the failsafes are set ([`SIMULATION.md`](SIMULATION.md)). The premortem's verdict: no
+printed part changes, but fit the 3S plan's motors before flying (`REPORT.md`, round 13).
 
 **Next design change: the 3S build** ([`PLAN_3S.md`](PLAN_3S.md), not built in yet). The
 owner flies his own 3S packs and a Cube Black, with SunnySky X2814 900KV motors on 12 in
@@ -328,6 +353,7 @@ props. Modelled, the front motors hover at about half their thrust instead of ~5
 | [`tracker.md`](tracker.md) | every print job and plate, print-time reminders, status |
 | [`SLICING.md`](SLICING.md) | slicer profiles, the pipeline and the G-code checks |
 | [`PX4_GUIDE.md`](PX4_GUIDE.md) | PX4 setup: geometry, outputs, tilt calibration, airspeeds, first flight |
+| [`SIMULATION.md`](SIMULATION.md) | the PX4 + Gazebo flight simulation: the model, the results, how to run and film it |
 | [`PLAN_3S.md`](PLAN_3S.md) | the planned 3S build with the owner's parts: motor choice, changes, what to buy |
 | [`BOM_3S.csv`](BOM_3S.csv) | the 3S build's shopping list: every item, from the owner's parts or to buy (opens in Excel) |
 | [`REPORT.md`](REPORT.md) | every design review and premortem, and the current status |

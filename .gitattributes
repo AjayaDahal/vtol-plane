@@ -1,0 +1,8 @@
+# The simulation runs under Linux (WSL): its scripts and PX4 airframe keep LF line endings on any
+# checkout. The meshes are binary.
+sim/**/*.sh text eol=lf
+sim/**/*.py text eol=lf
+sim/airframes/* text eol=lf
+sim/**/*.sdf text eol=lf
+sim/**/*.config text eol=lf
+sim/**/*.stl binary

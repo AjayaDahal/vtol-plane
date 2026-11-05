@@ -110,7 +110,7 @@ Readytosky ESCs, the Power Brick Mini and the 3DR GPS:
 | Hover current | ~33 A | 21.6 A | 21.1 A |
 | Pure hover time (80 % of the pack) | ~7.3 min | **~17.8 min** | ~14.1 min |
 | Static margin | ~18 % | ~18 % | ~18 % |
-| PX4 stall / min / transition airspeed | 13 / 16 / 18 m/s | 13 / 17 / 19 m/s | 13 / 16 / 18 m/s |
+| PX4 stall / transition / min / cruise airspeed | 13 / 14 / 16 / 18 m/s | 13 / 14 / 17 / 19 m/s | 13 / 14 / 16 / 18 m/s |
 
 The 4S column is from the Nov 3 re-slice in Anycubic Slicer Next 2.0.0.3 (`REPORT.md`, round
 11). The 3S columns were modelled on the earlier slice, whose PETG weighed ~10 g more, mostly
@@ -183,6 +183,8 @@ least 30 mm outside them.
   - `V_PACK` 11.1, `PACK_AH` 8.
 - `check_parts.py`: the pitot-to-prop-disc check, and the pitot route through `wing_tip_r`.
 - `make_viewer.py`: the motor and prop models.
+- `make_sim.py`: the propulsion constants for the 12 × 6 props (top speed, torque ratio, prop
+  mass); then fly the simulation again.
 - `plates.py`: the plate split above.
 
 ### Electronics and wiring
@@ -220,8 +222,9 @@ least 30 mm outside them.
   Brick Mini has no published PX4 values.
 - **Airspeeds:** the plane is ~14 % heavier, so it stalls ~7 % faster: 12.9 m/s with the 10 %
   mass margin, up from 12.05. `FW_AIRSPD_STALL` stays 13. `FW_AIRSPD_MIN` goes from 16 to
-  **17**, and `VT_ARSP_TRANS` and `FW_AIRSPD_TRIM` from 18 to **19**, so the transition still
-  ends at the cruise speed. Use these with either pack.
+  **17** and `FW_AIRSPD_TRIM` from 18 to **19**. `VT_ARSP_TRANS` stays 14, 1 m/s above stall:
+  a transition held level never reaches the cruise speed (`REPORT.md`, round 12). Use these
+  with either pack, and fly the simulation (`SIMULATION.md`) again once the plan is built in.
 - **Geometry:** the hover CG moves with the new masses, so `CA_ROTORn_PX` changes. Take the
   values from `mass_balance.py` once the plan is built in.
 - **Hover throttle:** about 61 %; the hover-thrust estimator learns it.
@@ -253,11 +256,21 @@ least 30 mm outside them.
    - the IPO pack's size and mass;
    - the Readytosky ESC's size, and how many you have;
    - the Pixhawk 1's flash size, if you use it.
+5. **Control with the bigger, slower props (simulated).** `sim/variant.py` flew this build in
+   the PX4 simulation (`REPORT.md`, 13.10): 2.29 kg, SunnySky's thrust on a near-empty pack,
+   and an estimated 80 ms spin-up and more torque for the 12 in props. It passes all ten
+   checks of the check flight, with the front motors at 48 % in hover (peaks 56 %) and a
+   slightly looser hover (roll 0.9° RMS against ~0.5°). The 4S motors, 10 % overweight on a
+   near-empty pack, hover at 63 % (peaks 74 %). Once the plan is built in, fly the
+   simulation again with the measured masses.
 
 ## Order of work
 
 1. **Now:** print everything except plates 6 and 7 (`tracker.md`, the `wing_tip_r` flow test
-   first, on active-foaming LW-PLA). Order the motors, props, XT60 plugs and the GPS cable.
+   first, on active-foaming LW-PLA). Order the motors, props, XT60 plugs and the GPS cable. If
+   you assemble the wings before the motors arrive, drill the pitot hole at y ≈ 505 in
+   `wing_tip_r` already ([above](#the-pitot-moves-outboard-no-printed-part-changes)), not at
+   the 4S design's y ≈ 400.
 2. **When the parts arrive:**
    - **Thrust-test one motor** before anything else. Use a 12 × 6 prop, a freshly charged
      Zeee pack and a watt meter in line, on a thrust stand or a kitchen-scale rig. Nothing may
